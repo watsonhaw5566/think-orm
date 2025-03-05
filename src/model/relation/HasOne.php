@@ -249,7 +249,7 @@ class HasOne extends OneToOne
                     $relationModel = $data[$result->$localKey];
                 }
                 // 设置关联属性
-                if (!empty($this->bindAttr)) {
+                if (!empty($this->bindAttr) && $relationModel) {
                     $result->bindRelationAttr($relationModel, $this->bindAttr);
                 } else {
                     $result->setRelation($relation, $relationModel);
@@ -294,7 +294,7 @@ class HasOne extends OneToOne
             $this->bind($bindAttr);
         }
         // 设置关联属性
-        if (!empty($this->bindAttr)) {
+        if (!empty($this->bindAttr) && $relationModel) {
             $result->bindRelationAttr($relationModel, $this->bindAttr);
         } else {
             $result->setRelation($relation, $relationModel);
