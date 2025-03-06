@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace tests\stubs;
 
 use think\Model;
-use think\model\concern\SoftDelete;
 use think\model\relation\BelongsTo;
 
 /**
@@ -12,10 +11,8 @@ use think\model\relation\BelongsTo;
  */
 class ProfileModel extends Model
 {
-    use SoftDelete;
-
     protected $name = 'profile';
-    protected $autoWriteTimestamp = true;
+    protected $autoWriteTimestamp = false;
 
     /**
      * 用户
