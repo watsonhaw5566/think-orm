@@ -97,7 +97,7 @@ trait SoftDelete
 
         if ($name && !$force) {
             // 软删除
-            $this->withEvent(false)->save([$name => $this->getDateTime($name)]);
+            $this->exists()->withEvent(false)->save([$name => $this->getDateTime($name)]);
 
             $this->withEvent(true);
 
