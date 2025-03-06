@@ -20,7 +20,7 @@ class UserModel extends Model
      */
     public function profile(): HasOne
     {
-        return $this->hasOne(ProfileModel::class, 'user_id')
+        return $this->hasOne(ProfileModel::class, 'account_id')
             ->bind([
                 'email',
                 'new_name'	=> 'nickname'
