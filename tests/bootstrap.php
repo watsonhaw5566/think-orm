@@ -34,6 +34,8 @@ Db::setConfig([
             'break_match_str' => [],
             // 数据库调试模式
             'debug' => false,
+            // 字段缓存
+            'fields_cache'    => false,
         ],
         'mysql_manage' => [
             // 数据库类型
@@ -54,6 +56,8 @@ Db::setConfig([
             'prefix' => 'test_',
             // 数据库调试模式
             'debug' => false,
+            // 开启字段缓存
+            'fields_cache'    => false,
         ],
     ],
 ]);
