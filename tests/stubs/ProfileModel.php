@@ -5,14 +5,16 @@ namespace tests\stubs;
 
 use think\Model;
 use think\model\relation\BelongsTo;
+use think\model\concern\SoftDelete;
 
 /**
  * 用户资料模型
  */
 class ProfileModel extends Model
 {
+    use SoftDelete;
     protected $name = 'profile';
-    protected $autoWriteTimestamp = false;
+    protected $autoWriteTimestamp = true;
 
     /**
      * 用户

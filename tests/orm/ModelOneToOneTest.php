@@ -28,6 +28,9 @@ class ModelOneToOneTest extends TestCase
               `user_id` int NOT NULL,
               `email` varchar(255) NOT NULL DEFAULT "",
               `nickname` varchar(255) NOT NULL DEFAULT "",
+              `update_time` datetime NOT NULL,
+              `delete_time` datetime DEFAULT NULL,
+              `create_time` datetime NOT NULL,
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;',
         ];
