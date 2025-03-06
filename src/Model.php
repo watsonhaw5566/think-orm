@@ -324,6 +324,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
 
         if (true === $where) {
             $isUpdate = false;
+            $where    = [];
         } elseif (!empty($where)) {
             $isUpdate = true;
         } else {
