@@ -28,8 +28,8 @@ class ModelHasOneThroughTest extends TestCase
                 PRIMARY KEY (`id`),
                 KEY `idx_user_id` (`user_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;',
-            'DROP TABLE IF EXISTS `test_profile`;',
-            'CREATE TABLE `test_profile` (
+            'DROP TABLE IF EXISTS `test_info`;',
+            'CREATE TABLE `test_info` (
                 `id` int NOT NULL AUTO_INCREMENT,
                 `account_id` int NOT NULL,
                 `email` varchar(255) NOT NULL DEFAULT "",
@@ -48,7 +48,7 @@ class ModelHasOneThroughTest extends TestCase
     {
         Db::execute('TRUNCATE TABLE `test_user`;');
         Db::execute('TRUNCATE TABLE `test_account`;');
-        Db::execute('TRUNCATE TABLE `test_profile`;');
+        Db::execute('TRUNCATE TABLE `test_info`;');
 
         // 创建测试数据
         $user1 = User::create([
@@ -130,5 +130,6 @@ class Account extends Model
 
 class Profile extends Model
 {
+    protected $table = 'test_info';
     protected $autoWriteTimestamp = true;
 }
