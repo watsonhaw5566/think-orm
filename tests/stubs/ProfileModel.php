@@ -20,6 +20,6 @@ class ProfileModel extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(UserModel::class, 'account_id');
+        return $this->belongsTo(UserModel::class, 'user_id');
     }
 }

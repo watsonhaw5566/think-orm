@@ -25,7 +25,7 @@ class ModelOneToOneTest extends TestCase
             'DROP TABLE IF EXISTS `test_profile`;',
             'CREATE TABLE `test_profile` (
               `id` int NOT NULL AUTO_INCREMENT,
-              `account_id` int NOT NULL,
+              `user_id` int NOT NULL,
               `email` varchar(255) NOT NULL DEFAULT "",
               `nickname` varchar(255) NOT NULL DEFAULT "",
               PRIMARY KEY (`id`)
