@@ -305,19 +305,16 @@ class MorphToMany extends BelongsToMany
 
         if (!empty($id)) {
             // 保存中间表数据
-            $pivot[$this->localKey] = $this->parent->getKey();
+            $pivot[$this->localKey]  = $this->parent->getKey();
             $pivot[$this->morphType] = $this->morphClass;
-            $ids = (array) $id;
 
             $result = [];
-
-            foreach ($ids as $id) {
+            foreach ((array) $ids as $id) {
                 $pivot[$this->foreignKey] = $id;
+                $object = $this->newPivot();
+                $object->replace()->save($pivot);
 
-                $this->pivot->replace()
-                    ->data([])
-                    ->save($pivot);
-                $result[] = $this->newPivot($pivot);
+                $result[] = $object;
             }
 
             if (count($result) == 1) {
@@ -385,7 +382,7 @@ class MorphToMany extends BelongsToMany
             $pivot[] = [$this->foreignKey, is_array($id) ? 'in' : '=', $id];
         }
 
-        $result = $this->pivot->where($pivot)->delete();
+        $result = $this->newPivot()->where($pivot)->delete();
 
         // 删除关联表数据
         if (isset($id) && $relationDel) {
@@ -438,7 +435,9 @@ class MorphToMany extends BelongsToMany
             if (!in_array($id, $current)) {
                 $this->attach($id, $attributes);
                 $changes['attached'][] = $id;
-            } elseif (count($attributes) > 0 && $this->attach($id, $attributes)) {
+            } elseif (count($attributes) > 0) {
+                $this->detach($id);
+                $this->attach($id, $attributes);
                 $changes['updated'][] = $id;
             }
         }

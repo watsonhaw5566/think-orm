@@ -571,7 +571,7 @@ class BelongsToMany extends Relation
             foreach ($ids as $id) {
                 $pivot[$this->foreignKey] = $id;
 
-                $object = $this->newPivot();
+                $object   = $this->newPivot();
                 $object->replace()->save($pivot);
                 $result[] = $object;
             }
@@ -638,7 +638,7 @@ class BelongsToMany extends Relation
             $pivot[] = [$this->foreignKey, is_array($id) ? 'in' : '=', $id];
         }
 
-        $result = $this->pivot->where($pivot)->delete();
+        $result = $this->newPivot()->where($pivot)->delete();
 
         // 删除关联表数据
         if (isset($id) && $relationDel) {
@@ -690,7 +690,9 @@ class BelongsToMany extends Relation
             if (!in_array($id, $current)) {
                 $this->attach($id, $attributes);
                 $changes['attached'][] = $id;
-            } elseif (count($attributes) > 0 && $this->attach($id, $attributes)) {
+            } elseif (count($attributes) > 0) {
+                $this->detach($id);
+                $this->attach($id, $attributes);
                 $changes['updated'][] = $id;
             }
         }
