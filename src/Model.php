@@ -443,7 +443,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         $origin = $this->getOrigin();
         $change = [];
         foreach ($data as $name => $val) {
-            if (array_key_exists($name, $origin) && $val !== $origin[$name]) {
+            if (!array_key_exists($name, $origin) || $val !== $origin[$name]) {
                 $change[$name] = $val;
             }
         }

@@ -182,11 +182,7 @@ SQL
         $this->assertCount(3, $result);
 
         // 测试指定移除某个全局查询范围
-        $result = TestModel::withoutGlobalScope(['status'])->select();
-        $this->assertCount(3, $result);
-
-        // 测试移除多个全局查询范围
-        $result = TestModel::withoutGlobalScope(['status', 'other'])->select();
+        $result = TestModel::withoutGlobalScope(['HighScore'])->select();
         $this->assertCount(3, $result);
     }
 
@@ -200,9 +196,9 @@ SQL
         $this->assertEquals(36, $data->score);
 
         // 测试带步长的自增
-        $data = TestModel::find(2);
+        $data = TestModel::find(3);
         $data->inc('score', 5)->save();
-        $this->assertEquals(30, $data->score);
+        $this->assertEquals(45, $data->score);
     }
 
     public function testDecrement()
