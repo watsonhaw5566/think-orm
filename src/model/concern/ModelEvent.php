@@ -30,9 +30,7 @@ trait ModelEvent
      * @return void
      */
     public static function setEvent($event)
-    {
-
-    }
+    {}
 
     /**
      * 当前操作的事件响应.

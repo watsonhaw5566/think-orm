@@ -26,9 +26,7 @@ trait DbConnect
      * 设置Db对象实例.（用于兼容）
      */
     public static function setDb($db)
-    {
-
-    }
+    {}
 
     /**
      * 获取Db对象实例.

@@ -104,8 +104,8 @@ class HasManyThrough extends Relation
         $throughTable  = $this->through->getTable();
         $pk            = $this->throughPk;
         $throughKey    = $this->throughKey;
-        $relation      = new $this->model();
-        $relationTable = $relation->getTable();
+        $relation      = Str::snake(class_basename($this->model));
+        $relationTable = (new $this->model())->getTable();
         $softDelete    = $this->query->getOptions('soft_delete');
 
         if ('*' != $id) {
@@ -115,11 +115,11 @@ class HasManyThrough extends Relation
 
         return $query->field($model . '.*')
             ->join($throughTable, $throughTable . '.' . $this->foreignKey . '=' . $model . '.' . $this->localKey)
-            ->join($relationTable, $relationTable . '.' . $throughKey . '=' . $throughTable . '.' . $this->throughPk)
+            ->join($relationTable . ' ' . $relation, $relation . '.' . $throughKey . '=' . $throughTable . '.' . $this->throughPk)
             ->when($softDelete, function ($query) use ($softDelete, $relationTable) {
                 $query->where($relationTable . strstr($softDelete[0], '.'), '=' == $softDelete[1][0] ? $softDelete[1][1] : null);
             })
-            ->group($relationTable . '.' . $this->throughKey)
+            ->group($relation . '.' . $this->throughKey)
             ->having('count(' . $id . ')' . $operator . $count);
     }
 
@@ -139,6 +139,7 @@ class HasManyThrough extends Relation
         $throughTable = $this->through->getTable();
         $pk           = $this->throughPk;
         $throughKey   = $this->throughKey;
+        $relation     = Str::snake(class_basename($this->model));
         $modelTable   = (new $this->model())->getTable();
 
         if (is_array($where)) {
@@ -157,11 +158,11 @@ class HasManyThrough extends Relation
         return $query->alias($model)
             ->via($model)
             ->join($throughTable, $throughTable . '.' . $this->foreignKey . '=' . $model . '.' . $this->localKey)
-            ->join($modelTable, $modelTable . '.' . $throughKey . '=' . $throughTable . '.' . $this->throughPk, $joinType)
+            ->join($modelTable . ' ' . $relation, $relation . '.' . $throughKey . '=' . $throughTable . '.' . $this->throughPk, $joinType)
             ->when($softDelete, function ($query) use ($softDelete, $modelTable) {
                 $query->where($modelTable . strstr($softDelete[0], '.'), '=' == $softDelete[1][0] ? $softDelete[1][1] : null);
             })
-            ->group($modelTable . '.' . $this->throughKey)
+            ->group($relation . '.' . $this->throughKey)
             ->where(function ($query) use ($where) {
                 $query->where($where);
             })
@@ -309,7 +310,7 @@ class HasManyThrough extends Relation
      *
      * @return mixed
      */
-    public function relationCount(Model $result, ?Closure $closure = null, string $aggregate = 'count', string $field = 'id', ?string &$name = null)
+    public function relationCount(Model $result, ?Closure $closure = null, string $aggregate = 'count', string $field = 'id',  ? string &$name = null)
     {
         $localKey = $this->localKey;
 
@@ -349,7 +350,7 @@ class HasManyThrough extends Relation
      *
      * @return string
      */
-    public function getRelationCountQuery(?Closure $closure = null, string $aggregate = 'count', string $field = 'id', ?string &$name = null): string
+    public function getRelationCountQuery(?Closure $closure = null, string $aggregate = 'count', string $field = 'id',  ? string &$name = null) : string
     {
         if ($closure) {
             $closure($this->query, $name);
@@ -378,7 +379,7 @@ class HasManyThrough extends Relation
      *
      * @return void
      */
-    protected function baseQuery(): void
+    protected function baseQuery() : void
     {
         if (empty($this->baseQuery) && $this->parent->getData()) {
             $alias        = Str::snake(class_basename($this->model));

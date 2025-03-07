@@ -64,7 +64,7 @@ trait AutoWriteData
      */
     protected function autoDateTime(array &$data, bool $update, array $allow)
     {
-        $autoDateTime   = $this->getOption('autoWriteTimestamp', true);
+        $autoDateTime = $this->getOption('autoWriteTimestamp', true);
         if ($autoDateTime) {
             $dateTimeFields = [$this->getOption('updateTime')];
             if (!$update) {
@@ -84,26 +84,25 @@ trait AutoWriteData
      * 获取当前时间.
      *
      * @param string $field 字段名
-     * @return void
+     * @return mixed
      */
     protected function getDateTime(string $field)
     {
         $type = $this->getFields($field);
-        if (in_array($type, ['int','integer'])) {
-            $value = time();
+        if (in_array($type, ['int', 'integer'])) {
+            return time();
         } elseif (is_subclass_of($type, Typeable::class)) {
-            $value = $type::from('now', $this)->value();
+            return $type::from('now', $this)->value();
         } elseif (str_contains($type, '\\')) {
-            // 对象数据写入
             $obj = new $type();
             if ($obj instanceof Stringable) {
-                // 对象数据写入
-                $value = $obj->__toString();
+                return $obj->__toString();
+            } else {
+                return (string) $obj;
             }
         } else {
-            $value = DateTime::from('now', $this)->value();
+            return DateTime::from('now', $this)->value();
         }
-        return $value;
     }
 
     public function getAutoWriteTimestamp()
@@ -130,5 +129,5 @@ trait AutoWriteData
     {
         $this->setOption('createTime', $createTime);
         $this->setOption('updateTime', $updateTime);
-    }    
+    }
 }

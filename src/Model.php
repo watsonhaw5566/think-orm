@@ -9,7 +9,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace think;
 
@@ -40,7 +40,7 @@ use WeakMap;
  * @method static mixed onBeforeDelete(Model $model)  before_write事件定义
  * @method static void  onAfterDelete(Model $model)   after_delete事件定义
  * @method static void  onBeforeRestore(Model $model) before_restore事件定义
- * @method static void  onAfterRestore(Model $model)  after_restore事件定义 
+ * @method static void  onAfterRestore(Model $model)  after_restore事件定义
  */
 abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonable, Modelable
 {
@@ -51,7 +51,6 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     use model\concern\ModelEvent;
     use model\concern\RelationShip;
 
-
     private static ?WeakMap $weakMap = null;
 
     /**
@@ -59,16 +58,12 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      *
      * @var Closure[]
      */
-    protected static $_maker = [];
+    protected static array $_maker = [];
 
     /**
      * 设置服务注入.
-     *
-     * @param Closure $maker
-     *
-     * @return void
      */
-    public static function maker(Closure $maker)
+    public static function maker(Closure $maker): void
     {
         static::$_maker[] = $maker;
     }
@@ -121,29 +116,29 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         }
 
         self::$weakMap[$this] = [
-            'get'           => [],
-            'data'          => [],
-            'origin'        => [],
-            'relation'      => [],
-            'together'      => [],
-            'allow'         => [],
-            'withAttr'      => [],
-            'schema'        => $options['schema'] ?? [],
-            'updateTime'    => $options['updateTtime'] ?? 'update_time',
-            'createTime'    => $options['createTime'] ?? 'create_time',
-            'suffix'        => $options['suffix'] ?? '',
-            'pk'            => $options['pk'] ?? 'id',
-            'validate'      => $options['validate'] ?? $this->parseValidate(),
-            'type'          => $options['type'] ?? [],
-            'readonly'      => $options['readonly'] ?? [],
-            'disuse'        => $options['disuse'] ?? [],
-            'hidden'        => $options['hidden'] ?? [],
-            'visible'       => $options['visible'] ?? [],
-            'append'        => $options['append'] ?? [],
-            'mapping'       => $options['mapping'] ?? [],
-            'strict'        => $options['strict'] ?? true,
-            'bindAttr'      => $options['bindAttr'] ?? [],
-            'autoRelation'  => $options['autoRelation'] ?? [],
+            'get'          => [],
+            'data'         => [],
+            'origin'       => [],
+            'relation'     => [],
+            'together'     => [],
+            'allow'        => [],
+            'withAttr'     => [],
+            'schema'       => $options['schema'] ?? [],
+            'updateTime'   => $options['updateTime'] ?? 'update_time',
+            'createTime'   => $options['createTime'] ?? 'create_time',
+            'suffix'       => $options['suffix'] ?? '',
+            'pk'           => $options['pk'] ?? 'id',
+            'validate'     => $options['validate'] ?? $this->parseValidate(),
+            'type'         => $options['type'] ?? [],
+            'readonly'     => $options['readonly'] ?? [],
+            'disuse'       => $options['disuse'] ?? [],
+            'hidden'       => $options['hidden'] ?? [],
+            'visible'      => $options['visible'] ?? [],
+            'append'       => $options['append'] ?? [],
+            'mapping'      => $options['mapping'] ?? [],
+            'strict'       => $options['strict'] ?? true,
+            'bindAttr'     => $options['bindAttr'] ?? [],
+            'autoRelation' => $options['autoRelation'] ?? [],
         ];
 
         // 设置额外参数
@@ -170,7 +165,8 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      *
      * @return void
      */
-    protected function init() {}
+    protected function init()
+    {}
 
     /**
      * 在实体模型中定义 返回相关配置参数.
@@ -187,7 +183,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      * @param array  $options  值
      * @return void
      */
-    public function setOptions(array $options)
+    public function setOptions(array $options): void
     {
         foreach ($options as $name => $value) {
             $this->setOption($name, $value);
@@ -225,12 +221,12 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         return self::$weakMap[$this][$name] ?? $default;
     }
 
-    private function setWeakData($key, $name, $value)
+    private function setWeakData(string $key, string $name, $value): void
     {
         self::$weakMap[$this][$key][$name] = $value;
     }
 
-    private function getWeakData($key, $name, $default = null)
+    private function getWeakData(string $key, string $name, $default = null)
     {
         return self::$weakMap[$this][$key][$name] ?? $default;
     }
@@ -242,7 +238,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      *
      * @return Model|Entity
      */
-    public function newInstance(array $data = [])
+    public function newInstance(array $data = []): Model | Entity
     {
         $class = str_replace('\\model\\', '\\entity\\', static::class);
         $model = new static($data);
@@ -255,12 +251,12 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         return $model;
     }
 
-    public function entity(Entity $entity)
+    public function entity(Entity $entity): void
     {
         $this->setOption('entity', $entity);
     }
 
-    public function getEntity()
+    public function getEntity(): ?Entity
     {
         return $this->getOption('entity');
     }
@@ -285,7 +281,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      * @throws InvalidArgumentException
      * @return void
      */
-    protected function validate(array $data, array $allow = [])
+    protected function validate(array $data, array $allow = []): void
     {
         $validater = $this->getOption('validate');
         if (!empty($validater) && class_exists('think\validate')) {
@@ -335,33 +331,8 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
             return false;
         }
 
-        $data     = $this->getData();
-        $origin   = $this->getOrigin();
-        $allow    = $this->getOption('field') ?: array_keys($this->getFields());
-        $readonly = $this->getOption('readonly');
-        $disuse   = $this->getOption('disuse');
-        $allow    = array_diff($allow, $readonly, $disuse);
+        [$data, $relations, $allow] = $this->validateAndFilterData($isUpdate);
 
-        // 验证数据
-        $this->validate($data, $allow);
-
-        $relations = [];
-        foreach ($data as $name => &$val) {
-            if ($val instanceof Modelable) {
-                $relations[$name] = $val;
-                unset($data[$name]);
-            } elseif ($val instanceof Collection || !in_array($name, $allow)) {
-                // 禁止更新字段（包括只读、废弃和数据集）
-                unset($data[$name]);
-            } elseif ($isUpdate && !$this->isForce() && $this->isNotRequireUpdate($name, $val, $origin)) {
-                // 无需更新字段
-                unset($data[$name]);
-            } else {
-                // 统一调用修改器或自动类型转换后写入
-                $val = $this->setWithAttr($name, $val, $data);
-            }
-        }
- 
         if (empty($data)) {
             // 保存关联数据
             if ($isUpdate && $this->getOption('together')) {
@@ -393,6 +364,40 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     }
 
     /**
+     * 验证和过滤数据
+     * @param bool $isUpdate 是否更新
+     * @return array [$data, $relations, $allow]
+     */
+    protected function validateAndFilterData(bool $isUpdate): array
+    {
+        $data     = $this->getData();
+        $origin   = $this->getOrigin();
+        $allow    = $this->getOption('field') ?: array_keys($this->getFields());
+        $readonly = $this->getOption('readonly');
+        $disuse   = $this->getOption('disuse');
+        $allow    = array_diff($allow, $readonly, $disuse);
+
+        // 验证数据
+        $this->validate($data, $allow);
+
+        $relations = [];
+        foreach ($data as $name => &$val) {
+            if ($val instanceof Modelable) {
+                $relations[$name] = $val;
+                unset($data[$name]);
+            } elseif ($val instanceof Collection || !in_array($name, $allow)) {
+                unset($data[$name]);
+            } elseif ($isUpdate && !$this->isForce() && $this->isNotRequireUpdate($name, $val, $origin)) {
+                unset($data[$name]);
+            } else {
+                $val = $this->setWithAttr($name, $val, $data);
+            }
+        }
+
+        return [$data, $relations, $allow];
+    }
+
+    /**
      * 数据检查.
      * @param array $data 数据
      * @param bool  $isUpdate 是否更新
@@ -411,7 +416,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         } else {
             $db->setKey($this->getKey());
         }
-        return $db;        
+        return $db;
     }
 
     /**
@@ -489,9 +494,9 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     /**
      * 刷新模型数据.
      *
-     * @return $this
+     * @return static
      */
-    public function refresh()
+    public function refresh(): static
     {
         if ($this->isExists()) {
             $data = $this->getQuery()->find($this->getKey())->getData();
@@ -621,7 +626,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         }
         return true;
     }
-    
+
     /**
      * 字段值增长
      *

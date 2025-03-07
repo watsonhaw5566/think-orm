@@ -112,7 +112,7 @@ trait Conversion
                         $val->$key($attr);
                     }
                 }
-                $item[$name] = $val->toarray();
+                $item[$name] = $val->toArray();
             } elseif (empty($allow) || in_array($name, $allow)) {
                 // 通过获取器输出
                 $item[$name] = $this->getWithAttr($name, $val, $data);
@@ -149,7 +149,7 @@ trait Conversion
      */
     public function tojson(int $options = JSON_UNESCAPED_UNICODE): string
     {
-        return json_encode($this->toarray(), $options);
+        return json_encode($this->toArray(), $options);
     }
 
     /**
