@@ -4,8 +4,6 @@ declare(strict_types=1);
 namespace tests\orm;
 
 use PHPUnit\Framework\TestCase;
-use tests\stubs\JsonModel;
-use tests\stubs\JsonObjectModel;
 use think\facade\Db;
 use think\Model;
 
@@ -125,4 +123,18 @@ SQL
         $this->assertCount(1, $results);
         $this->assertContains('mysql', $results[0]->tags);
     }
+}
+
+class JsonModel extends Model
+{
+    protected $table = 'test_json_model';
+    protected $autoWriteTimestamp = true;
+    protected $jsonAssoc = true;
+}
+
+class JsonObjectModel extends Model
+{
+    protected $table = 'test_json_model';
+    protected $autoWriteTimestamp = true;
+    protected $jsonAssoc = false;
 }

@@ -10,14 +10,14 @@ use function array_unique;
 use function array_values;
 use function tests\array_column_ex;
 use function tests\array_value_sort;
-use tests\Base;
+use PHPUnit\Framework\TestCase;
 use think\Collection;
 use think\db\exception\DbException;
 use think\db\Raw;
 use think\Exception as ThinkException;
 use think\facade\Db;
 
-class DbTest extends Base
+class DbTest extends TestCase
 {
     protected static $testUserData;
 

@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace tests\orm;
 
 use Exception;
-use tests\Base;
+use PHPUnit\Framework\TestCase;
+use PHPUnit\Runner\Version;
 use function tests\mysql_kill_connection;
 use function tests\query_mysql_connection_id;
 use think\facade\Db;
 use Throwable;
 
-class DbTransactionTest extends Base
+class DbTransactionTest extends TestCase
 {
     protected static $testData;
 
@@ -236,5 +237,14 @@ SQL
             '3-7-a',
             Db::table('test_tran_a')->where('id', '=', 3)->value('username')
         );
+    }
+
+    protected function proxyAssertMatchesRegularExpression(string $pattern, string $string, string $message = '')
+    {
+        if (version_compare(Version::id(), '9.1', '>=')) {
+            $this->assertMatchesRegularExpression($pattern, $string, $message);
+        } else {
+            $this->assertRegExp($pattern, $string, $message);
+        }
     }
 }

@@ -2,11 +2,11 @@
 
 namespace tests\orm;
 
-use tests\Base;
+use PHPUnit\Framework\TestCase;
 use think\Collection;
 use think\facade\Db;
 
-class DbJsonFieldsTest extends Base
+class DbJsonFieldsTest extends TestCase
 {
     protected static string $table = 'test_goods';
 

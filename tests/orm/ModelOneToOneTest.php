@@ -4,9 +4,11 @@ declare (strict_types = 1);
 namespace tests\orm;
 
 use PHPUnit\Framework\TestCase;
-use tests\stubs\ProfileModel;
-use tests\stubs\UserModel;
 use think\facade\Db;
+use think\Model;
+use think\model\relation\HasOne;
+use think\model\relation\BelongsTo;
+use think\model\concern\SoftDelete;
 
 /**
  * 模型一对一关联
@@ -181,5 +183,46 @@ class ModelOneToOneTest extends TestCase
 
         // 验证关联数据是否被删除
         $this->assertNull(ProfileModel::find($profileId));
+    }
+}
+
+/**
+ * 用户模型
+ */
+class UserModel extends Model
+{
+    protected $name = 'user';
+    protected $autoWriteTimestamp = false;
+
+    /**
+     * 用户资料
+     * @return HasOne
+     */
+    public function profile(): HasOne
+    {
+        return $this->hasOne(ProfileModel::class, 'user_id')
+            ->bind([
+                'email',
+                'new_name'  => 'nickname'
+            ]);
+    }
+}
+
+/**
+ * 用户资料模型
+ */
+class ProfileModel extends Model
+{
+    use SoftDelete;
+    protected $name = 'profile';
+    protected $autoWriteTimestamp = true;
+
+    /**
+     * 用户
+     * @return BelongsTo
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(UserModel::class, 'user_id');
     }
 }

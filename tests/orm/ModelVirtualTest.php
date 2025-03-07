@@ -4,8 +4,14 @@ declare (strict_types = 1);
 namespace tests\orm;
 
 use PHPUnit\Framework\TestCase;
-use tests\stubs\VirtualModel;
 use think\model\Virtual;
+
+/**
+ * 虚拟模型
+ */
+class VirtualModel extends Virtual
+{
+}
 
 /**
  * 虚拟模型测试

@@ -4,11 +4,13 @@ declare (strict_types = 1);
 namespace tests\orm;
 
 use PHPUnit\Framework\TestCase;
-use tests\stubs\FieldTypeModel;
 use tests\stubs\UserStatus;
 use think\facade\Db;
+use think\Model;
 use think\model\type\Date;
 use think\model\type\DateTime;
+
+
 
 class ModelFieldTypeTest extends TestCase
 {
@@ -209,5 +211,32 @@ SQL
         $appendArray = $result->toArray();
         $this->assertArrayHasKey('full_name', $appendArray);
         $this->assertEquals('test_' . $testData['string_field'], $appendArray['full_name']);
+    }    
+}
+
+class FieldTypeModel extends Model
+{
+    protected $table = 'test_field_type';
+    protected $autoWriteTimestamp = false;
+
+    protected $type = [
+        'array_field'   => 'array',
+        'object_field'  => 'object',
+        'bool_field'    =>  'bool',
+    ];
+
+    public function __construct(array $data = [])
+    {
+        if (PHP_VERSION_ID >= 80100) {
+            $this->type['status'] = UserStatus::class;
+        }
+
+        parent::__construct($data);
+    }
+
+    // 定义获取器
+    public function getFullNameAttr()
+    {
+        return 'test_' . $this->string_field;
     }
 }
