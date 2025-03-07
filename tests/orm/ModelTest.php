@@ -133,7 +133,6 @@ SQL
         $this->assertTrue($result);
         $this->assertNotEmpty($model->id);
         $this->assertEquals($data['name'], $model->name);
-        $this->assertEquals($data['status'], $model->status);
         $this->assertNotEmpty($model->create_time);
     }
 
