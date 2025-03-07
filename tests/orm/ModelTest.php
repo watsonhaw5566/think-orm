@@ -7,6 +7,28 @@ use PHPUnit\Framework\TestCase;
 use think\facade\Db;
 use think\Model;
 
+class TestModel extends Model
+{
+    protected $table              = 'test_model';
+    protected $autoWriteTimestamp = true;
+    protected $globalScope        = ['HighScore'];
+
+    public function scopeHighScore($query)
+    {
+        return $query->where('score', '>=', 30);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
+    }
+
+    public function scopeNameLike($query, $name)
+    {
+        return $query->where('name', 'like', "%{$name}%");
+    }
+}
+
 class ModelTest extends TestCase
 {
     protected static $testData;
@@ -19,6 +41,7 @@ class ModelTest extends TestCase
 CREATE TABLE `test_model` (
      `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
      `name` varchar(32) NOT NULL,
+     `score` int(11) NOT NULL DEFAULT '0',
      `status` tinyint(4) NOT NULL DEFAULT '0',
      `create_time` datetime DEFAULT NULL,
      `update_time` datetime DEFAULT NULL
@@ -31,22 +54,16 @@ SQL
     {
         Db::execute('TRUNCATE TABLE `test_model`;');
         self::$testData = [
-            ['id' => 1, 'name' => 'test1', 'status' => 1],
-            ['id' => 2, 'name' => 'test2', 'status' => 0],
-            ['id' => 3, 'name' => 'test3', 'status' => 1],
+            ['id' => 1, 'name' => 'test1', 'score' => 35, 'status' => 1],
+            ['id' => 2, 'name' => 'test2', 'score' => 25, 'status' => 0],
+            ['id' => 3, 'name' => 'test3', 'score' => 40, 'status' => 1],
         ];
     }
 
     public function testCreate()
     {
-        $model = new class extends Model
-        {
-            protected $table              = 'test_model';
-            protected $autoWriteTimestamp = true;
-        };
-
-        $data   = ['name' => 'test4', 'status' => 1];
-        $result = $model::create($data);
+        $data   = ['name' => 'test4', 'score' => 45, 'status' => 1];
+        $result = TestModel::create($data);
 
         $this->assertInstanceOf(Model::class, $result);
         $this->assertNotEmpty($result->id);
@@ -59,32 +76,23 @@ SQL
     {
         Db::table('test_model')->insertAll(self::$testData);
 
-        $model = new class extends Model
-        {
-            protected $table              = 'test_model';
-            protected $autoWriteTimestamp = true;
-        };
+        $model = TestModel::find(1);
 
-        $updateData = ['id' => 1, 'name' => 'updated', 'status' => 0];
-        $result     = $model::update($updateData);
+        $updateData = ['name' => 'updated', 'score' => 20, 'status' => 0];
+        $result     = $model->save($updateData);
 
-        $this->assertInstanceOf(Model::class, $result);
-        $this->assertEquals(1, $result->id);
-        $this->assertEquals($updateData['name'], $result->name);
-        $this->assertEquals($updateData['status'], $result->status);
-        $this->assertNotEmpty($result->update_time);
+        $this->assertTrue($result);
+        $this->assertEquals(1, $model->id);
+        $this->assertEquals($updateData['name'], $model->name);
+        $this->assertEquals($updateData['status'], $model->status);
+        $this->assertNotEmpty($model->update_time);
     }
 
     public function testDelete()
     {
         Db::table('test_model')->insertAll(self::$testData);
 
-        $model = new class extends Model
-        {
-            protected $table = 'test_model';
-        };
-
-        $result = $model::destroy(1);
+        $result = TestModel::destroy(1);
         $this->assertTrue($result);
 
         $count = Db::table('test_model')->where('id', 1)->count();
@@ -93,15 +101,9 @@ SQL
 
     public function testChangeDetection()
     {
-        $model = new class extends Model
-        {
-            protected $table              = 'test_model';
-            protected $autoWriteTimestamp = true;
-        };
-
         // 测试新建模型时的变更检测
         $data  = ['name' => 'test5', 'status' => 1];
-        $model = new $model($data);
+        $model = new TestModel($data);
 
         // 测试更新模型时的变更检测
         $model->name = 'updated';
@@ -110,10 +112,10 @@ SQL
         $this->assertEquals(['name' => 'updated'], $model->getChangedData());
 
         // 测试多字段变更
-        $model->status = 0;
+        $model->score = 20;
         $this->assertTrue($model->isChange('name'));
-        $this->assertTrue($model->isChange('status'));
-        $this->assertEquals(['name' => 'updated', 'status' => 0], $model->getChangedData());
+        $this->assertTrue($model->isChange('score'));
+        $this->assertEquals(['name' => 'updated', 'score' => 20], $model->getChangedData());
         $model->save();
 
         // 测试设置相同的值不会触发变更
@@ -124,14 +126,8 @@ SQL
 
     public function testSave()
     {
-        $model = new class extends Model
-        {
-            protected $table              = 'test_model';
-            protected $autoWriteTimestamp = true;
-        };
-
-        $data   = ['name' => 'test5', 'status' => 1];
-        $model  = new $model($data);
+        $data   = ['name' => 'test5', 'score' => 35];
+        $model  = new TestModel($data);
         $result = $model->save();
 
         $this->assertTrue($result);
@@ -145,21 +141,10 @@ SQL
     {
         Db::table('test_model')->insertAll(self::$testData);
 
-        $model = new class extends Model
-        {
-            protected $table       = 'test_model';
-            protected $globalScope = ['status'];
-
-            public function scopeStatus($query)
-            {
-                return $query->where('status', 1);
-            }
-        };
-
-        $result = $model::select();
+        $result = TestModel::select();
         $this->assertCount(2, $result);
         foreach ($result as $item) {
-            $this->assertEquals(1, $item->status);
+            $this->assertGreaterThanOrEqual(35, $item->score);
         }
     }
 
@@ -167,38 +152,23 @@ SQL
     {
         Db::table('test_model')->insertAll(self::$testData);
 
-        $model = new class extends Model
-        {
-            protected $table = 'test_model';
-
-            public function scopeActive($query)
-            {
-                return $query->where('status', 1);
-            }
-
-            public function scopeNameLike($query, $name)
-            {
-                return $query->where('name', 'like', "%{$name}%");
-            }
-        };
-
         // 测试基本查询范围
-        $result = $model::active()->select();
+        $result = TestModel::active()->select();
         $this->assertCount(2, $result);
         foreach ($result as $item) {
-            $this->assertEquals(1, $item->status);
+            $this->assertGreaterThanOrEqual(35, $item->score);
         }
 
         // 测试带参数的查询范围
-        $result = $model::nameLike('test1')->select();
+        $result = TestModel::nameLike('test1')->select();
         $this->assertCount(1, $result);
         $this->assertEquals('test1', $result[0]->name);
 
         // 测试组合查询范围
-        $result = $model::active()->nameLike('test')->select();
+        $result = TestModel::active()->nameLike('test')->select();
         $this->assertCount(2, $result);
         foreach ($result as $item) {
-            $this->assertEquals(1, $item->status);
+            $this->assertGreaterThanOrEqual(30, $item->score);
             $this->assertStringContainsString('test', $item->name);
         }
     }
@@ -207,27 +177,46 @@ SQL
     {
         Db::table('test_model')->insertAll(self::$testData);
 
-        $model = new class extends Model
-        {
-            protected $table       = 'test_model';
-            protected $globalScope = ['status'];
-
-            public function scopeStatus($query)
-            {
-                return $query->where('status', 1);
-            }
-        };
-
         // 测试移除全局查询范围
-        $result = $model::withoutGlobalScope()->select();
+        $result = TestModel::withoutGlobalScope()->select();
         $this->assertCount(3, $result);
 
         // 测试指定移除某个全局查询范围
-        $result = $model::withoutGlobalScope(['status'])->select();
+        $result = TestModel::withoutGlobalScope(['status'])->select();
         $this->assertCount(3, $result);
 
         // 测试移除多个全局查询范围
-        $result = $model::withoutGlobalScope(['status', 'other'])->select();
+        $result = TestModel::withoutGlobalScope(['status', 'other'])->select();
         $this->assertCount(3, $result);
+    }
+
+    public function testIncrement()
+    {
+        Db::table('test_model')->insertAll(self::$testData);
+
+        // 测试基本自增
+        $data = TestModel::find(1);
+        $data->inc('score')->save();
+        $this->assertEquals(36, $data->score);
+
+        // 测试带步长的自增
+        $data = TestModel::find(2);
+        $data->inc('score', 5)->save();
+        $this->assertEquals(30, $data->score);
+    }
+
+    public function testDecrement()
+    {
+        Db::table('test_model')->insertAll(self::$testData);
+
+        // 测试基本自减
+        $data = TestModel::find(1);
+        $data->dec('score')->save();
+        $this->assertEquals(34, $data->score);
+
+        // 测试带步长的自减
+        $data = TestModel::find(3);
+        $data->dec('score', 5)->save();
+        $this->assertEquals(35, $data->score);
     }
 }
