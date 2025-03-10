@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace tests\orm;
 
@@ -30,7 +30,7 @@ class ModelOneToManyTest extends TestCase
                 `create_time` datetime DEFAULT NULL,
                 PRIMARY KEY (`id`),
                 KEY `idx_author_id` (`author_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;'
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;',
         ];
         foreach ($sqlList as $sql) {
             Db::execute($sql);
@@ -44,36 +44,36 @@ class ModelOneToManyTest extends TestCase
 
         // 创建测试数据
         $author1 = AuthorModel::create([
-            'name' => 'author1',
-            'email' => 'author1@example.com'
+            'name'  => 'author1',
+            'email' => 'author1@example.com',
         ]);
 
         $author2 = AuthorModel::create([
-            'name' => 'author2',
-            'email' => 'author2@example.com'
+            'name'  => 'author2',
+            'email' => 'author2@example.com',
         ]);
 
         // 为作者1创建文章
         PostModel::create([
             'author_id' => $author1->id,
-            'title' => 'Post 1 by author1',
-            'content' => 'Content of post 1',
-            'status' => 1
+            'title'     => 'Post 1 by author1',
+            'content'   => 'Content of post 1',
+            'status'    => 1,
         ]);
 
         PostModel::create([
             'author_id' => $author1->id,
-            'title' => 'Post 2 by author1',
-            'content' => 'Content of post 2',
-            'status' => 1
+            'title'     => 'Post 2 by author1',
+            'content'   => 'Content of post 2',
+            'status'    => 1,
         ]);
 
         // 为作者2创建文章
         PostModel::create([
             'author_id' => $author2->id,
-            'title' => 'Post 1 by author2',
-            'content' => 'Content of post 1',
-            'status' => 0
+            'title'     => 'Post 1 by author2',
+            'content'   => 'Content of post 1',
+            'status'    => 0,
         ]);
     }
 
@@ -82,7 +82,7 @@ class ModelOneToManyTest extends TestCase
         // 测试关联获取
         $author = AuthorModel::find(1);
         $this->assertNotNull($author);
-        
+
         $posts = $author->posts;
         $this->assertCount(2, $posts);
         $this->assertEquals('Post 1 by author1', $posts[0]->title);
@@ -92,7 +92,7 @@ class ModelOneToManyTest extends TestCase
         $this->assertCount(2, $author->posts);
 
         // 测试关联条件
-        $author = AuthorModel::with(['posts' => function($query) {
+        $author = AuthorModel::with(['posts' => function ($query) {
             $query->where('status', 1);
         }])->find(2);
         $this->assertCount(0, $author->posts);
@@ -104,18 +104,65 @@ class ModelOneToManyTest extends TestCase
         // 测试关联写入
         $author = AuthorModel::find(2);
         $result = $author->posts()->save([
-            'title' => 'New post by author2',
+            'title'   => 'New post by author2',
             'content' => 'New content',
-            'status' => 1
+            'status'  => 1,
         ]);
         $this->assertNotNull($result);
         $this->assertEquals($author->id, $result->author_id);
+    }
+
+    public function testHasAndHasWhereQuery()
+    {
+        // 测试基础 has 查询
+        $authors = AuthorModel::has('posts')->select();
+        $this->assertCount(2, $authors);
+        $this->assertEquals(['author1', 'author2'], $authors->column('name'));
+
+        // 测试 has 数量条件查询
+        $authors = AuthorModel::has('posts', '>', 1)->select();
+        $this->assertCount(1, $authors);
+        $this->assertEquals('author1', $authors[0]->name);
+
+        // 测试基础 hasWhere 查询
+        $authors = AuthorModel::hasWhere('posts', ['status' => 1])->select();
+        $this->assertCount(1, $authors);
+        $this->assertEquals('author1', $authors[0]->name);
+
+        // 测试 hasWhere 复杂条件
+        $authors = AuthorModel::hasWhere('posts', [
+            ['title', 'like', '%Post 1%'],
+            ['status', '=', 1],
+        ])->select();
+        $this->assertCount(1, $authors);
+        $this->assertEquals('author1', $authors[0]->name);
+
+        // 测试 hasWhere 使用闭包
+        $authors = AuthorModel::hasWhere('posts', function ($query) {
+            $query->where('status', 1)
+                ->where('title', 'like', '%Post 2%');
+        })->select();
+        $this->assertCount(1, $authors);
+        $this->assertEquals('author1', $authors[0]->name);
+
+        // 测试 hasWhere 与 field
+        $authors = AuthorModel::hasWhere('posts', ['status' => 1], '*')->select();
+        $this->assertCount(1, $authors);
+        $this->assertArrayHasKey('name', $authors[0]->toArray());
+        $author3 = AuthorModel::create([
+            'name'  => 'author3',
+            'email' => 'author3@example.com',
+        ]);
+
+        // 测试没有文章的作者
+        $authors = AuthorModel::has('posts', '=', 0)->select();
+        $this->assertCount(1, $authors);
     }
 }
 
 class AuthorModel extends Model
 {
-    protected $table = 'test_author';
+    protected $table              = 'test_author';
     protected $autoWriteTimestamp = true;
 
     public function posts()
@@ -126,7 +173,7 @@ class AuthorModel extends Model
 
 class PostModel extends Model
 {
-    protected $table = 'test_post';
+    protected $table              = 'test_post';
     protected $autoWriteTimestamp = true;
 
     public function author()

@@ -16,7 +16,7 @@ class ModelMorphTest extends TestCase
             'CREATE TABLE `test_comment` (
                 `id` int NOT NULL AUTO_INCREMENT,
                 `content` text NOT NULL,
-                `morphable_type` varchar(255) NOT NULL,
+                `morphable_type` varchar(50) NOT NULL,
                 `morphable_id` int NOT NULL,
                 `user_id` int NOT NULL,
                 `create_time` datetime DEFAULT NULL,

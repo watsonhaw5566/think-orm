@@ -6,9 +6,9 @@ namespace tests\orm;
 use PHPUnit\Framework\TestCase;
 use think\facade\Db;
 use think\Model;
-use think\model\relation\HasOne;
-use think\model\relation\BelongsTo;
 use think\model\concern\SoftDelete;
+use think\model\relation\BelongsTo;
+use think\model\relation\HasOne;
 
 /**
  * 模型一对一关联
@@ -173,8 +173,8 @@ class ModelOneToOneTest extends TestCase
      */
     public function testRelationDelete()
     {
-        $user       = new UserModel();
-        $user->name = 'deletetest';
+        $user          = new UserModel();
+        $user->name    = 'deletetest';
         $user->profile = new ProfileModel(['email' => 'delete@thinkphp.cn', 'nickname' => 'deletenick']);
         $user->together(['profile'])->save();
 
@@ -184,6 +184,92 @@ class ModelOneToOneTest extends TestCase
         // 验证关联数据是否被删除
         $this->assertNull(ProfileModel::find($profileId));
     }
+
+    /**
+     * 测试关联统计
+     */
+    public function testRelationCount()
+    {
+        // 创建测试数据
+        $user1 = new UserModel();
+        $user1->save(['name' => 'user1']);
+        $user2 = new UserModel();
+        $user2->save(['name' => 'user2']);
+
+        $profile1 = new ProfileModel([
+            'user_id'  => $user1->id,
+            'email'    => 'user1@thinkphp.cn',
+            'nickname' => 'nickname1',
+        ]);
+        $profile1->save();
+
+        $profile2 = new ProfileModel([
+            'user_id'  => $user2->id,
+            'email'    => 'user2@thinkphp.cn',
+            'nickname' => 'nickname2',
+        ]);
+        $profile2->save();
+
+        // 测试关联统计
+        $userCount = UserModel::withCount('profile')->find($user1->id);
+        $this->assertEquals(1, $userCount->profile_count);
+
+        $userCount = UserModel::withCount('profile')->find($user2->id);
+        $this->assertEquals(1, $userCount->profile_count);
+    }
+
+    /**
+     * 测试 has 查询
+     */
+    public function testHasQuery()
+    {
+        // 创建测试数据
+        $user1 = new UserModel();
+        $user1->save(['name' => 'user1']);
+        $user2 = new UserModel();
+        $user2->save(['name' => 'user2']);
+        $user3 = new UserModel();
+        $user3->save(['name' => 'user3']);
+
+        // 只给 user1 和 user2 创建 profile
+        $profile1 = new ProfileModel([
+            'user_id'  => $user1->id,
+            'email'    => 'user1@thinkphp.cn',
+            'nickname' => 'nickname1',
+        ]);
+        $profile1->save();
+
+        $profile2 = new ProfileModel([
+            'user_id'  => $user2->id,
+            'email'    => 'user2@thinkphp.cn',
+            'nickname' => 'nickname2',
+        ]);
+        $profile2->save();
+
+        // 测试基础 has 查询
+        $users = UserModel::has('profile')->select();
+        $this->assertCount(2, $users);
+        $this->assertEquals(['user1', 'user2'], $users->column('name'));
+
+        // 测试 hasWhere 查询
+        $users = UserModel::hasWhere('profile', ['nickname' => 'nickname1'])->select();
+        $this->assertCount(1, $users);
+        $this->assertEquals('user1', $users[0]->name);
+
+
+        // 测试 hasWhere 复杂条件
+        $users = UserModel::hasWhere('profile', [
+            ['email', 'like', '%@thinkphp.cn'],
+            ['nickname', 'like', 'nickname%'],
+        ])->select();
+        $this->assertCount(2, $users);
+
+        // 测试 has 与 where 组合查询
+        $users = UserModel::has('profile')
+            ->where('name', 'like', 'user%')
+            ->select();
+        $this->assertCount(2, $users);
+    }
 }
 
 /**
@@ -191,7 +277,7 @@ class ModelOneToOneTest extends TestCase
  */
 class UserModel extends Model
 {
-    protected $name = 'user';
+    protected $name               = 'user';
     protected $autoWriteTimestamp = false;
 
     /**
@@ -203,7 +289,7 @@ class UserModel extends Model
         return $this->hasOne(ProfileModel::class, 'user_id')
             ->bind([
                 'email',
-                'new_name'  => 'nickname'
+                'new_name' => 'nickname',
             ]);
     }
 }
@@ -214,7 +300,7 @@ class UserModel extends Model
 class ProfileModel extends Model
 {
     use SoftDelete;
-    protected $name = 'profile';
+    protected $name               = 'profile';
     protected $autoWriteTimestamp = true;
 
     /**

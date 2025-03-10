@@ -16,6 +16,7 @@ namespace think\model\relation;
 use Closure;
 use think\Collection;
 use think\db\BaseQuery as Query;
+use think\helper\Str;
 use think\model\contract\Modelable as Model;
 use think\model\Relation;
 
@@ -146,7 +147,7 @@ class HasMany extends Relation
      *
      * @return int
      */
-    public function relationCount(Model $result, ?Closure $closure = null, string $aggregate = 'count', string $field = 'id', ?string &$name = null)
+    public function relationCount(Model $result, ?Closure $closure = null, string $aggregate = 'count', string $field = 'id',  ? string &$name = null)
     {
         $localKey = $this->localKey;
 
@@ -173,7 +174,7 @@ class HasMany extends Relation
      *
      * @return string
      */
-    public function getRelationCountQuery(?Closure $closure = null, string $aggregate = 'count', string $field = 'id', ?string &$name = null): string
+    public function getRelationCountQuery(?Closure $closure = null, string $aggregate = 'count', string $field = 'id',  ? string &$name = null) : string
     {
         if ($closure) {
             $closure($this->query, $name);
@@ -195,7 +196,7 @@ class HasMany extends Relation
      *
      * @return array
      */
-    protected function eagerlyOneToMany(array $where, array $subRelation = [], ?Closure $closure = null, array $cache = []): array
+    protected function eagerlyOneToMany(array $where, array $subRelation = [], ?Closure $closure = null, array $cache = []) : array
     {
         $foreignKey = $this->foreignKey;
 
@@ -299,24 +300,28 @@ class HasMany extends Relation
      */
     public function has(string $operator = '>=', int $count = 1, string $id = '*', string $joinType = 'INNER', ?Query $query = null): Query
     {
-        $table    = $this->query->getTable();
-        $model    = class_basename($this->parent);
-        $relation = class_basename($this->model);
+        $table = $this->query->getTable();
+        $model = class_basename($this->parent);
 
         if ('*' != $id) {
-            $id = $relation . '.' . (new $this->model())->getPk();
+            $id = $table . '.' . (new $this->model())->getPk();
         }
 
         $softDelete = $this->query->getOptions('soft_delete');
-        $query      = $query ?: $this->parent->db()->alias($model);
+        $query      = $query ?: $this->parent->db();
 
-        return $query->field($model . '.*')
-            ->join([$table => $relation], $model . '.' . $this->localKey . '=' . $relation . '.' . $this->foreignKey, $joinType)
-            ->when($softDelete, function ($query) use ($softDelete, $relation) {
-                $query->where($relation . strstr($softDelete[0], '.'), '=' == $softDelete[1][0] ? $softDelete[1][1] : null);
-            })
-            ->group($relation . '.' . $this->foreignKey)
-            ->having('count(' . $id . ')' . $operator . $count);
+        return $query->alias($model)
+            ->whereExists(function ($query) use ($model, $id, $operator, $count, $softDelete) {
+                $table = $this->query->getTable();
+
+                $query->table([$table => 'relation'])
+                    ->field('count(' . $id . ') AS count')
+                    ->where('relation.' . $this->foreignKey . '=' . $model . '.' . $this->localKey)
+                    ->when($softDelete, function ($query) use ($softDelete) {
+                        $query->where(strstr($softDelete[0], '.'), '=' == $softDelete[1][0] ? $softDelete[1][1] : null);
+                    })
+                    ->having('count ' . $operator . ' ' . $count);
+            });
     }
 
     /**
@@ -332,8 +337,8 @@ class HasMany extends Relation
     public function hasWhere($where = [], $fields = null, string $joinType = '', ?Query $query = null): Query
     {
         $table    = $this->query->getTable();
-        $model    = class_basename($this->parent);
-        $relation = class_basename($this->model);
+        $model    = Str::snake(class_basename($this->parent));
+        $relation = Str::snake(class_basename($this->model));
 
         if (is_array($where)) {
             $this->getQueryWhere($where, $relation);

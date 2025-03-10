@@ -249,11 +249,11 @@ class BelongsToMany extends Relation
         $relation = Str::snake(class_basename($this->model));
 
         if (is_array($where)) {
-            $this->getQueryWhere($where, $table);
+            $this->getQueryWhere($where, $relation);
         } elseif ($where instanceof Query) {
-            $where->via($table);
+            $where->via($relation);
         } elseif ($where instanceof Closure) {
-            $where($this->query->via($table));
+            $where($this->query->via($relation));
             $where = $this->query;
         }
 

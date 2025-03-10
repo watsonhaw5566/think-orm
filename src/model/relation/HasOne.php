@@ -15,6 +15,7 @@ namespace think\model\relation;
 
 use Closure;
 use think\db\BaseQuery as Query;
+use think\helper\Str;
 use think\model\contract\Modelable as Model;
 
 /**
@@ -143,8 +144,8 @@ class HasOne extends OneToOne
     public function has(string $operator = '>=', int $count = 1, string $id = '*', string $joinType = '', ?Query $query = null) : Query
     {
         $table      = $this->query->getTable();
-        $model      = class_basename($this->parent);
-        $relation   = class_basename($this->model);
+        $model      = Str::snake(class_basename($this->parent));
+        $relation   = Str::snake(class_basename($this->model));
         $localKey   = $this->localKey;
         $foreignKey = $this->foreignKey;
         $softDelete = $this->query->getOptions('soft_delete');
@@ -173,8 +174,8 @@ class HasOne extends OneToOne
     public function hasWhere($where = [], $fields = null, string $joinType = '', ?Query $query = null): Query
     {
         $table    = $this->query->getTable();
-        $model    = class_basename($this->parent);
-        $relation = class_basename($this->model);
+        $model    = Str::snake(class_basename($this->parent));
+        $relation = Str::snake(class_basename($this->model));
 
         if (is_array($where)) {
             $this->getQueryWhere($where, $relation);

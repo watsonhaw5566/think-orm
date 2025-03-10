@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace tests\orm;
 
@@ -37,7 +37,7 @@ class ModelHasOneThroughTest extends TestCase
                 `create_time` datetime DEFAULT NULL,
                 PRIMARY KEY (`id`),
                 KEY `idx_account_id` (`account_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;'
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;',
         ];
         foreach ($sqlList as $sql) {
             Db::execute($sql);
@@ -52,33 +52,42 @@ class ModelHasOneThroughTest extends TestCase
 
         // 创建测试数据
         $user1 = User::create([
-            'name' => 'user1'
+            'name' => 'user1',
         ]);
 
         $user2 = User::create([
-            'name' => 'user2'
+            'name' => 'user2',
+        ]);
+
+        $user3 = User::create([
+            'name' => 'user3',
         ]);
 
         $account1 = Account::create([
             'user_id' => $user1->id,
-            'account' => 'account1'
+            'account' => 'account1',
         ]);
 
         $account2 = Account::create([
             'user_id' => $user2->id,
-            'account' => 'account2'
+            'account' => 'account2',
+        ]);
+
+        $account3 = Account::create([
+            'user_id' => $user3->id,
+            'account' => 'account3',
         ]);
 
         $profile1 = Profile::create([
             'account_id' => $account1->id,
-            'email' => 'user1@example.com',
-            'nickname' => 'nickname1'
+            'email'      => 'user1@example.com',
+            'nickname'   => 'nickname1',
         ]);
 
         $profile2 = Profile::create([
             'account_id' => $account2->id,
-            'email' => 'user2@example.com',
-            'nickname' => 'nickname2'
+            'email'      => 'user2@example.com',
+            'nickname'   => 'nickname2',
         ]);
     }
 
@@ -87,7 +96,7 @@ class ModelHasOneThroughTest extends TestCase
         // 测试关联获取
         $user = User::find(1);
         $this->assertNotNull($user);
-        
+
         $profile = $user->profile;
         $this->assertNotNull($profile);
         $this->assertEquals('user1@example.com', $profile->email);
@@ -105,6 +114,17 @@ class ModelHasOneThroughTest extends TestCase
         // 测试关联统计
         $user = User::withCount('profile')->find(1);
         $this->assertEquals(1, $user->profile_count);
+
+        // 测试 has 方法
+        $hasProfile = User::has('profile')->find();
+        $this->assertNotNull($hasProfile);
+        $this->assertEquals('user1', $hasProfile->name);
+
+        $noProfile = User::has('profile', '=', 0)->select();
+        $this->assertCount(1, $noProfile);
+
+        $hasProfileCount = User::has('profile', '>=', 1)->select();
+        $this->assertCount(2, $hasProfileCount);
     }
 }
 
@@ -130,6 +150,6 @@ class Account extends Model
 
 class Profile extends Model
 {
-    protected $table = 'test_info';
+    protected $table              = 'test_info';
     protected $autoWriteTimestamp = true;
 }

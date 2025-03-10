@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace tests\orm;
 
@@ -35,10 +35,11 @@ class ModelHasManyThroughTest extends TestCase
                 `author_id` int NOT NULL,
                 `title` varchar(255) NOT NULL DEFAULT "",
                 `content` text,
+                `status` tinyint NOT NULL DEFAULT 0,
                 `create_time` datetime DEFAULT NULL,
                 PRIMARY KEY (`id`),
                 KEY `idx_author_id` (`author_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;'
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;',
         ];
         foreach ($sqlList as $sql) {
             Db::execute($sql);
@@ -53,53 +54,53 @@ class ModelHasManyThroughTest extends TestCase
 
         // 创建测试数据
         $country1 = Country::create([
-            'name' => 'China'
+            'name' => 'China',
         ]);
 
         $country2 = Country::create([
-            'name' => 'USA'
+            'name' => 'USA',
         ]);
 
         $author1 = Author::create([
             'country_id' => $country1->id,
-            'name' => 'author1',
-            'email' => 'author1@example.com'
+            'name'       => 'author1',
+            'email'      => 'author1@example.com',
         ]);
 
         $author2 = Author::create([
             'country_id' => $country1->id,
-            'name' => 'author2',
-            'email' => 'author2@example.com'
+            'name'       => 'author2',
+            'email'      => 'author2@example.com',
         ]);
 
         $author3 = Author::create([
             'country_id' => $country2->id,
-            'name' => 'author3',
-            'email' => 'author3@example.com'
+            'name'       => 'author3',
+            'email'      => 'author3@example.com',
         ]);
 
         Post::create([
             'author_id' => $author1->id,
-            'title' => 'Post1',
-            'content' => 'Content1'
+            'title'     => 'Post1',
+            'content'   => 'Content1',
         ]);
 
         Post::create([
             'author_id' => $author1->id,
-            'title' => 'Post2',
-            'content' => 'Content2'
+            'title'     => 'Post2',
+            'content'   => 'Content2',
         ]);
 
         Post::create([
             'author_id' => $author2->id,
-            'title' => 'Post3',
-            'content' => 'Content3'
+            'title'     => 'Post3',
+            'content'   => 'Content3',
         ]);
 
         Post::create([
             'author_id' => $author3->id,
-            'title' => 'Post4',
-            'content' => 'Content4'
+            'title'     => 'Post4',
+            'content'   => 'Content4',
         ]);
     }
 
@@ -108,7 +109,7 @@ class ModelHasManyThroughTest extends TestCase
         // 测试关联获取
         $country = Country::find(1);
         $this->assertNotNull($country);
-        
+
         $posts = $country->posts;
         $this->assertCount(3, $posts);
         $this->assertEquals('Post1', $posts[0]->title);
@@ -129,6 +130,20 @@ class ModelHasManyThroughTest extends TestCase
         // 测试排序
         $posts = $country->posts()->order('title', 'desc')->select();
         $this->assertEquals('Post3', $posts[0]->title);
+    }
+
+    public function testHasAndHasWhere()
+    {
+        // 测试has方法
+        $countries = Country::has('posts')->select();
+        $this->assertCount(2, $countries);
+
+        // 测试hasWhere方法
+        $countries = Country::hasWhere('posts', [
+            ['title', 'like', '%Post1%'],
+        ])->select();
+        $this->assertCount(1, $countries);
+        $this->assertEquals('China', $countries[0]->name);
     }
 }
 
