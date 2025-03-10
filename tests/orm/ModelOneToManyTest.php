@@ -158,6 +158,45 @@ class ModelOneToManyTest extends TestCase
         $authors = AuthorModel::has('posts', '=', 0)->select();
         $this->assertCount(1, $authors);
     }
+
+    public function testHasNotQuery()
+    {
+        // 创建测试数据
+        $author1 = AuthorModel::create([
+            'name'  => 'author1',
+            'email' => 'author1@example.com',
+        ]);
+
+        $author2 = AuthorModel::create([
+            'name'  => 'author2',
+            'email' => 'author2@example.com',
+        ]);
+
+        $author3 = AuthorModel::create([
+            'name'  => 'author3',
+            'email' => 'author3@example.com',
+        ]);
+
+        // 只给 author1 创建文章
+        PostModel::create([
+            'author_id' => $author1->id,
+            'title'     => 'Post 1 by author1',
+            'content'   => 'Content of post 1',
+            'status'    => 1,
+        ]);
+
+        // 测试基础 hasNot 查询
+        $authors = AuthorModel::hasNot('posts')->select();
+        $this->assertCount(2, $authors);
+        $this->assertEquals(['author2', 'author3'], $authors->column('name'));
+
+        // 测试 hasNot 与 where 组合查询
+        $authors = AuthorModel::hasNot('posts')
+            ->where('name', 'like', 'author%')
+            ->select();
+        $this->assertCount(2, $authors);
+        $this->assertEquals(['author2', 'author3'], $authors->column('name'));
+    }
 }
 
 class AuthorModel extends Model

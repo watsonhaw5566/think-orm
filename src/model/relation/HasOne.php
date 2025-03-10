@@ -149,9 +149,15 @@ class HasOne extends OneToOne
         $localKey   = $this->localKey;
         $foreignKey = $this->foreignKey;
         $softDelete = $this->query->getOptions('soft_delete');
-        $query      = $query ?: $this->parent->db()->alias($model);
+        $query      = $query ?: $this->parent->db();
 
-        return $query->whereExists(function ($query) use ($table, $model, $relation, $localKey, $foreignKey, $softDelete) {
+        if (0 == $count && '=' == $operator) {
+            $method = 'whereNotExists';
+        } else {
+            $method = 'whereExists';
+        }
+
+        return $query->alias($model)->$method(function ($query) use ($table, $model, $relation, $localKey, $foreignKey, $softDelete) {
             $query->table([$table => $relation])
                 ->field($relation . '.' . $foreignKey)
                 ->whereExp($model . '.' . $localKey, '=' . $relation . '.' . $foreignKey)

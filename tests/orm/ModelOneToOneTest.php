@@ -269,6 +269,11 @@ class ModelOneToOneTest extends TestCase
             ->where('name', 'like', 'user%')
             ->select();
         $this->assertCount(2, $users);
+
+        // 测试基础 hasNot 查询
+        $users = UserModel::hasNot('profile')->select();
+        $this->assertCount(1, $users);
+        $this->assertEquals(['user3'], $users->column('name'));
     }
 }
 
@@ -304,11 +309,10 @@ class ProfileModel extends Model
     protected $autoWriteTimestamp = true;
 
     /**
-     * 用户
-     * @return BelongsTo
+     * 用户模型
      */
     public function user(): BelongsTo
     {
         return $this->belongsTo(UserModel::class, 'user_id');
-    }
+    }    
 }

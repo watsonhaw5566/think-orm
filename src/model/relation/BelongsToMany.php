@@ -215,11 +215,23 @@ class BelongsToMany extends Relation
     {
         $table      = $this->query->getTable();
         $pivot      = $this->pivot->getTable();
-
         $model      = Str::snake(class_basename($this->parent));
         $relation   = Str::snake(class_basename($this->model));
         $softDelete = $this->query->getOptions('soft_delete');
         $query      = $query ?: $this->parent->db();
+
+        if ('=' === $operator && 0 === $count) {
+            return $query->alias($model)
+                ->whereNotExists(function ($query) use ($pivot, $model, $relation, $table, $softDelete) {
+                    $query->table([$pivot => 'pivot'])
+                        ->field('pivot.' . $this->foreignKey)
+                        ->join($table . ' ' . $relation, $relation . '.' . $this->query->getPk() . '= pivot.' . $this->foreignKey)
+                        ->whereExp($model . '.' . $this->parent->getPk(), '=pivot.' . $this->localKey)
+                        ->when($softDelete, function ($query) use ($softDelete, $relation) {
+                            $query->where($relation . strstr($softDelete[0], '.'), '=' == $softDelete[1][0] ? $softDelete[1][1] : null);
+                        });
+                });
+        }
 
         return $query->alias($model)
             ->field($model . '.*')
@@ -571,7 +583,7 @@ class BelongsToMany extends Relation
             foreach ($ids as $id) {
                 $pivot[$this->foreignKey] = $id;
 
-                $object   = $this->newPivot();
+                $object = $this->newPivot();
                 $object->replace()->save($pivot);
                 $result[] = $object;
             }

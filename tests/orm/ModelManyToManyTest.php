@@ -160,7 +160,14 @@ class ModelManyToManyTest extends TestCase
         // 测试解除关联
         $result = $student->courses()->detach(1);
         $this->assertEquals(1, $result);
+
+        // 测试基础 hasNot 查询
+        $student->courses()->detach([2, 3]);
+        $students = StudentModel::hasNot('courses')->select();
+        $this->assertCount(1, $students);
+        $this->assertEquals(['student2'], $students->column('name'));
     }
+
 }
 
 class StudentModel extends Model

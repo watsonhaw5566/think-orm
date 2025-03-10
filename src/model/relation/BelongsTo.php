@@ -149,9 +149,9 @@ class BelongsTo extends OneToOne
         $localKey   = $this->localKey;
         $foreignKey = $this->foreignKey;
         $softDelete = $this->query->getOptions('soft_delete');
-        $query      = $query ?: $this->parent->db()->alias($model);
+        $query      = $query ?: $this->parent->db();
 
-        return $query->whereExists(function ($query) use ($table, $model, $relation, $localKey, $foreignKey, $softDelete) {
+        return $query->alias($model)->whereExists(function ($query) use ($table, $model, $relation, $localKey, $foreignKey, $softDelete) {
             $query->table([$table => $relation])
                 ->field($relation . '.' . $localKey)
                 ->whereExp($model . '.' . $foreignKey, '=' . $relation . '.' . $localKey)
