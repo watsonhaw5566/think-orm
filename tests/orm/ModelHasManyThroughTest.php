@@ -138,6 +138,10 @@ class ModelHasManyThroughTest extends TestCase
         $countries = Country::has('posts')->select();
         $this->assertCount(2, $countries);
 
+        // 测试hasNot方法
+        $countries = Country::hasNot('posts')->select();
+        $this->assertCount(0, $countries);
+
         // 测试hasWhere方法
         $countries = Country::hasWhere('posts', [
             ['title', 'like', '%Post1%'],

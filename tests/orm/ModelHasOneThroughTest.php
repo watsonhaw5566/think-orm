@@ -125,6 +125,11 @@ class ModelHasOneThroughTest extends TestCase
 
         $hasProfileCount = User::has('profile', '>=', 1)->select();
         $this->assertCount(2, $hasProfileCount);
+
+        // 测试 hasNot 方法
+        $noProfileUsers = User::hasNot('profile')->select();
+        $this->assertCount(1, $noProfileUsers);
+        $this->assertEquals('user3', $noProfileUsers[0]->name);
     }
 }
 
