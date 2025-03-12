@@ -186,4 +186,47 @@ SQL
             throw $exception;
         }
     }
+
+    public function testPaginate()
+    {
+        $users = self::$testUserData;
+
+        // 基本分页查询
+        $list = Db::table('test_user')->paginate();
+        $this->assertCount(5, $list->items());
+        $this->assertEquals(5, $list->total());
+        $this->assertEquals(1, $list->currentPage());
+        $this->assertEquals(15, $list->listRows());
+
+        // 自定义每页数量
+        $list = Db::table('test_user')->paginate(2);
+        $this->assertCount(2, $list->items());
+        $this->assertEquals(5, $list->total());
+        $this->assertEquals(1, $list->currentPage());
+        $this->assertEquals(2, $list->listRows());
+
+        // 简单分页
+        $list = Db::table('test_user')->paginate(2, true);
+        $this->assertCount(2, $list->items());
+        $this->assertEquals(1, $list->currentPage());
+        $this->assertEquals(2, $list->listRows());
+        $this->assertTrue($list->hasMore());
+
+        // 条件分页
+        $list = Db::table('test_user')->where('type', 2)->paginate();
+        $this->assertCount(3, $list->items());
+        $this->assertEquals(3, $list->total());
+        $this->assertEquals(1, $list->currentPage());
+
+        // 复杂条件分页
+        $list = Db::table('test_user')
+            ->where('type', '>', 1)
+            ->where('id', '<', 6)
+            ->order('id', 'asc')
+            ->paginate(2);
+        $this->assertCount(2, $list->items());
+        $this->assertEquals(3, $list->total());
+        $this->assertEquals(1, $list->currentPage());
+        $this->assertEquals(2, $list->listRows());
+    }
 }

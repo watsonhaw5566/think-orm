@@ -7,28 +7,6 @@ use PHPUnit\Framework\TestCase;
 use think\facade\Db;
 use think\Model;
 
-class TestModel extends Model
-{
-    protected $table              = 'test_model';
-    protected $autoWriteTimestamp = true;
-    protected $globalScope        = ['HighScore'];
-
-    public function scopeHighScore($query)
-    {
-        return $query->where('score', '>=', 30);
-    }
-
-    public function scopeActive($query)
-    {
-        return $query->where('status', 1);
-    }
-
-    public function scopeNameLike($query, $name)
-    {
-        return $query->where('name', 'like', "%{$name}%");
-    }
-}
-
 class ModelTest extends TestCase
 {
     protected static $testData;
@@ -214,4 +192,74 @@ SQL
         $data->dec('score', 5)->save();
         $this->assertEquals(35, $data->score);
     }
+
+    public function testPaginate()
+    {
+        Db::table('test_model')->insertAll(self::$testData);
+
+        // 基本分页查询
+        $list = TestPaginateModel::paginate();
+        $this->assertCount(3, $list->items());
+        $this->assertEquals(3, $list->total());
+        $this->assertEquals(1, $list->currentPage());
+        $this->assertEquals(15, $list->listRows());
+
+        // 自定义每页数量
+        $list = TestPaginateModel::paginate(2);
+        $this->assertCount(2, $list->items());
+        $this->assertEquals(3, $list->total());
+        $this->assertEquals(1, $list->currentPage());
+        $this->assertEquals(2, $list->listRows());
+
+        // 简单分页
+        $list = TestPaginateModel::paginate(2, true);
+        $this->assertCount(2, $list->items());
+        $this->assertEquals(1, $list->currentPage());
+        $this->assertEquals(2, $list->listRows());
+        $this->assertTrue($list->hasMore());
+
+        // 条件分页
+        $list = TestPaginateModel::where('status', 1)->paginate();
+        $this->assertCount(2, $list->items());
+        $this->assertEquals(2, $list->total());
+        $this->assertEquals(1, $list->currentPage());
+
+        // 作用域分页
+        $list = TestPaginateModel::scope('active')->paginate();
+        $this->assertCount(2, $list->items());
+        $this->assertEquals(2, $list->total());
+        $this->assertEquals(1, $list->currentPage());
+    }
+}
+
+class TestModel extends Model
+{
+    protected $table              = 'test_model';
+    protected $autoWriteTimestamp = true;
+    protected $globalScope        = ['HighScore'];
+
+    public function scopeHighScore($query)
+    {
+        return $query->where('score', '>=', 30);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
+    }
+
+    public function scopeNameLike($query, $name)
+    {
+        return $query->where('name', 'like', "%{$name}%");
+    }
+}
+class TestPaginateModel extends Model
+{
+    protected $table              = 'test_model';
+    protected $autoWriteTimestamp = true;
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 1);
+    }    
 }
