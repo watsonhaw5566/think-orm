@@ -39,7 +39,7 @@ class HasMany extends Relation
         $this->model      = $model;
         $this->foreignKey = $foreignKey;
         $this->localKey   = $localKey;
-        $this->query      = (new $model())->db();
+        $this->query      = (new $model())->getQuery();
 
         if (get_class($parent) == $model) {
             $this->selfRelation = true;
@@ -300,27 +300,25 @@ class HasMany extends Relation
      */
     public function has(string $operator = '>=', int $count = 1, string $id = '*', string $joinType = 'INNER', ?Query $query = null): Query
     {
-        $table = $this->query->getTable();
-        $model = class_basename($this->parent);
+        $table    = $this->query->getTable();
+        $model    = Str::snake(class_basename($this->parent));
+        $query    = $query ?: $this->parent->getQuery();        
 
         if ('*' != $id) {
             $id = $table . '.' . (new $this->model())->getPk();
         }
 
-        $softDelete = $this->query->getOptions('soft_delete');
-        $query      = $query ?: $this->parent->db();
-
         return $query->alias($model)
-            ->whereExists(function ($query) use ($model, $id, $operator, $count, $softDelete) {
-                $table = $this->query->getTable();
+            ->whereExists(function ($query) use ($model, $id, $table, $operator, $count) {
+                $table      = $this->query->getTable();
+                $relation   = Str::snake(class_basename($this->model));
 
-                $query->table([$table => 'relation'])
+                $query->table([$table => $relation])
                     ->field('count(' . $id . ') AS count')
-                    ->where('relation.' . $this->foreignKey . '=' . $model . '.' . $this->localKey)
-                    ->when($softDelete, function ($query) use ($softDelete) {
-                        $query->where(strstr($softDelete[0], '.'), '=' == $softDelete[1][0] ? $softDelete[1][1] : null);
-                    })
+                    ->where($relation . '.' . $this->foreignKey . '=' . $model . '.' . $this->localKey)
                     ->having('count ' . $operator . ' ' . $count);
+
+                $this->getRelationSoftDelete($query, $relation);                    
             });
     }
 
@@ -336,34 +334,19 @@ class HasMany extends Relation
      */
     public function hasWhere($where = [], $fields = null, string $joinType = '', ?Query $query = null): Query
     {
-        $table    = $this->query->getTable();
         $model    = Str::snake(class_basename($this->parent));
         $relation = Str::snake(class_basename($this->model));
+        $table    = $this->query->getTable();
+        $query    = $query ?: $this->parent->getQuery();
+        $fields   = $this->getRelationQueryFields($fields, $model);
 
-        if (is_array($where)) {
-            $this->getQueryWhere($where, $relation);
-        } elseif ($where instanceof Query) {
-            $where->via($relation);
-        } elseif ($where instanceof Closure) {
-            $where($this->query->via($relation));
-            $where = $this->query;
-        }
-
-        $fields     = $this->getRelationQueryFields($fields, $model);
-        $softDelete = $this->query->getOptions('soft_delete');
-        $query      = $query ?: $this->parent->db();
-
-        return $query->alias($model)
+        $query->alias($model)
             ->via($model)
             ->group($model . '.' . $this->localKey)
             ->field($fields)
-            ->join([$table => $relation], $model . '.' . $this->localKey . '=' . $relation . '.' . $this->foreignKey, $joinType)
-            ->when($softDelete, function ($query) use ($softDelete, $relation) {
-                $query->where($relation . strstr($softDelete[0], '.'), '=' == $softDelete[1][0] ? $softDelete[1][1] : null);
-            })
-            ->where(function ($query) use ($where) {
-                $query->where($where);
-            });
+            ->join([$table => $relation], $model . '.' . $this->localKey . '=' . $relation . '.' . $this->foreignKey, $joinType);
+
+        return $this->getRelationSoftDelete($query, $relation, $where);
     }
 
     /**

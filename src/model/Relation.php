@@ -227,6 +227,29 @@ abstract class Relation
         return $model;
     }
 
+    protected function getRelationSoftDelete(Query $query, $relation, $where = null)
+    {
+        if ($where) {
+            if (is_array($where)) {
+                $this->getQueryWhere($where, $relation);
+            } elseif ($where instanceof Query) {
+                $where->via($relation);
+            } elseif ($where instanceof Closure) {
+                $where($this->query->via($relation));
+                $where = $this->query;
+            }
+
+            $query->where(function ($query) use ($where) {
+                $query->where($where);
+            });
+        }
+
+        $softDelete = $this->query->getOptions('soft_delete');
+        return $query->when($softDelete, function ($query) use ($softDelete, $relation) {
+            $query->where($relation . strstr($softDelete[0], '.'), '=' == $softDelete[1][0] ? $softDelete[1][1] : null);
+        });
+    }
+
     /**
      * 执行基础查询（仅执行一次）.
      *

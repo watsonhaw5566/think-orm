@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace tests\orm;
 
@@ -23,8 +23,8 @@ class ModelMorphTest extends TestCase
                 PRIMARY KEY (`id`),
                 KEY `idx_morphable` (`morphable_type`, `morphable_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;',
-            'DROP TABLE IF EXISTS `test_post`;',
-            'CREATE TABLE `test_post` (
+            'DROP TABLE IF EXISTS `test_article`;',
+            'CREATE TABLE `test_article` (
                 `id` int NOT NULL AUTO_INCREMENT,
                 `title` varchar(255) NOT NULL,
                 `content` text NOT NULL,
@@ -39,7 +39,7 @@ class ModelMorphTest extends TestCase
                 `duration` int NOT NULL DEFAULT 0,
                 `create_time` datetime DEFAULT NULL,
                 PRIMARY KEY (`id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;'
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;',
         ];
         foreach ($sqlList as $sql) {
             Db::execute($sql);
@@ -49,41 +49,41 @@ class ModelMorphTest extends TestCase
     protected function setUp(): void
     {
         Db::execute('TRUNCATE TABLE `test_comment`;');
-        Db::execute('TRUNCATE TABLE `test_post`;');
+        Db::execute('TRUNCATE TABLE `test_article`;');
         Db::execute('TRUNCATE TABLE `test_video`;');
 
         // 创建测试数据
         $post = MorphPostModel::create([
-            'title' => 'Test Post',
-            'content' => 'Post content'
+            'title'   => 'Test Post',
+            'content' => 'Post content',
         ]);
 
         $video = VideoModel::create([
-            'title' => 'Test Video',
-            'url' => 'https://example.com/video.mp4',
-            'duration' => 300
+            'title'    => 'Test Video',
+            'url'      => 'https://example.com/video.mp4',
+            'duration' => 300,
         ]);
 
         // 创建评论数据
         CommentModel::create([
-            'content' => 'Comment on post',
+            'content'        => 'Comment on post',
             'morphable_type' => MorphPostModel::class,
-            'morphable_id' => $post->id,
-            'user_id' => 1
+            'morphable_id'   => $post->id,
+            'user_id'        => 1,
         ]);
 
         CommentModel::create([
-            'content' => 'Another comment on post',
+            'content'        => 'Another comment on post',
             'morphable_type' => MorphPostModel::class,
-            'morphable_id' => $post->id,
-            'user_id' => 2
+            'morphable_id'   => $post->id,
+            'user_id'        => 2,
         ]);
 
         CommentModel::create([
-            'content' => 'Comment on video',
+            'content'        => 'Comment on video',
             'morphable_type' => VideoModel::class,
-            'morphable_id' => $video->id,
-            'user_id' => 1
+            'morphable_id'   => $video->id,
+            'user_id'        => 1,
         ]);
     }
 
@@ -100,6 +100,33 @@ class ModelMorphTest extends TestCase
         // 测试预加载
         $post = MorphPostModel::with(['latestComment'])->find(1);
         $this->assertNotNull($post->latestComment);
+
+        // 测试has方法
+        $posts = MorphPostModel::has('latestComment')->select();
+        $this->assertCount(1, $posts);
+
+        $videos = VideoModel::has('latestComment')->select();
+        $this->assertCount(1, $videos);
+
+        // 测试hasWhere方法
+        $posts = MorphPostModel::hasWhere('latestComment', ['user_id' => 2])->select();
+        $this->assertCount(1, $posts);
+
+        $videos = VideoModel::hasWhere('latestComment', ['user_id' => 1])->select();
+        $this->assertCount(1, $videos);
+
+        // 测试组合查询
+        $posts = MorphPostModel::hasWhere('latestComment', function ($query) {
+            $query->where('user_id', 1)->whereOr('user_id', 2);
+        })->select();
+        $this->assertCount(1, $posts);
+
+        // 测试hasNot方法
+        $posts = MorphPostModel::hasNot('latestComment')->select();
+        $this->assertCount(0, $posts);
+
+        $videos = VideoModel::hasNot('latestComment')->select();
+        $this->assertCount(0, $videos);
     }
 
     public function testMorphMany()
@@ -122,7 +149,7 @@ class ModelMorphTest extends TestCase
         // 测试新增关联
         $result = $post->comments()->save([
             'content' => 'New comment on post',
-            'user_id' => 3
+            'user_id' => 3,
         ]);
         $this->assertNotNull($result);
         $this->assertEquals(3, $post->comments()->count());
@@ -131,6 +158,32 @@ class ModelMorphTest extends TestCase
         $video = VideoModel::find(1);
         $this->assertNotNull($video);
         $this->assertCount(1, $video->comments);
+
+        // 测试has方法
+        $posts = MorphPostModel::has('comments')->select();
+        $this->assertCount(1, $posts);
+
+        $videos = VideoModel::has('comments')->select();
+        $this->assertCount(1, $videos);
+
+        // 测试hasWhere方法
+        $posts = MorphPostModel::hasWhere('comments', ['user_id' => 1])->select();
+        $this->assertCount(1, $posts);
+
+        $videos = VideoModel::hasWhere('comments', ['user_id' => 2])->select();
+        $this->assertCount(0, $videos);
+
+        // 测试组合查询
+        $posts = MorphPostModel::hasWhere('comments', function ($query) {
+            $query->where('user_id', 1)->whereOr('user_id', 2);
+        })->select();
+        $this->assertCount(1, $posts);
+        // 测试hasNot方法
+        $posts = MorphPostModel::hasNot('comments')->select();
+        $this->assertCount(0, $posts);
+
+        $videos = VideoModel::hasNot('comments')->select();
+        $this->assertCount(0, $videos);
     }
 
     public function testMorphTo()
@@ -152,7 +205,7 @@ class ModelMorphTest extends TestCase
 
 class MorphPostModel extends Model
 {
-    protected $table = 'test_post';
+    protected $table = 'test_article';
 
     public function comments()
     {
@@ -167,7 +220,7 @@ class MorphPostModel extends Model
 
 class VideoModel extends Model
 {
-    protected $table = 'test_video';
+    protected $table              = 'test_video';
     protected $autoWriteTimestamp = true;
 
     public function comments()
@@ -184,7 +237,7 @@ class VideoModel extends Model
 
 class CommentModel extends Model
 {
-    protected $table = 'test_comment';
+    protected $table              = 'test_comment';
     protected $autoWriteTimestamp = true;
 
     public function commentable()

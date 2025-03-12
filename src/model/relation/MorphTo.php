@@ -136,9 +136,9 @@ class MorphTo extends Relation
      */
     public function hasWhere($where = [], $fields = null, string $joinType = '', ?Query $query = null)
     {
-        $alias = class_basename($this->parent);
+        $alias = Str::snake(class_basename($this->parent));
         $types = $this->parent->distinct()->column($this->morphType);
-        $query = $query ?: $this->parent->db();
+        $query = $query ?: $this->parent->getQuery();
 
         return $query->alias($alias)
             ->where(function (Query $query) use ($types, $where, $alias) {

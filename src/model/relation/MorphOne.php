@@ -15,6 +15,7 @@ namespace think\model\relation;
 use Closure;
 use think\db\BaseQuery as Query;
 use think\db\exception\DbException as Exception;
+use think\helper\Str;
 use think\model\contract\Modelable as Model;
 use think\model\Relation;
 
@@ -62,12 +63,12 @@ class MorphOne extends Relation
      */
     public function __construct(Model $parent, string $model, string $morphKey, string $morphType, string $type)
     {
-        $this->parent       = $parent;
-        $this->model        = $model;
-        $this->type         = $type;
-        $this->morphKey     = $morphKey;
-        $this->morphType    = $morphType;
-        $this->query        = (new $model())->db();
+        $this->parent    = $parent;
+        $this->model     = $model;
+        $this->type      = $type;
+        $this->morphKey  = $morphKey;
+        $this->morphType = $morphType;
+        $this->query     = (new $model())->getQuery();
     }
 
     /**
@@ -94,7 +95,7 @@ class MorphOne extends Relation
                 $this->bindAttr($this->parent, $relationModel);
             }
         } else {
-            $default = $this->query->getOptions('default_model');
+            $default       = $this->query->getOptions('default_model');
             $relationModel = $this->getDefaultModel($default);
         }
 
@@ -114,7 +115,19 @@ class MorphOne extends Relation
      */
     public function has(string $operator = '>=', int $count = 1, string $id = '*', string $joinType = '', ?Query $query = null)
     {
-        return $this->parent;
+        $model    = Str::snake(class_basename($this->parent));
+        $relation = Str::snake(class_basename($this->model));
+        $table    = $this->query->getTable();
+        $query    = $query ?: $this->parent->getQuery();
+
+        $query->alias($model)
+            ->field($model . '.*')
+            ->join([$table => $relation], $model . '.' . $this->parent->getPk() . '=' . $relation . '.' . $this->morphKey)
+            ->where($relation . '.' . $this->morphType, '=', $this->type)
+            ->group($relation . '.' . $this->morphKey)
+            ->having('count(' . $id . ')' . $operator . $count);
+
+        return $this->getRelationSoftDelete($query, $relation);
     }
 
     /**
@@ -129,7 +142,19 @@ class MorphOne extends Relation
      */
     public function hasWhere($where = [], $fields = null, string $joinType = '', ?Query $query = null)
     {
-        throw new Exception('relation not support: hasWhere');
+        $table    = $this->query->getTable();
+        $query    = $query ?: $this->parent->getQuery();
+        $model    = Str::snake(class_basename($this->parent));
+        $relation = Str::snake(class_basename($this->model));
+        $fields   = $this->getRelationQueryFields($fields, $model);
+
+        $query->alias($model)
+            ->join([$table => $relation], $model . '.' . $this->parent->getPk() . '=' . $relation . '.' . $this->morphKey, $joinType)
+            ->where($relation . '.' . $this->morphType, '=', $this->type)
+            ->group($relation . '.' . $this->morphKey)
+            ->field($fields);
+
+        return $this->getRelationSoftDelete($query, $relation, $where);
     }
 
     /**
@@ -145,10 +170,10 @@ class MorphOne extends Relation
      */
     public function eagerlyResultSet(array &$resultSet, string $relation, array $subRelation, ?Closure $closure = null, array $cache = []): void
     {
-        $morphType  = $this->morphType;
-        $morphKey   = $this->morphKey;
-        $type       = $this->type;
-        $range      = [];
+        $morphType = $this->morphType;
+        $morphKey  = $this->morphKey;
+        $type      = $this->type;
+        $range     = [];
 
         foreach ($resultSet as $result) {
             $pk = $result->getPk();
@@ -164,7 +189,7 @@ class MorphOne extends Relation
                 [$morphType, '=', $type],
             ], $subRelation, $closure, $cache);
 
-            $default = $this->query->getOptions('default_model');
+            $default      = $this->query->getOptions('default_model');
             $defaultModel = $this->getDefaultModel($default);
 
             // 关联数据封装
@@ -202,7 +227,7 @@ class MorphOne extends Relation
         $pk = $result->getPk();
 
         if (isset($result->$pk)) {
-            $pk = $result->$pk;
+            $pk   = $result->$pk;
             $data = $this->eagerlyMorphToOne([
                 [$this->morphKey, '=', $pk],
                 [$this->morphType, '=', $this->type],
@@ -211,7 +236,7 @@ class MorphOne extends Relation
             if (isset($data[$pk])) {
                 $relationModel = $data[$pk];
             } else {
-                $default = $this->query->getOptions('default_model');
+                $default       = $this->query->getOptions('default_model');
                 $relationModel = $this->getDefaultModel($default);
             }
 
@@ -268,7 +293,7 @@ class MorphOne extends Relation
      *
      * @return Model|false
      */
-    public function save(array|Model $data, bool $replace = true)
+    public function save(array | Model $data, bool $replace = true)
     {
         $model = $this->make();
 
@@ -282,7 +307,7 @@ class MorphOne extends Relation
      *
      * @return Model
      */
-    public function make(array|Model $data = []): Model
+    public function make(array | Model $data = []): Model
     {
         if ($data instanceof Model) {
             $data = $data->getData();

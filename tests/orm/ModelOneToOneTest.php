@@ -256,7 +256,6 @@ class ModelOneToOneTest extends TestCase
         $this->assertCount(1, $users);
         $this->assertEquals('user1', $users[0]->name);
 
-
         // 测试 hasWhere 复杂条件
         $users = UserModel::hasWhere('profile', [
             ['email', 'like', '%@thinkphp.cn'],
@@ -274,6 +273,11 @@ class ModelOneToOneTest extends TestCase
         $users = UserModel::hasNot('profile')->select();
         $this->assertCount(1, $users);
         $this->assertEquals(['user3'], $users->column('name'));
+
+        // 测试软删除数据
+        $profile2->delete();
+        $users = UserModel::has('profile')->select();
+        $this->assertCount(1, $users);
     }
 }
 

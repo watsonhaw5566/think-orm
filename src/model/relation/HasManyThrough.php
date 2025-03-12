@@ -60,12 +60,12 @@ class HasManyThrough extends Relation
     {
         $this->parent     = $parent;
         $this->model      = $model;
-        $this->through    = (new $through())->db();
+        $this->through    = (new $through())->getQuery();
         $this->foreignKey = $foreignKey;
         $this->throughKey = $throughKey;
         $this->localKey   = $localKey;
         $this->throughPk  = $throughPk;
-        $this->query      = (new $model())->db();
+        $this->query      = (new $model())->getQuery();
     }
 
     /**
@@ -105,7 +105,7 @@ class HasManyThrough extends Relation
         $table          = $this->through->getTable();
         $relation       = Str::snake(class_basename($this->model));
         $relationTable  = (new $this->model())->getTable();
-        $query          = $query ?: $this->parent->db();
+        $query          = $query ?: $this->parent->getQuery();
 
         // 统计子查询
         $subQuery = $this->through
@@ -113,6 +113,8 @@ class HasManyThrough extends Relation
             ->table($table)
             ->join([$relationTable => $relation], $relation . '.' . $this->throughKey . '=' . $table . '.' . $this->throughPk, $joinType)
             ->whereExp($table . '.' . $this->throughPk, '=' . $model . '.' . $this->localKey);
+
+        $this->getRelationSoftDelete($subQuery, $relation);
         return $query->alias($model)->where('(' . $subQuery->buildSql() . ') ' . $operator . ' ' . $count);
     }
 
@@ -128,22 +130,20 @@ class HasManyThrough extends Relation
     public function hasWhere($where = [], $fields = null, $joinType = '', ?Query $query = null): Query
     {
         $model          = Str::snake(class_basename($this->parent));
-        $table          = $this->through->getTable();
         $relation       = Str::snake(class_basename($this->model));
+        $table          = $this->through->getTable();
         $relationTable  = (new $this->model())->getTable();
-        $query          = $query ?: $this->parent->db()->alias($model);
+        $query          = $query ?: $this->parent->getQuery();
 
         // EXISTS子查询
         $subQuery = $this->through
             ->table($table)
             ->join([$relationTable => $relation], $relation . '.' . $this->throughKey . '=' . $table . '.' . $this->throughPk, $joinType)
-            ->whereExp($table . '.' . $this->throughPk, '=' . $model . '.' . $this->localKey)
-            ->where($where);
+            ->whereExp($table . '.' . $this->throughPk, '=' . $model . '.' . $this->localKey);
 
-        return $query->whereExists($subQuery->buildSql());
+        $this->getRelationSoftDelete($subQuery, $relation, $where);
+        return $query->alias($model)->whereExists($subQuery->buildSql());
     }
-
-
 
     /**
      * 预载入关联查询（数据集）.

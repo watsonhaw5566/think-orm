@@ -537,7 +537,7 @@ trait ModelRelationQuery
     }
 
     /**
-     * 根据关联条件查询当前模型.
+     * 查询关联数据存在（或超过多少条）的模型数据.
      *
      * @param string $relation 关联方法名
      * @param mixed  $operator 比较操作符
@@ -553,7 +553,7 @@ trait ModelRelationQuery
     }
 
     /**
-     * 根据关联条件查询当前模型.
+     * 查询关联数据不存在的模型数据.
      *
      * @param string $relation 关联方法名
      * @param string $id       关联表的统计字段

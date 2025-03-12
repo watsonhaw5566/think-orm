@@ -85,7 +85,7 @@ class BelongsToMany extends Relation
             $this->middle = $middle;
         }
 
-        $this->query = (new $model())->db();
+        $this->query = (new $model())->getQuery();
         $this->pivot = $this->newPivot();
     }
 
@@ -217,31 +217,27 @@ class BelongsToMany extends Relation
         $pivot      = $this->pivot->getTable();
         $model      = Str::snake(class_basename($this->parent));
         $relation   = Str::snake(class_basename($this->model));
-        $softDelete = $this->query->getOptions('soft_delete');
-        $query      = $query ?: $this->parent->db();
+        $query      = $query ?: $this->parent->getQuery();
 
         if ('=' === $operator && 0 === $count) {
             return $query->alias($model)
-                ->whereNotExists(function ($query) use ($pivot, $model, $relation, $table, $softDelete) {
+                ->whereNotExists(function ($query) use ($pivot, $model, $relation, $table) {
                     $query->table([$pivot => 'pivot'])
                         ->field('pivot.' . $this->foreignKey)
                         ->join($table . ' ' . $relation, $relation . '.' . $this->query->getPk() . '= pivot.' . $this->foreignKey)
-                        ->whereExp($model . '.' . $this->parent->getPk(), '=pivot.' . $this->localKey)
-                        ->when($softDelete, function ($query) use ($softDelete, $relation) {
-                            $query->where($relation . strstr($softDelete[0], '.'), '=' == $softDelete[1][0] ? $softDelete[1][1] : null);
-                        });
+                        ->whereExp($model . '.' . $this->parent->getPk(), '=pivot.' . $this->localKey);
+
+                    $this->getRelationSoftDelete($query, $relation);
                 });
         }
 
-        return $query->alias($model)
+        $query->alias($model)
             ->field($model . '.*')
             ->join([$pivot => 'pivot'], 'pivot.' . $this->localKey . '=' . $model . '.' . $this->parent->getPk(), $joinType)
             ->join($table . ' ' . $relation, $relation . '.' . $this->query->getPk() . '= pivot.' . $this->foreignKey, $joinType)
-            ->when($softDelete, function ($query) use ($softDelete, $relation) {
-                $query->where($relation . strstr($softDelete[0], '.'), '=' == $softDelete[1][0] ? $softDelete[1][1] : null);
-            })
             ->group($model . '.' . $this->parent->getPk())
             ->having('count(' . $id . ')' . $operator . $count);
+        return $this->getRelationSoftDelete($query, $relation);
     }
 
     /**
@@ -259,35 +255,16 @@ class BelongsToMany extends Relation
         $pivot    = $this->pivot->getTable();
         $model    = Str::snake(class_basename($this->parent));
         $relation = Str::snake(class_basename($this->model));
+        $fields   = $this->getRelationQueryFields($fields, $model);
+        $query    = $query ?: $this->parent->getQuery();
 
-        if (is_array($where)) {
-            $this->getQueryWhere($where, $relation);
-        } elseif ($where instanceof Query) {
-            $where->via($relation);
-        } elseif ($where instanceof Closure) {
-            $where($this->query->via($relation));
-            $where = $this->query;
-        }
-
-        $fields     = $this->getRelationQueryFields($fields, $model);
-        $softDelete = $this->query->getOptions('soft_delete');
-        $query      = $query ?: $this->parent->db();
-
-        return $query->alias($model)
+        $query->alias($model)
             ->join([$pivot => 'pivot'], 'pivot.' . $this->localKey . '=' . $model . '.' . $this->parent->getPk(), $joinType)
             ->join($table . ' ' . $relation, $relation . '.' . $this->query->getPk() . '= pivot.' . $this->foreignKey, $joinType)
-            ->when($softDelete, function ($query) use ($softDelete, $relation) {
-                $query->where($relation . strstr($softDelete[0], '.'), '=' == $softDelete[1][0] ? $softDelete[1][1] : null);
-            })
             ->group($model . '.' . $this->parent->getPk())
-            ->where(function ($query) use ($where) {
-                if ($where instanceof Query) {
-                    $query->where($where);
-                } else {
-                    $query->where($where);
-                }
-            })
             ->field($fields);
+
+        return $this->getRelationSoftDelete($query, $relation, $where);            
     }
 
     /**

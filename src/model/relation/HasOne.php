@@ -37,7 +37,7 @@ class HasOne extends OneToOne
         $this->model      = $model;
         $this->foreignKey = $foreignKey;
         $this->localKey   = $localKey;
-        $this->query      = (new $model())->db();
+        $this->query      = (new $model())->getQuery();
 
         if (get_class($parent) == $model) {
             $this->selfRelation = true;
@@ -143,27 +143,17 @@ class HasOne extends OneToOne
      */
     public function has(string $operator = '>=', int $count = 1, string $id = '*', string $joinType = '', ?Query $query = null) : Query
     {
-        $table      = $this->query->getTable();
         $model      = Str::snake(class_basename($this->parent));
         $relation   = Str::snake(class_basename($this->model));
-        $localKey   = $this->localKey;
-        $foreignKey = $this->foreignKey;
-        $softDelete = $this->query->getOptions('soft_delete');
-        $query      = $query ?: $this->parent->db();
+        $table      = $this->query->getTable();
+        $query      = $query ?: $this->parent->getQuery();
+        $method     = (0 == $count && '=' == $operator) ? 'whereNotExists' : 'whereExists';
 
-        if (0 == $count && '=' == $operator) {
-            $method = 'whereNotExists';
-        } else {
-            $method = 'whereExists';
-        }
-
-        return $query->alias($model)->$method(function ($query) use ($table, $model, $relation, $localKey, $foreignKey, $softDelete) {
+        return $query->alias($model)->$method(function ($query) use ($table, $model, $relation) {
             $query->table([$table => $relation])
-                ->field($relation . '.' . $foreignKey)
-                ->whereExp($model . '.' . $localKey, '=' . $relation . '.' . $foreignKey)
-                ->when($softDelete, function ($query) use ($softDelete, $relation) {
-                    $query->where($relation . strstr($softDelete[0], '.'), '=' == $softDelete[1][0] ? $softDelete[1][1] : null);
-                });
+                ->field($relation . '.' . $this->foreignKey)
+                ->whereExp($model . '.' . $this->localKey, '=' . $relation . '.' . $this->foreignKey);
+            $this->getRelationSoftDelete($query, $relation);
         });
     }
 
@@ -179,33 +169,18 @@ class HasOne extends OneToOne
      */
     public function hasWhere($where = [], $fields = null, string $joinType = '', ?Query $query = null): Query
     {
-        $table    = $this->query->getTable();
         $model    = Str::snake(class_basename($this->parent));
         $relation = Str::snake(class_basename($this->model));
+        $table    = $this->query->getTable();
+        $query    = $query ?: $this->parent->getQuery();
+        $fields   = $this->getRelationQueryFields($fields, $model);
 
-        if (is_array($where)) {
-            $this->getQueryWhere($where, $relation);
-        } elseif ($where instanceof Query) {
-            $where->via($relation);
-        } elseif ($where instanceof Closure) {
-            $where($this->query->via($relation));
-            $where = $this->query;
-        }
-
-        $fields     = $this->getRelationQueryFields($fields, $model);
-        $softDelete = $this->query->getOptions('soft_delete');
-        $query      = $query ?: $this->parent->db();
-
-        return $query->alias($model)
+        $query->alias($model)
             ->via($model)
             ->field($fields)
-            ->join([$table => $relation], $model . '.' . $this->localKey . '=' . $relation . '.' . $this->foreignKey, $joinType ?: $this->joinType)
-            ->when($softDelete, function ($query) use ($softDelete, $relation) {
-                $query->where($relation . strstr($softDelete[0], '.'), '=' == $softDelete[1][0] ? $softDelete[1][1] : null);
-            })
-            ->where(function ($query) use ($where) {
-                $query->where($where);
-            });
+            ->join([$table => $relation], $model . '.' . $this->localKey . '=' . $relation . '.' . $this->foreignKey, $joinType);            
+
+        return $this->getRelationSoftDelete($query, $relation, $where);
     }
 
     /**
