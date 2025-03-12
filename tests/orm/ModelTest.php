@@ -198,34 +198,34 @@ SQL
         Db::table('test_model')->insertAll(self::$testData);
 
         // 基本分页查询
-        $list = TestPaginateModel::paginate();
+        $list = Test2Model::paginate();
         $this->assertCount(3, $list->items());
         $this->assertEquals(3, $list->total());
         $this->assertEquals(1, $list->currentPage());
         $this->assertEquals(15, $list->listRows());
 
         // 自定义每页数量
-        $list = TestPaginateModel::paginate(2);
+        $list = Test2Model::paginate(2);
         $this->assertCount(2, $list->items());
         $this->assertEquals(3, $list->total());
         $this->assertEquals(1, $list->currentPage());
         $this->assertEquals(2, $list->listRows());
 
         // 简单分页
-        $list = TestPaginateModel::paginate(2, true);
+        $list = Test2Model::paginate(2, true);
         $this->assertCount(2, $list->items());
         $this->assertEquals(1, $list->currentPage());
         $this->assertEquals(2, $list->listRows());
         $this->assertTrue($list->hasMore());
 
         // 条件分页
-        $list = TestPaginateModel::where('status', 1)->paginate();
+        $list = Test2Model::where('status', 1)->paginate();
         $this->assertCount(2, $list->items());
         $this->assertEquals(2, $list->total());
         $this->assertEquals(1, $list->currentPage());
 
         // 作用域分页
-        $list = TestPaginateModel::scope('active')->paginate();
+        $list = Test2Model::scope('active')->paginate();
         $this->assertCount(2, $list->items());
         $this->assertEquals(2, $list->total());
         $this->assertEquals(1, $list->currentPage());
@@ -235,30 +235,30 @@ SQL
         Db::table('test_model')->insertAll(self::$testData);
 
         // 测试基本聚合
-        $count = TestPaginateModel::count();
+        $count = Test2Model::count();
         $this->assertEquals(3, $count);
 
-        $maxScore = TestPaginateModel::max('score');
+        $maxScore = Test2Model::max('score');
         $this->assertEquals(40, $maxScore);
 
-        $minScore = TestPaginateModel::min('score');
+        $minScore = Test2Model::min('score');
         $this->assertEquals(25, $minScore);
 
-        $avgScore = TestPaginateModel::avg('score');
+        $avgScore = Test2Model::avg('score');
         $this->assertEquals(33.33, round($avgScore, 2));
 
-        $sumScore = TestPaginateModel::sum('score');
+        $sumScore = Test2Model::sum('score');
         $this->assertEquals(100, $sumScore);
 
         // 测试条件聚合
-        $activeCount = TestPaginateModel::where('status', 1)->count();
+        $activeCount = Test2Model::where('status', 1)->count();
         $this->assertEquals(2, $activeCount);
 
-        $highScoreSum = TestPaginateModel::where('score', '>', 30)->sum('score');
+        $highScoreSum = Test2Model::where('score', '>', 30)->sum('score');
         $this->assertEquals(75, $highScoreSum);
 
         // 测试分组聚合
-        $statusCount = TestPaginateModel::group('status')
+        $statusCount = Test2Model::group('status')
             ->column('status,COUNT(*) as count,AVG(score) as avg_score');
         $this->assertEquals([
             ['status' => 0, 'count' => 1, 'avg_score' => 25.00],
@@ -266,16 +266,55 @@ SQL
         ], array_values($statusCount));
 
         // 测试作用域聚合
-        $activeScoreSum = TestPaginateModel::active()->sum('score');
+        $activeScoreSum = Test2Model::active()->sum('score');
         $this->assertEquals(75, $activeScoreSum);
 
         // 测试分组后的筛选
-        $groupResult = TestPaginateModel::group('status')
+        $groupResult = Test2Model::group('status')
             ->having('COUNT(*) > 1')
             ->column('status,COUNT(*) as count');
         $this->assertEquals([
             ['status' => 1, 'count' => 2],
         ], array_values($groupResult));
+    }
+
+    public function testValue()
+    {
+        Db::table('test_model')->insertAll(self::$testData);
+
+        // 测试基本字段获取器
+        $score = Test2Model::where('id', 1)->valueWithAttr('score');
+        $this->assertEquals(70, $score); // 原始值35 * 2
+
+        // 测试虚拟获取器
+        $statusText = Test2Model::where('id', 1)->valueWithAttr('status');
+        $this->assertEquals('启用', $statusText);
+
+        // 测试依赖其他字段的获取器
+        $fullName = Test2Model::where('id', 1)->valueWithAttr('name');
+        $this->assertEquals('User-test1', $fullName);
+    }
+
+    public function testColumn()
+    {
+        Db::table('test_model')->insertAll(self::$testData);
+
+        // 测试基本字段获取器
+        $scores = Test2Model::where('status', 1)->columnWithAttr('score');
+        $this->assertEquals([70, 80], array_values($scores)); // 原始值[35, 40] * 2
+
+        // 测试虚拟获取器
+        $statusTexts = Test2Model::columnWithAttr('status');
+        $this->assertEquals(['启用', '禁用', '启用'], array_values($statusTexts));
+
+        // 测试依赖其他字段的获取器
+        $fullNames = Test2Model::columnWithAttr('name');
+        $expected  = ['User-test1', 'User-test2', 'User-test3'];
+        $this->assertEquals($expected, array_values($fullNames));
+
+        // 测试指定索引字段
+        $scores = Test2Model::columnWithAttr('score', 'name');
+        $this->assertEquals(['test1' => 70, 'test2' => 50, 'test3' => 80], $scores);
     }
 }
 
@@ -300,7 +339,7 @@ class TestModel extends Model
         return $query->where('name', 'like', "%{$name}%");
     }
 }
-class TestPaginateModel extends Model
+class Test2Model extends Model
 {
     protected $table              = 'test_model';
     protected $autoWriteTimestamp = true;
@@ -308,5 +347,21 @@ class TestPaginateModel extends Model
     public function scopeActive($query)
     {
         return $query->where('status', 1);
+    }
+
+    public function getScoreAttr($value)
+    {
+        return $value * 2;
+    }
+
+    public function getStatusAttr($value, $data)
+    {
+        $status = [0 => '禁用', 1 => '启用'];
+        return $status[$data['status']] ?? '未知';
+    }
+
+    public function getNameAttr($value, $data)
+    {
+        return 'User-' . $data['name'];
     }
 }
