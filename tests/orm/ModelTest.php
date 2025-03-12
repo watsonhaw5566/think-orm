@@ -325,7 +325,7 @@ SQL
             ['id' => 1, 'name' => 'replace1', 'score' => 95, 'status' => 0],
             ['name' => 'new1', 'score' => 100, 'status' => 1],
         ];
-        $result = TestModel::saveAll($replaceData, true);
+        $result = TestModel::saveAll($replaceData);
 
         $this->assertCount(2, $result);
         $list = TestModel::select();
