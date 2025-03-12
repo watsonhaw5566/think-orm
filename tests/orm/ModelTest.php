@@ -278,21 +278,87 @@ SQL
         ], array_values($groupResult));
     }
 
+    public function testSaveAll()
+    {
+        // 测试批量新增
+        $data = [
+            ['name' => 'test4', 'score' => 45, 'status' => 1],
+            ['name' => 'test5', 'score' => 55, 'status' => 1],
+            ['name' => 'test6', 'score' => 65, 'status' => 0],
+        ];
+        $result = TestModel::saveAll($data);
+
+        $this->assertCount(3, $result);
+        $list = TestModel::select();
+        $this->assertCount(3, $list);
+        foreach ($result as $model) {
+            $this->assertInstanceOf(Model::class, $model);
+            $this->assertNotEmpty($model->id);
+            $this->assertNotEmpty($model->create_time);
+        }
+
+        // 测试批量更新
+        $updateData = [
+            ['id' => 1, 'name' => 'updated1', 'score' => 75],
+            ['id' => 2, 'name' => 'updated2', 'score' => 85],
+        ];
+        $result = TestModel::saveAll($updateData);
+
+        $this->assertCount(2, $result);
+        $list = TestModel::select();
+        $this->assertCount(3, $list);        
+        foreach ($result as $model) {
+            $this->assertInstanceOf(Model::class, $model);
+            $this->assertNotEmpty($model->update_time);
+        }
+
+        // 验证更新后的数据
+        $model1 = TestModel::find(1);
+        $this->assertEquals('updated1', $model1->name);
+        $this->assertEquals(75, $model1->score);
+
+        $model2 = TestModel::find(2);
+        $this->assertEquals('updated2', $model2->name);
+        $this->assertEquals(85, $model2->score);
+
+        $replaceData = [
+            ['id' => 1, 'name' => 'replace1', 'score' => 95, 'status' => 0],
+            ['name' => 'new1', 'score' => 100, 'status' => 1],
+        ];
+        $result = TestModel::saveAll($replaceData, true);
+
+        $this->assertCount(2, $result);
+        $list = TestModel::select();
+        $this->assertCount(4, $list);        
+        foreach ($result as $model) {
+            $this->assertInstanceOf(Model::class, $model);
+            $this->assertNotEmpty($model->id);
+        }
+
+        $model1 = TestModel::find(1);
+        $this->assertEquals('replace1', $model1->name);
+        $this->assertEquals(95, $model1->score);
+        $this->assertEquals(0, $model1->status);
+    }
+
     public function testValue()
     {
         Db::table('test_model')->insertAll(self::$testData);
 
-        // 测试基本字段获取器
+        $score = Test2Model::where('id', 1)->value('score');
+        $this->assertEquals(35, $score);
         $score = Test2Model::where('id', 1)->valueWithAttr('score');
         $this->assertEquals(70, $score); // 原始值35 * 2
 
-        // 测试虚拟获取器
-        $statusText = Test2Model::where('id', 1)->valueWithAttr('status');
-        $this->assertEquals('启用', $statusText);
+        $status = Test2Model::where('id', 1)->value('status');
+        $this->assertEquals(1, $status);
+        $status = Test2Model::where('id', 1)->valueWithAttr('status');
+        $this->assertEquals('启用', $status);
 
-        // 测试依赖其他字段的获取器
-        $fullName = Test2Model::where('id', 1)->valueWithAttr('name');
-        $this->assertEquals('User-test1', $fullName);
+        $name = Test2Model::where('id', 1)->value('name');
+        $this->assertEquals('test1', $name);
+        $name = Test2Model::where('id', 1)->valueWithAttr('name');
+        $this->assertEquals('User-test1', $name);
     }
 
     public function testColumn()
@@ -300,19 +366,23 @@ SQL
         Db::table('test_model')->insertAll(self::$testData);
 
         // 测试基本字段获取器
+        $scores = Test2Model::where('status', 1)->column('score');
+        $this->assertEquals([35, 40], array_values($scores));
         $scores = Test2Model::where('status', 1)->columnWithAttr('score');
-        $this->assertEquals([70, 80], array_values($scores)); // 原始值[35, 40] * 2
+        $this->assertEquals([70, 80], array_values($scores));
 
-        // 测试虚拟获取器
+        $status = Test2Model::column('status');
+        $this->assertEquals([1, 0, 1], array_values($status));
         $statusTexts = Test2Model::columnWithAttr('status');
         $this->assertEquals(['启用', '禁用', '启用'], array_values($statusTexts));
 
-        // 测试依赖其他字段的获取器
         $fullNames = Test2Model::columnWithAttr('name');
         $expected  = ['User-test1', 'User-test2', 'User-test3'];
         $this->assertEquals($expected, array_values($fullNames));
 
         // 测试指定索引字段
+        $scores = Test2Model::column('score', 'name');
+        $this->assertEquals(['test1' => 35, 'test2' => 25, 'test3' => 40], $scores);
         $scores = Test2Model::columnWithAttr('score', 'name');
         $this->assertEquals(['test1' => 70, 'test2' => 50, 'test3' => 80], $scores);
     }
