@@ -229,4 +229,62 @@ SQL
         $this->assertEquals(1, $list->currentPage());
         $this->assertEquals(2, $list->listRows());
     }
+
+    public function testAggregate()
+    {
+        $users = self::$testUserData;
+
+        // 测试基本聚合函数
+        $count = Db::table('test_user')->count();
+        $this->assertEquals(5, $count);
+
+        $maxType = Db::table('test_user')->max('type');
+        $this->assertEquals(3, $maxType);
+
+        $minType = Db::table('test_user')->min('type');
+        $this->assertEquals(1, $minType);
+
+        $avgType = Db::table('test_user')->avg('type');
+        $this->assertEquals(2, $avgType);
+
+        $sumType = Db::table('test_user')->sum('type');
+        $this->assertEquals(10, $sumType);
+
+        // 测试条件聚合
+        $countWhere = Db::table('test_user')->where('type', '>', 1)->count();
+        $this->assertEquals(4, $countWhere);
+
+        $sumWhere = Db::table('test_user')->where('type', '=', 2)->sum('type');
+        $this->assertEquals(6, $sumWhere);
+
+        // 测试分组聚合
+        $groupCount = Db::table('test_user')
+            ->group('type')
+            ->column('type,COUNT(*) as count');
+        $this->assertEquals([
+            ['type' => 1, 'count' => 1],
+            ['type' => 2, 'count' => 3],
+            ['type' => 3, 'count' => 1],
+        ], array_values($groupCount));
+
+        // 测试分组后的筛选
+        $havingCount = Db::table('test_user')
+            ->group('type')
+            ->having('COUNT(*) > 1')
+            ->column('type,COUNT(*) as count');
+        $this->assertEquals([
+            ['type' => 2, 'count' => 3],
+        ], array_values($havingCount));
+
+        // 测试复杂聚合查询
+        $result = Db::table('test_user')
+            ->where('type', '>', 1)
+            ->group('type')
+            ->having('COUNT(*) >= 1')
+            ->column('type,COUNT(*) as count,MAX(id) as max_id');
+        $this->assertEquals([
+            ['type' => 2, 'count' => 3, 'max_id' => 7],
+            ['type' => 3, 'count' => 1, 'max_id' => 1],
+        ], array_values($result));
+    }
 }

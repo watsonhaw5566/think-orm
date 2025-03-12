@@ -230,6 +230,53 @@ SQL
         $this->assertEquals(2, $list->total());
         $this->assertEquals(1, $list->currentPage());
     }
+    public function testAggregate()
+    {
+        Db::table('test_model')->insertAll(self::$testData);
+
+        // 测试基本聚合
+        $count = TestPaginateModel::count();
+        $this->assertEquals(3, $count);
+
+        $maxScore = TestPaginateModel::max('score');
+        $this->assertEquals(40, $maxScore);
+
+        $minScore = TestPaginateModel::min('score');
+        $this->assertEquals(25, $minScore);
+
+        $avgScore = TestPaginateModel::avg('score');
+        $this->assertEquals(33.33, round($avgScore, 2));
+
+        $sumScore = TestPaginateModel::sum('score');
+        $this->assertEquals(100, $sumScore);
+
+        // 测试条件聚合
+        $activeCount = TestPaginateModel::where('status', 1)->count();
+        $this->assertEquals(2, $activeCount);
+
+        $highScoreSum = TestPaginateModel::where('score', '>', 30)->sum('score');
+        $this->assertEquals(75, $highScoreSum);
+
+        // 测试分组聚合
+        $statusCount = TestPaginateModel::group('status')
+            ->column('status,COUNT(*) as count,AVG(score) as avg_score');
+        $this->assertEquals([
+            ['status' => 0, 'count' => 1, 'avg_score' => 25.00],
+            ['status' => 1, 'count' => 2, 'avg_score' => 37.50],
+        ], array_values($statusCount));
+
+        // 测试作用域聚合
+        $activeScoreSum = TestPaginateModel::active()->sum('score');
+        $this->assertEquals(75, $activeScoreSum);
+
+        // 测试分组后的筛选
+        $groupResult = TestPaginateModel::group('status')
+            ->having('COUNT(*) > 1')
+            ->column('status,COUNT(*) as count');
+        $this->assertEquals([
+            ['status' => 1, 'count' => 2],
+        ], array_values($groupResult));
+    }
 }
 
 class TestModel extends Model
@@ -261,5 +308,5 @@ class TestPaginateModel extends Model
     public function scopeActive($query)
     {
         return $query->where('status', 1);
-    }    
+    }
 }
