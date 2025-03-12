@@ -509,18 +509,19 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      * 保存多个数据到当前数据对象
      *
      * @param iterable $dataSet 数据
-     * @param bool     $replace 是否自动识别更新和写入
+     * @param bool     $insert 是否强制新增
      *
      * @return Collection
      */
-    public function saveAll(iterable $dataSet, bool $replace = true): Collection
+    public static function saveAll(iterable $dataSet, bool $insert = false): Collection
     {
         $result = [];
         foreach ($dataSet as $key => $data) {
-            $this->clear()->replace($replace)->save($data);
-            $result[$key] = $this->newInstance($this->getData());
+            $model = new static;
+            $model->replace(true)->save($data, $insert);
+            $result[$key] = $model;
         }
-        return $this->toCollection($result);
+        return $model->toCollection($result);
     }
 
     /**
