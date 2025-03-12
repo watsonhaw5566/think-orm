@@ -142,10 +142,45 @@ class ModelHasManyThroughTest extends TestCase
         $countries = Country::hasNot('posts')->select();
         $this->assertCount(0, $countries);
 
-        // 测试hasWhere方法
+        // 测试hasWhere方法 - 基本条件
         $countries = Country::hasWhere('posts', [
             ['title', 'like', '%Post1%'],
         ])->select();
+        $this->assertCount(1, $countries);
+        $this->assertEquals('China', $countries[0]->name);
+
+        // 测试hasWhere方法 - 闭包查询
+        $countries = Country::hasWhere('posts', function ($query) {
+            $query->where('title', 'Post1');
+        })->select();
+        $this->assertCount(1, $countries);
+        $this->assertEquals('China', $countries[0]->name);
+
+        // 测试hasWhere方法 - OR条件查询
+        $countries = Country::hasWhere('posts', function ($query) {
+            $query->where('title', 'Post1')
+                ->whereOr('title', 'Post2');
+        })->select();
+        $this->assertCount(1, $countries);
+        $this->assertEquals('China', $countries[0]->name);
+
+        // 测试hasWhere方法 - 多字段组合查询
+        $countries = Country::hasWhere('posts', function ($query) {
+            $query->where([
+                ['title', 'like', '%Post%'],
+                ['content', 'like', '%Content%']
+            ]);
+        })->select();
+        $this->assertCount(2, $countries);
+
+        // 测试hasWhere方法 - 复杂组合查询
+        $countries = Country::hasWhere('posts', function ($query) {
+            $query->where('title', 'like', '%Post%')
+                ->where(function ($query) {
+                    $query->where('content', 'Content1')
+                        ->whereOr('content', 'Content2');
+                });
+        })->select();
         $this->assertCount(1, $countries);
         $this->assertEquals('China', $countries[0]->name);
     }

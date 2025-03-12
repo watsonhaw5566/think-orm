@@ -256,12 +256,21 @@ class ModelOneToOneTest extends TestCase
         $this->assertCount(1, $users);
         $this->assertEquals('user1', $users[0]->name);
 
-        // 测试 hasWhere 复杂条件
-        $users = UserModel::hasWhere('profile', [
-            ['email', 'like', '%@thinkphp.cn'],
-            ['nickname', 'like', 'nickname%'],
-        ])->select();
+        // 测试 hasWhere 闭包查询
+        $users = UserModel::hasWhere('profile', function ($query) {
+            $query->where('email', 'like', '%@thinkphp.cn')
+                  ->where('nickname', 'nickname1');
+        })->select();
+        $this->assertCount(1, $users);
+        $this->assertEquals('user1', $users[0]->name);
+
+        // 测试 hasWhere 闭包查询与 OR 条件
+        $users = UserModel::hasWhere('profile', function ($query) {
+            $query->where('nickname', 'nickname1')
+                  ->whereOr('nickname', 'nickname2');
+        })->select();
         $this->assertCount(2, $users);
+        $this->assertEquals(['user1', 'user2'], $users->column('name'));
 
         // 测试 has 与 where 组合查询
         $users = UserModel::has('profile')

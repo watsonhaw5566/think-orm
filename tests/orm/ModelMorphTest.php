@@ -156,7 +156,6 @@ class ModelMorphTest extends TestCase
 
         // 测试视频评论
         $video = VideoModel::find(1);
-        $this->assertNotNull($video);
         $this->assertCount(1, $video->comments);
 
         // 测试has方法
@@ -166,16 +165,33 @@ class ModelMorphTest extends TestCase
         $videos = VideoModel::has('comments')->select();
         $this->assertCount(1, $videos);
 
-        // 测试hasWhere方法
+        // 测试hasWhere方法 - 基本条件
         $posts = MorphPostModel::hasWhere('comments', ['user_id' => 1])->select();
         $this->assertCount(1, $posts);
 
         $videos = VideoModel::hasWhere('comments', ['user_id' => 2])->select();
         $this->assertCount(0, $videos);
 
-        // 测试组合查询
+        // 测试hasWhere方法 - 闭包查询
         $posts = MorphPostModel::hasWhere('comments', function ($query) {
-            $query->where('user_id', 1)->whereOr('user_id', 2);
+            $query->where('content', 'like', '%post%');
+        })->select();
+        $this->assertCount(1, $posts);
+
+        // 测试hasWhere方法 - OR条件查询
+        $posts = MorphPostModel::hasWhere('comments', function ($query) {
+            $query->where('user_id', 1)
+                ->whereOr('user_id', 2);
+        })->select();
+        $this->assertCount(1, $posts);
+
+        // 测试hasWhere方法 - 复杂组合查询
+        $posts = MorphPostModel::hasWhere('comments', function ($query) {
+            $query->where('content', 'like', '%post%')
+                ->where(function ($query) {
+                    $query->where('user_id', 1)
+                        ->whereOr('user_id', 2);
+                });
         })->select();
         $this->assertCount(1, $posts);
         // 测试hasNot方法

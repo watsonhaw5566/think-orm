@@ -111,6 +111,31 @@ class ModelHasOneThroughTest extends TestCase
         $this->assertNotNull($user);
         $this->assertEquals('user1', $user->name);
 
+        // 测试hasWhere闭包查询
+        $user = User::hasWhere('profile', function ($query) {
+            $query->where('nickname', 'nickname1');
+        })->find();
+        $this->assertNotNull($user);
+        $this->assertEquals('user1', $user->name);
+
+        // 测试hasWhere闭包OR条件
+        $user = User::hasWhere('profile', function ($query) {
+            $query->where('nickname', 'nickname1')
+                ->whereOr('email', 'user1@example.com');
+        })->find();
+        $this->assertNotNull($user);
+        $this->assertEquals('user1', $user->name);
+
+        // 测试hasWhere闭包多字段组合查询
+        $user = User::hasWhere('profile', function ($query) {
+            $query->where([
+                ['nickname', '=', 'nickname1'],
+                ['email', 'like', '%@example.com']
+            ]);
+        })->find();
+        $this->assertNotNull($user);
+        $this->assertEquals('user1', $user->name);
+
         // 测试关联统计
         $user = User::withCount('profile')->find(1);
         $this->assertEquals(1, $user->profile_count);

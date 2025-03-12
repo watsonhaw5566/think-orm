@@ -145,6 +145,25 @@ class ModelOneToManyTest extends TestCase
         $this->assertCount(1, $authors);
         $this->assertEquals('author1', $authors[0]->name);
 
+        // 测试 hasWhere 闭包 OR 条件
+        $authors = AuthorModel::hasWhere('posts', function ($query) {
+            $query->where('status', 1)
+                ->where('title', 'like', '%Post 1%');
+        })->select();
+        $this->assertCount(1, $authors);
+        $this->assertEquals('author1', $authors[0]->name);
+
+        // 测试 hasWhere 闭包多字段组合查询
+        $authors = AuthorModel::hasWhere('posts', function ($query) {
+            $query->where([
+                ['status', '=', 1],
+                ['title', 'like', '%Post%'],
+                ['content', 'like', '%Content%'],
+            ]);
+        })->select();
+        $this->assertCount(1, $authors);
+        $this->assertEquals('author1', $authors[0]->name);
+
         // 测试 hasWhere 与 field
         $authors = AuthorModel::hasWhere('posts', ['status' => 1], '*')->select();
         $this->assertCount(1, $authors);
