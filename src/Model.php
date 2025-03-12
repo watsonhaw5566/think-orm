@@ -375,7 +375,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         $allow    = $this->getOption('field') ?: array_keys($this->getFields());
         $readonly = $this->getOption('readonly');
         $disuse   = $this->getOption('disuse');
-        $allow    = array_diff($allow, $readonly, $disuse);
+        $allow    = array_diff($allow, $disuse, $isUpdate ? $readonly : []);
 
         // 验证数据
         $this->validate($data, $allow);

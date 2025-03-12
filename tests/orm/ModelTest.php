@@ -19,8 +19,10 @@ class ModelTest extends TestCase
 CREATE TABLE `test_model` (
      `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
      `name` varchar(32) NOT NULL,
-     `score` int(11) NOT NULL DEFAULT '0',
-     `status` tinyint(4) NOT NULL DEFAULT '0',
+     `score` int(11) NULL DEFAULT '0',
+     `status` tinyint(4) NULL DEFAULT '0',
+     `readonly_field` varchar(32) DEFAULT NULL,
+     `deprecated_field` varchar(32) DEFAULT NULL,
      `create_time` datetime DEFAULT NULL,
      `update_time` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -278,6 +280,38 @@ SQL
         ], array_values($groupResult));
     }
 
+    public function testReadonlyField()
+    {
+        $data  = ['name' => 'test1', 'readonly_field' => 'value1'];
+        $model = new Test2Model($data);
+        $model->save();
+
+        // 测试只读字段不可修改
+        $model->readonly_field = 'new_value';
+        $model->save();
+        $this->assertEquals('value1', $model->readonly_field);
+
+        $model->save(['readonly_field' => 'another_value']);
+
+        $model = Test2Model::find(1);
+        $this->assertEquals('value1', $model->readonly_field);
+
+    }
+
+    public function testDeprecatedField()
+    {
+        $data  = ['name' => 'test1', 'deprecated_field' => 'old_value'];
+        $model = new Test2Model($data);
+
+        $this->assertNull($model->deprecated_field);
+
+        $model->deprecated_field = 'new_value';
+        $model->save();
+
+        $model = Test2Model::find(1);
+        $this->assertNull($model->deprecated_field);
+    }
+
     public function testSaveAll()
     {
         // 测试批量新增
@@ -306,7 +340,7 @@ SQL
 
         $this->assertCount(2, $result);
         $list = TestModel::select();
-        $this->assertCount(3, $list);        
+        $this->assertCount(3, $list);
         foreach ($result as $model) {
             $this->assertInstanceOf(Model::class, $model);
             $this->assertNotEmpty($model->update_time);
@@ -329,7 +363,7 @@ SQL
 
         $this->assertCount(2, $result);
         $list = TestModel::select();
-        $this->assertCount(4, $list);        
+        $this->assertCount(4, $list);
         foreach ($result as $model) {
             $this->assertInstanceOf(Model::class, $model);
             $this->assertNotEmpty($model->id);
@@ -413,6 +447,9 @@ class Test2Model extends Model
 {
     protected $table              = 'test_model';
     protected $autoWriteTimestamp = true;
+
+    protected $readonly = ['readonly_field'];
+    protected $disuse   = ['deprecated_field'];
 
     public function scopeActive($query)
     {

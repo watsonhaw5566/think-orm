@@ -472,6 +472,11 @@ trait Attribute
         $name = $this->getMappingName($name);
         $type = $this->getFields($name);
 
+        if ($this->isExists() && in_array($name, $this->getOption('readonly'))) {
+            // 只读属性不能赋值
+            return $this;
+        }
+
         if (is_null($value) && is_subclass_of($type, Model::class)) {
             // 关联数据为空 设置一个空模型
             $value = new $type();
