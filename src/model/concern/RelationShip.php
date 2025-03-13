@@ -70,7 +70,7 @@ trait RelationShip
                 $this->bindRelationAttr($val, $bind);
             } elseif (is_subclass_of($type, Model::class)) {
                 // 明确类型直接设置关联属性
-                $this->$relation = new $type($val);
+                $this->setRelation($relation, new $type($val));
             } else {
                 // 寄存关联数据
                 $this->setTempRelation($relation, $val);
@@ -179,6 +179,25 @@ trait RelationShip
         }
     }
 
+    /**
+     * 判断是否存在关联
+     *
+     * @param string $name 名称
+     *
+     * @return bool
+     */
+    public function hasRelation(string $name)
+    {
+        $method = Str::camel($name);
+        if (method_exists($this, $method)) {
+            $modelRelation = $this->$method();
+            if ($modelRelation instanceof Relation) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     protected function getBindAttr($bind, $name)
     {
         return $bind[$name] ?? [];
@@ -222,7 +241,7 @@ trait RelationShip
     }
 
     /**
-     * 根据关联条件查询当前模型.
+     * 查询存在关联数据的模型.
      *
      * @param string $relation 关联方法名
      * @param mixed  $operator 比较操作符
@@ -238,6 +257,23 @@ trait RelationShip
         return (new static())
             ->$relation()
             ->has($operator, $count, $id, $joinType, $query);
+    }
+
+    /**
+     * 查询不存在关联数据的模型.
+     *
+     * @param string $relation 关联方法名
+     * @param string $id       关联表的统计字段
+     * @param string $joinType JOIN类型
+     * @param Query  $query    Query对象
+     *
+     * @return Query
+     */
+    public static function hasNot(string $relation, string $id = '*', string $joinType = '', ?Query $query = null): Query
+    {
+        return (new static())
+            ->$relation()
+            ->has('=', 0, $id, $joinType, $query);
     }
 
     /**

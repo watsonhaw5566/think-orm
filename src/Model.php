@@ -372,7 +372,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     {
         $data     = $this->getData();
         $origin   = $this->getOrigin();
-        $allow    = $this->getOption('field') ?: array_keys($this->getFields());
+        $allow    = $this->getOption('allow') ?: array_keys($this->getFields());
         $readonly = $this->getOption('readonly');
         $disuse   = $this->getOption('disuse');
         $allow    = array_diff($allow, $disuse, $isUpdate ? $readonly : []);
@@ -669,6 +669,58 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     {
         $this->db()->cache($key, $expire, $tag);
         return $this;
+    }
+
+    /**
+     * 允许写入字段.
+     *
+     * @param array $allow 允许字段
+     *
+     * @return $this
+     */
+    public function allowField(array $allow)
+    {
+        $this->setOption('allow', $allow);
+
+        return $this;
+    }
+
+    /**
+     * 动态设置只读字段.
+     *
+     * @param array $fields 只读字段
+     *
+     * @return $this
+     */
+    public function readonly(array $fields)
+    {
+        $this->setOption('readonly', $fields);
+
+        return $this;
+    }
+
+    /**
+     * 强制写入或删除
+     *
+     * @param bool $force 强制更新
+     *
+     * @return $this
+     */
+    public function force(bool $force = true)
+    {
+        $this->setOption('force', $force);
+
+        return $this;
+    }
+
+    /**
+     * 判断数据是否强制写入或删除.
+     *
+     * @return bool
+     */
+    public function isForce(): bool
+    {
+        return $this->getOption('force', false);
     }
 
     /**

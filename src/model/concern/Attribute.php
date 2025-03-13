@@ -90,7 +90,7 @@ trait Attribute
                 // 记录原始数据
                 $origin[$trueName] = $value;
             } else {
-                // 非数据表字段 额外赋值
+                // 非数据表字段或关联数据 额外赋值
                 $this->setData($trueName, $value);
             }
         }

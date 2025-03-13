@@ -50,6 +50,15 @@ SQL
         $this->assertEquals($data['name'], $result->name);
         $this->assertEquals($data['status'], $result->status);
         $this->assertNotEmpty($result->create_time);
+
+        // 测试allowField方法限制字段写入
+        $data   = ['name' => 'test5', 'score' => 55, 'status' => 1];
+        $result = TestModel::create($data, ['name', 'score']);
+
+        $result = TestModel::withoutGlobalScope()->where('name', 'test5')->find();
+        $this->assertEquals($data['name'], $result->name);
+        $this->assertEquals($data['score'], $result->score);
+        $this->assertEquals(0, $result->status); // status字段未被允许写入，应保持默认值
     }
 
     public function testUpdate()
@@ -66,6 +75,17 @@ SQL
         $this->assertEquals($updateData['name'], $model->name);
         $this->assertEquals($updateData['status'], $model->status);
         $this->assertNotEmpty($model->update_time);
+
+        // 测试allowField方法限制字段更新
+        $model = TestModel::find(3);
+        $updateData = ['name' => 'updated3', 'score' => 30, 'status' => 0];
+        $result = $model->allowField(['name', 'score'])->save($updateData);
+
+        $this->assertTrue($result);
+        $model = TestModel::withoutGlobalScope()->find(3);
+        $this->assertEquals($updateData['name'], $model->name);
+        $this->assertEquals($updateData['score'], $model->score);
+        $this->assertEquals(1, $model->status); // status字段未被允许更新，应保持原值
     }
 
     public function testDelete()
