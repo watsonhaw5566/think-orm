@@ -181,7 +181,7 @@ class HasMany extends Relation
         }
 
         return $this->query->alias($aggregate . '_table')
-            ->whereColumn($aggregate . '_table.' . $this->foreignKey, '=', $this->parent->getTable(true) . '.' . $this->localKey)
+            ->whereColumn($aggregate . '_table.' . $this->foreignKey, $this->parent->getTable(true) . '.' . $this->localKey)
             ->fetchSql()
             ->$aggregate($field);
     }
@@ -311,7 +311,7 @@ class HasMany extends Relation
 
                 $query->table([$table => $relation])
                     ->field('count(' . $id . ') AS count')
-                    ->whereColumn($relation . '.' . $this->foreignKey, '=', $model . '.' . $this->localKey)
+                    ->whereColumn($relation . '.' . $this->foreignKey, $model . '.' . $this->localKey)
                     ->having('count ' . $operator . ' ' . $count);
 
                 $this->getRelationSoftDelete($query, $relation);

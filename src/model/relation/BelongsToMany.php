@@ -225,7 +225,7 @@ class BelongsToMany extends Relation
                     $query->table([$pivot => 'pivot'])
                         ->field('pivot.' . $this->foreignKey)
                         ->join($table . ' ' . $relation, $relation . '.' . $this->query->getPk() . '= pivot.' . $this->foreignKey)
-                        ->whereColumn($model . '.' . $this->parent->getPk(), '=', 'pivot.' . $this->localKey);
+                        ->whereColumn($model . '.' . $this->parent->getPk(), 'pivot.' . $this->localKey);
 
                     $this->getRelationSoftDelete($query, $relation);
                 });
