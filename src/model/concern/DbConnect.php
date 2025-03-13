@@ -111,6 +111,20 @@ trait DbConnect
     }
 
     /**
+     * 动态设置只读字段.
+     *
+     * @param array $fields 只读字段
+     *
+     * @return $this
+     */
+    public function readonly(array $fields)
+    {
+        $this->setOption('readonly', $fields);
+
+        return $this;
+    }
+
+    /**
      * 强制写入或删除
      *
      * @param bool $force 强制更新

@@ -153,7 +153,7 @@ class MorphTo extends Relation
                             $query
                                 ->table($table)
                                 ->where($alias . '.' . $this->morphType, $type)
-                                ->whereRaw("`{$alias}`.`{$this->morphKey}`=`{$table}`.`{$model->getPk()}`")
+                                ->whereColumn($alias . '.' . $this->morphKey, '=', $table . '.' . $model->getPk())
                                 ->where($where);
                         }, 'OR');
                     }

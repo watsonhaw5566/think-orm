@@ -97,7 +97,7 @@ class HasOne extends OneToOne
         }
 
         return $this->query
-            ->whereExp($this->foreignKey, '=' . $this->parent->getTable(true) . '.' . $this->localKey)
+            ->whereColumn($this->foreignKey, '=', $this->parent->getTable(true) . '.' . $this->localKey)
             ->fetchSql()
             ->$aggregate($field);
     }
@@ -152,7 +152,7 @@ class HasOne extends OneToOne
         return $query->alias($model)->$method(function ($query) use ($table, $model, $relation) {
             $query->table([$table => $relation])
                 ->field($relation . '.' . $this->foreignKey)
-                ->whereExp($model . '.' . $this->localKey, '=' . $relation . '.' . $this->foreignKey);
+                ->whereColumn($model . '.' . $this->localKey, '=', $relation . '.' . $this->foreignKey);
             $this->getRelationSoftDelete($query, $relation);
         });
     }

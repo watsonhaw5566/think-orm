@@ -260,7 +260,7 @@ class MorphMany extends Relation
         }
 
         return $this->query
-            ->whereExp($this->morphKey, '=' . $this->parent->getTable(true) . '.' . $this->parent->getPk())
+            ->whereColumn($this->morphKey, '=', $this->parent->getTable(true) . '.' . $this->parent->getPk())
             ->where($this->morphType, '=', $this->type)
             ->fetchSql()
             ->$aggregate($field);

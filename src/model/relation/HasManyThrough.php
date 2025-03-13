@@ -112,7 +112,7 @@ class HasManyThrough extends Relation
             ->field('COUNT(' . $id . ')')
             ->table($table)
             ->join([$relationTable => $relation], $relation . '.' . $this->throughKey . '=' . $table . '.' . $this->throughPk, $joinType)
-            ->whereExp($table . '.' . $this->throughPk, '=' . $model . '.' . $this->localKey);
+            ->whereColumn($table . '.' . $this->throughPk, '=', $model . '.' . $this->localKey);
 
         $this->getRelationSoftDelete($subQuery, $relation);
         return $query->alias($model)->where('(' . $subQuery->buildSql() . ') ' . $operator . ' ' . $count);
@@ -139,7 +139,7 @@ class HasManyThrough extends Relation
         $subQuery = $this->through
             ->table($table)
             ->join([$relationTable => $relation], $relation . '.' . $this->throughKey . '=' . $table . '.' . $this->throughPk, $joinType)
-            ->whereExp($table . '.' . $this->throughPk, '=' . $model . '.' . $this->localKey);
+            ->whereColumn($table . '.' . $this->throughPk, '=', $model . '.' . $this->localKey);
 
         $this->getRelationSoftDelete($subQuery, $relation, $where);
         return $query->alias($model)->whereExists($subQuery->buildSql());
@@ -345,7 +345,7 @@ class HasManyThrough extends Relation
         return $this->query
             ->alias($alias)
             ->join($throughTable, $throughTable . '.' . $pk . '=' . $alias . '.' . $throughKey)
-            ->whereExp($throughTable . '.' . $this->foreignKey, '=' . $this->parent->getTable() . '.' . $this->localKey)
+            ->whereColumn($throughTable . '.' . $this->foreignKey, '=', $this->parent->getTable() . '.' . $this->localKey)
             ->fetchSql()
             ->$aggregate($field);
     }

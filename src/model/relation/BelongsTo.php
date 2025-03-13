@@ -97,7 +97,7 @@ class BelongsTo extends OneToOne
         }
 
         return $this->query
-            ->whereExp($this->localKey, '=' . $this->parent->getTable(true) . '.' . $this->foreignKey)
+            ->whereColumn($this->localKey, '=', $this->parent->getTable(true) . '.' . $this->foreignKey)
             ->fetchSql()
             ->$aggregate($field);
     }
@@ -152,7 +152,7 @@ class BelongsTo extends OneToOne
             ->whereExists(function ($query) use ($table, $model, $relation) {
                 $query->table([$table => $relation])
                 ->field($relation . '.' . $this->localKey)
-                ->whereExp($model . '.' . $this->foreignKey, '=' . $relation . '.' . $this->localKey);
+                ->whereColumn($model . '.' . $this->foreignKey, '=', $relation . '.' . $this->localKey);
 
             $this->getRelationSoftDelete($query, $relation);
         });

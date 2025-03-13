@@ -181,7 +181,7 @@ class HasMany extends Relation
         }
 
         return $this->query->alias($aggregate . '_table')
-            ->whereExp($aggregate . '_table.' . $this->foreignKey, '=' . $this->parent->getTable(true) . '.' . $this->localKey)
+            ->whereColumn($aggregate . '_table.' . $this->foreignKey, '=', $this->parent->getTable(true) . '.' . $this->localKey)
             ->fetchSql()
             ->$aggregate($field);
     }
@@ -304,10 +304,6 @@ class HasMany extends Relation
         $model    = Str::snake(class_basename($this->parent));
         $query    = $query ?: $this->parent->getQuery();        
 
-        if ('*' != $id) {
-            $id = $table . '.' . (new $this->model())->getPk();
-        }
-
         return $query->alias($model)
             ->whereExists(function ($query) use ($model, $id, $table, $operator, $count) {
                 $table      = $this->query->getTable();
@@ -315,10 +311,10 @@ class HasMany extends Relation
 
                 $query->table([$table => $relation])
                     ->field('count(' . $id . ') AS count')
-                    ->where($relation . '.' . $this->foreignKey . '=' . $model . '.' . $this->localKey)
+                    ->whereColumn($relation . '.' . $this->foreignKey, '=', $model . '.' . $this->localKey)
                     ->having('count ' . $operator . ' ' . $count);
 
-                $this->getRelationSoftDelete($query, $relation);                    
+                $this->getRelationSoftDelete($query, $relation);
             });
     }
 
