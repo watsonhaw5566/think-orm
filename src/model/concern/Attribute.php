@@ -470,7 +470,7 @@ trait Attribute
     public function set(string $name, $value)
     {
         $name = $this->getMappingName($name);
-        $type = $this->getFields($name);
+        $type = $this->getFields()[$name] ?? '';
 
         if ($this->isExists() && in_array($name, $this->getOption('readonly'))) {
             // 只读属性不能赋值
@@ -480,7 +480,7 @@ trait Attribute
         if (is_null($value) && is_subclass_of($type, Model::class)) {
             // 关联数据为空 设置一个空模型
             $value = new $type();
-        } elseif (!($value instanceof Model || $value instanceof Collection) && !$this->hasSetAttr($name)) {
+        } elseif (!($value instanceof Model || $value instanceof Collection) && $type && !$this->hasSetAttr($name)) {
             // 类型自动转换
             $value = $this->readTransform($value, $type);
         }
