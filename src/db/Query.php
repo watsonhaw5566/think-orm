@@ -335,7 +335,7 @@ class Query extends BaseQuery
      *
      * @return $this
      */
-    public function autoinc(string $autoinc)
+    public function autoinc(?string $autoinc)
     {
         $this->autoinc = $autoinc;
 
