@@ -106,6 +106,12 @@ trait Conversion
         $item = [];
         foreach ($data as $name => $val) {
             if ($val instanceof Modelable || $val instanceof Collection) {
+                if (in_array($name, $hidden)) {
+                    // 隐藏关联属性
+                    unset($item[$name]);
+                    continue;
+                } 
+
                 if (!empty($relation[$name])) {
                     // 处理关联数据输出
                     foreach ($relation[$name] as $key => $attr) {
