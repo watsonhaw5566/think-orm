@@ -34,7 +34,11 @@ trait DbConnect
      */
     public function db()
     {
-        return $this->getOption('db')->schema($this->getOption('schema'))->model($this);
+        return $this->getOption('db')
+            ->schema($this->getOption('schema'))
+            ->pk($this->getPk())
+            ->autoInc($this->getOption('autoInc'))
+            ->model($this);
     }
 
     /**
@@ -51,12 +55,7 @@ trait DbConnect
             $db = Db::connect($connection);
         }
 
-        $db = $db->name($this->getName())->pk($this->getPk());
-        $autoInc = $this->getOption('autoInc');
-        if ($autoInc) {
-            $db->autoinc(is_string($autoInc) ? $autoInc : $this->getPk());
-        }
-
+        $db = $db->name($this->getName());
         if ($this->getOption('table')) {
             $db->table($this->getOption('table'));
         } else {
@@ -84,6 +83,9 @@ trait DbConnect
                 $model  = $this->getOption('db');
                 $fields = $model->getFieldsType();
                 $schema = array_merge($fields, $this->getOption('type', $model->getType()));
+                // 获取主键和自增字段
+                $this->setOption('pk', $model->getPk());
+                $this->setOption('autoInc', $model->getAutoInc());
             }
 
             $this->setOption('schema', $schema);
