@@ -39,7 +39,7 @@ trait AutoWriteData
         // 自动时间戳处理
         $this->autoDateTime($data, $update, $allow);
 
-        $auto = $this->getOption($update ? 'auto_update' : 'auto_insert', []);
+        $auto = $this->getOption($update ? 'autoUpdate' : 'autoInsert', []);
         foreach ($auto as $name => $val) {
             $field = is_string($name) ? $name : $val;
             if (!isset($data[$field])) {
