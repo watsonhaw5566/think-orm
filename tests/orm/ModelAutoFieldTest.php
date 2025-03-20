@@ -73,13 +73,13 @@ class TestAutoModel extends Model
     protected $autoWriteTimestamp = true;
 
     // 设置自动完成的字段
-    protected $autoInsert = [
+    protected $insert = [
         'type',
         'ip',
         'user_agent' => 'PHPUnit Test Agent',
     ];
 
-    protected $autoUpdate = [
+    protected $update = [
         'type',
         'ip',
         'user_agent' => 'PHPUnit Update Agent',
