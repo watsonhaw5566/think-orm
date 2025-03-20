@@ -66,8 +66,6 @@ trait ModelEvent
             if ($obser) {
                 $reflect  = new ReflectionClass($obser);
                 $observer = $reflect->newinstance();
-            } elseif ($this->getEntity() && method_exists($this->getEntity(), $method)) {
-                $observer = $this->getEntity();
             } else {
                 $observer = $this;
             }

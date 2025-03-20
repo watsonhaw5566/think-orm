@@ -44,6 +44,7 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
         if (is_null($model)) {
             $class = !empty($options['model_class']) ? $options['model_class'] : str_replace('\\entity\\', '\\model\\', static::class);
             $model = new $class();
+            $model->entity($this);
             unset($options['model_class']);
         }
 
@@ -198,7 +199,7 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
             $db = $entity->model();
         } else {
             // 调用Query类查询方法
-            $db = $entity->getQuery();
+            $db = $entity->model()->getQuery();
         }
 
         return call_user_func_array([$db, $method], $args);
