@@ -395,6 +395,34 @@ SQL
         $this->assertEquals(0, $model1->status);
     }
 
+    public function testWithAttr()
+    {
+        Db::table('test_model')->insertAll(self::$testData);
+
+        // 测试动态获取器
+        $model = TestModel::where('id', 1)->find()->withAttr('score', function($value, $data){
+            return $value + 1;
+        });
+        $this->assertEquals(36, $model->score); // 动态获取器优先
+
+        $model = TestModel::select([1])->withAttr('score', function($value, $data){
+            return $value + 2;
+        });
+        $this->assertEquals(37, $model[0]->score);
+
+        // 测试不存在的字段
+        $model = TestModel::where('id', 1)->find()->withAttr('nickname', function($value, $data){
+            return 'nickname:' . $data['name'];
+        })->withAttr('score', function($value, $data){
+            return $value + 1;
+        });
+        $this->assertEquals('nickname:test1', $model->nickname); // 动态获取器优先    
+        $this->assertEquals(36, $model->score); // 动态获取器优先    
+
+        // 测试是否自动append
+        $this->assertArrayHasKey('nickname', $model->toArray());
+    }
+
     public function testValue()
     {
         Db::table('test_model')->insertAll(self::$testData);

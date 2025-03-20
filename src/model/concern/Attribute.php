@@ -146,36 +146,26 @@ trait Attribute
     }
 
     /**
-     * 设置数据字段获取器.
+     * 动态设置数据字段获取器.
      *
-     * @param array $attr     字段获取器定义
+     * @param array|string $attr     字段名
+     * @param callable     $callback 闭包获取器
      *
      * @return $this
      */
-    public function withFieldAttr(array $attr)
+    public function withFieldAttr(array | string $attr, ?callable $callback = null)
     {
-        foreach ($attr as $name => $closure) {
-            $this->withAttr($name, $closure);
+        if (is_array($attr)) {
+            foreach ($attr as $name => $closure) {
+                $this->withFieldAttr($name, $closure);
+            }
+        } else {
+            $name = $this->getRealFieldName($attr);
+            $this->setWeakData('withAttr', $name, $callback);
+            // 自动追加输出
+            self::$weakMap[$this]['append'][] = $name;
         }
 
-        return $this;
-    }
-
-    /**
-     * 动态设置字段获取器.
-     *
-     * @param string    $name     字段名
-     * @param callable  $callback 闭包获取器
-     *
-     * @return $this
-     */
-    public function withAttr(string $name, callable $callback)
-    {
-        $name = $this->getRealFieldName($name);
-
-        $this->setWeakData('withAttr', $name, $callback);
-        // 自动追加输出
-        self::$weakMap[$this]['append'][] = $name;
         return $this;
     }
 

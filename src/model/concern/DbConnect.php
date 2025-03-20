@@ -38,6 +38,7 @@ trait DbConnect
             ->schema($this->getOption('schema'))
             ->pk($this->getPk())
             ->autoInc($this->getOption('autoInc'))
+            ->suffix($this->getOption('suffix'))
             ->model($this);
     }
 
@@ -159,7 +160,7 @@ trait DbConnect
             $query->scope($globalScope);
         }
         // 执行扩展查询
-        $this->query($query->suffix($this->getOption('suffix')));
+        $this->query($query);
         return $query;
     }
 
@@ -197,6 +198,10 @@ trait DbConnect
 
     public function __call($method, $args)
     {
+        if ($this->isExists() && strtolower($method) == 'withattr') {
+            return call_user_func_array([$this, 'withFieldAttr'], $args);
+        }
+
         return call_user_func_array([$this->getQuery(), $method], $args);
     }    
 }

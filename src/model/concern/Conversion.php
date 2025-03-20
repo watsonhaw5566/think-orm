@@ -159,14 +159,23 @@ trait Conversion
     }
 
     /**
-     * 转换数据集为数据集对象
+     * 转换为数据集对象
      *
      * @param array|Collection $collection    数据集
+     * @param string           $resultSetType 数据集类
      *
      * @return Collection
      */
-    public function toCollection(iterable $collection = []): Collection
+    public function toCollection(iterable $collection = [], ?string $resultSetType = null): Collection
     {
-        return new Collection($collection);
-    }
+        $resultSetType = $resultSetType ?: $this->getOption('resultSetType');
+
+        if ($resultSetType && str_contains($resultSetType, '\\')) {
+            $collection = new $resultSetType($collection);
+        } else {
+            $collection = new Collection($collection);
+        }
+
+        return $collection;
+    }    
 }
