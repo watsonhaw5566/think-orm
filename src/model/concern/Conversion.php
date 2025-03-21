@@ -13,6 +13,7 @@ declare (strict_types = 1);
 
 namespace think\model\concern;
 
+use think\helper\Str;
 use think\model\Collection;
 use think\model\contract\Modelable;
 
@@ -142,6 +143,16 @@ trait Conversion
                     $item[$name] = $relation[$name];
                 }
             } 
+        }
+
+        if ($this->getOption('convertNameToCamel')) {
+            foreach ($item as $key => $val) {
+                $name = Str::camel($key);
+                if ($name !== $key) {
+                    $item[$name] = $val;
+                    unset($item[$key]);
+                }
+            }
         }
 
         return $item;
