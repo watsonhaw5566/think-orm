@@ -93,7 +93,11 @@ abstract class BaseQuery
     public function __construct(ConnectionInterface $connection)
     {
         $this->connection = $connection;
-        $this->prefix     = $this->connection->getConfig('prefix');
+        $this->prefix     = $this->getConfig('prefix');
+        $timeRule         = $this->getConfig('time_query_rule');
+        if (!empty($timeRule)) {
+            $this->timeRule($timeRule);
+        }
     }
 
     /**
@@ -1530,7 +1534,7 @@ abstract class BaseQuery
         }
 
         if (!isset($options['strict'])) {
-            $options['strict'] = $this->connection->getConfig('fields_strict');
+            $options['strict'] = $this->getConfig('fields_strict');
         }
 
         foreach (['master', 'lock', 'fetch_sql', 'array', 'distinct', 'procedure', 'with_cache'] as $name) {
