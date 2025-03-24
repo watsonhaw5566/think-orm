@@ -106,6 +106,7 @@ class HasManyThrough extends Relation
         $relation       = Str::snake(class_basename($this->model));
         $relationTable  = (new $this->model())->getTable();
         $query          = $query ?: $this->parent->getQuery();
+        $alias          = $query->getAlias() ?: $model;
 
         // 统计子查询
         $subQuery = $this->through
@@ -115,7 +116,7 @@ class HasManyThrough extends Relation
             ->whereColumn($table . '.' . $this->throughPk, $model . '.' . $this->localKey);
 
         $this->getRelationSoftDelete($subQuery, $relation);
-        return $query->alias($model)->where('(' . $subQuery->buildSql() . ') ' . $operator . ' ' . $count);
+        return $query->alias($alias)->where('(' . $subQuery->buildSql() . ') ' . $operator . ' ' . $count);
     }
 
     /**
@@ -134,15 +135,16 @@ class HasManyThrough extends Relation
         $table          = $this->through->getTable();
         $relationTable  = (new $this->model())->getTable();
         $query          = $query ?: $this->parent->getQuery();
+        $alias          = $query->getAlias() ?: $model;
 
         // EXISTS子查询
         $subQuery = $this->through
             ->table($table)
             ->join([$relationTable => $relation], $relation . '.' . $this->throughKey . '=' . $table . '.' . $this->throughPk, $joinType)
-            ->whereColumn($table . '.' . $this->throughPk, $model . '.' . $this->localKey);
+            ->whereColumn($table . '.' . $this->throughPk, $alias . '.' . $this->localKey);
 
         $this->getRelationSoftDelete($subQuery, $relation, $where);
-        return $query->alias($model)->whereExists($subQuery->buildSql());
+        return $query->alias($alias)->whereExists($subQuery->buildSql());
     }
 
     /**

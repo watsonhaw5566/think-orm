@@ -1095,6 +1095,22 @@ abstract class BaseQuery
     }
 
     /**
+     * 获取数据表别名.
+     *
+     * @param string $table 数据表（留空取当前表）
+     *
+     * @return string
+     */
+    public function getAlias(string $table = '')
+    {
+        if ('' === $table) {
+            $table = $this->getTable();
+        }
+
+        return $this->options['alias'][$table] ?? '';
+    }
+
+    /**
      * 设置从主服务器读取数据.
      *
      * @param bool $readMaster 是否从主服务器读取

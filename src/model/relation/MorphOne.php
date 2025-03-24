@@ -119,10 +119,11 @@ class MorphOne extends Relation
         $relation = Str::snake(class_basename($this->model));
         $table    = $this->query->getTable();
         $query    = $query ?: $this->parent->getQuery();
+        $alias    = $query->getAlias() ?: $model;
 
-        $query->alias($model)
-            ->field($model . '.*')
-            ->join([$table => $relation], $model . '.' . $this->parent->getPk() . '=' . $relation . '.' . $this->morphKey)
+        $query->alias($alias)
+            ->field($alias . '.*')
+            ->join([$table => $relation], $alias . '.' . $this->parent->getPk() . '=' . $relation . '.' . $this->morphKey)
             ->where($relation . '.' . $this->morphType, '=', $this->type)
             ->group($relation . '.' . $this->morphKey)
             ->having('count(' . $id . ')' . $operator . $count);
@@ -143,13 +144,14 @@ class MorphOne extends Relation
     public function hasWhere($where = [], $fields = null, string $joinType = '', ?Query $query = null)
     {
         $table    = $this->query->getTable();
-        $query    = $query ?: $this->parent->getQuery();
         $model    = Str::snake(class_basename($this->parent));
         $relation = Str::snake(class_basename($this->model));
-        $fields   = $this->getRelationQueryFields($fields, $model);
+        $query    = $query ?: $this->parent->getQuery();
+        $alias    = $query->getAlias() ?: $model;
+        $fields   = $this->getRelationQueryFields($fields, $alias);
 
-        $query->alias($model)
-            ->join([$table => $relation], $model . '.' . $this->parent->getPk() . '=' . $relation . '.' . $this->morphKey, $joinType)
+        $query->alias($alias)
+            ->join([$table => $relation], $alias . '.' . $this->parent->getPk() . '=' . $relation . '.' . $this->morphKey, $joinType)
             ->where($relation . '.' . $this->morphType, '=', $this->type)
             ->group($relation . '.' . $this->morphKey)
             ->field($fields);

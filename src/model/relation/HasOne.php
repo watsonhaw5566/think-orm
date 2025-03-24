@@ -143,16 +143,17 @@ class HasOne extends OneToOne
      */
     public function has(string $operator = '>=', int $count = 1, string $id = '*', string $joinType = '', ?Query $query = null) : Query
     {
-        $model      = Str::snake(class_basename($this->parent));
-        $relation   = Str::snake(class_basename($this->model));
-        $table      = $this->query->getTable();
-        $query      = $query ?: $this->parent->getQuery();
-        $method     = (0 == $count && '=' == $operator) ? 'whereNotExists' : 'whereExists';
+        $model    = Str::snake(class_basename($this->parent));
+        $relation = Str::snake(class_basename($this->model));
+        $table    = $this->query->getTable();
+        $query    = $query ?: $this->parent->getQuery();
+        $alias    = $query->getAlias() ?: $model;
+        $method   = (0 == $count && '=' == $operator) ? 'whereNotExists' : 'whereExists';
 
-        return $query->alias($model)->$method(function ($query) use ($table, $model, $relation) {
+        return $query->alias($alias)->$method(function ($query) use ($table, $alias, $relation) {
             $query->table([$table => $relation])
                 ->field($relation . '.' . $this->foreignKey)
-                ->whereColumn($model . '.' . $this->localKey, $relation . '.' . $this->foreignKey);
+                ->whereColumn($alias . '.' . $this->localKey, $relation . '.' . $this->foreignKey);
             $this->getRelationSoftDelete($query, $relation);
         });
     }
@@ -173,12 +174,13 @@ class HasOne extends OneToOne
         $relation = Str::snake(class_basename($this->model));
         $table    = $this->query->getTable();
         $query    = $query ?: $this->parent->getQuery();
-        $fields   = $this->getRelationQueryFields($fields, $model);
+        $alias    = $query->getAlias() ?: $model;
+        $fields   = $this->getRelationQueryFields($fields, $alias);
 
-        $query->alias($model)
-            ->via($model)
+        $query->alias($alias)
+            ->via($alias)
             ->field($fields)
-            ->join([$table => $relation], $model . '.' . $this->localKey . '=' . $relation . '.' . $this->foreignKey, $joinType);            
+            ->join([$table => $relation], $alias . '.' . $this->localKey . '=' . $relation . '.' . $this->foreignKey, $joinType);            
 
         return $this->getRelationSoftDelete($query, $relation, $where);
     }

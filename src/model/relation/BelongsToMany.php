@@ -218,24 +218,25 @@ class BelongsToMany extends Relation
         $model      = Str::snake(class_basename($this->parent));
         $relation   = Str::snake(class_basename($this->model));
         $query      = $query ?: $this->parent->getQuery();
+        $alias      = $query->getAlias() ?: $model;
 
         if ('=' === $operator && 0 === $count) {
-            return $query->alias($model)
-                ->whereNotExists(function ($query) use ($pivot, $model, $relation, $table) {
+            return $query->alias($alias)
+                ->whereNotExists(function ($query) use ($pivot, $alias, $relation, $table) {
                     $query->table([$pivot => 'pivot'])
                         ->field('pivot.' . $this->foreignKey)
                         ->join($table . ' ' . $relation, $relation . '.' . $this->query->getPk() . '= pivot.' . $this->foreignKey)
-                        ->whereColumn($model . '.' . $this->parent->getPk(), 'pivot.' . $this->localKey);
+                        ->whereColumn($alias . '.' . $this->parent->getPk(), 'pivot.' . $this->localKey);
 
                     $this->getRelationSoftDelete($query, $relation);
                 });
         }
 
-        $query->alias($model)
+        $query->alias($alias)
             ->field($model . '.*')
-            ->join([$pivot => 'pivot'], 'pivot.' . $this->localKey . '=' . $model . '.' . $this->parent->getPk(), $joinType)
+            ->join([$pivot => 'pivot'], 'pivot.' . $this->localKey . '=' . $alias . '.' . $this->parent->getPk(), $joinType)
             ->join($table . ' ' . $relation, $relation . '.' . $this->query->getPk() . '= pivot.' . $this->foreignKey, $joinType)
-            ->group($model . '.' . $this->parent->getPk())
+            ->group($alias . '.' . $this->parent->getPk())
             ->having('count(' . $id . ')' . $operator . $count);
         return $this->getRelationSoftDelete($query, $relation);
     }
@@ -255,13 +256,14 @@ class BelongsToMany extends Relation
         $pivot    = $this->pivot->getTable();
         $model    = Str::snake(class_basename($this->parent));
         $relation = Str::snake(class_basename($this->model));
-        $fields   = $this->getRelationQueryFields($fields, $model);
         $query    = $query ?: $this->parent->getQuery();
+        $alias    = $query->getAlias() ?: $model;
+        $fields   = $this->getRelationQueryFields($fields, $alias);
 
-        $query->alias($model)
-            ->join([$pivot => 'pivot'], 'pivot.' . $this->localKey . '=' . $model . '.' . $this->parent->getPk(), $joinType)
+        $query->alias($alias)
+            ->join([$pivot => 'pivot'], 'pivot.' . $this->localKey . '=' . $alias . '.' . $this->parent->getPk(), $joinType)
             ->join($table . ' ' . $relation, $relation . '.' . $this->query->getPk() . '= pivot.' . $this->foreignKey, $joinType)
-            ->group($model . '.' . $this->parent->getPk())
+            ->group($alias . '.' . $this->parent->getPk())
             ->field($fields);
 
         return $this->getRelationSoftDelete($query, $relation, $where);            

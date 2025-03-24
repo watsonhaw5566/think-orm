@@ -302,16 +302,17 @@ class HasMany extends Relation
     {
         $table    = $this->query->getTable();
         $model    = Str::snake(class_basename($this->parent));
-        $query    = $query ?: $this->parent->getQuery();        
+        $query    = $query ?: $this->parent->getQuery();
+        $alias    = $query->getAlias() ?: $model;
 
-        return $query->alias($model)
-            ->whereExists(function ($query) use ($model, $id, $table, $operator, $count) {
+        return $query->alias($alias)
+            ->whereExists(function ($query) use ($alias, $id, $table, $operator, $count) {
                 $table      = $this->query->getTable();
                 $relation   = Str::snake(class_basename($this->model));
 
                 $query->table([$table => $relation])
                     ->field('count(' . $id . ') AS count')
-                    ->whereColumn($relation . '.' . $this->foreignKey, $model . '.' . $this->localKey)
+                    ->whereColumn($relation . '.' . $this->foreignKey, $alias . '.' . $this->localKey)
                     ->having('count ' . $operator . ' ' . $count);
 
                 $this->getRelationSoftDelete($query, $relation);
@@ -334,13 +335,14 @@ class HasMany extends Relation
         $relation = Str::snake(class_basename($this->model));
         $table    = $this->query->getTable();
         $query    = $query ?: $this->parent->getQuery();
-        $fields   = $this->getRelationQueryFields($fields, $model);
+        $alias    = $query->getAlias() ?: $model;
+        $fields   = $this->getRelationQueryFields($fields, $alias);
 
-        $query->alias($model)
-            ->via($model)
-            ->group($model . '.' . $this->localKey)
+        $query->alias($alias)
+            ->via($alias)
+            ->group($alias . '.' . $this->localKey)
             ->field($fields)
-            ->join([$table => $relation], $model . '.' . $this->localKey . '=' . $relation . '.' . $this->foreignKey, $joinType);
+            ->join([$table => $relation], $alias . '.' . $this->localKey . '=' . $relation . '.' . $this->foreignKey, $joinType);
 
         return $this->getRelationSoftDelete($query, $relation, $where);
     }

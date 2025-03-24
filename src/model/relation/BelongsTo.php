@@ -147,12 +147,13 @@ class BelongsTo extends OneToOne
         $model      = Str::snake(class_basename($this->parent));
         $relation   = Str::snake(class_basename($this->model));
         $query      = $query ?: $this->parent->getQuery();
+        $alias      = $query->getAlias() ?: $model;
 
-        return $query->alias($model)
-            ->whereExists(function ($query) use ($table, $model, $relation) {
+        return $query->alias($alias)
+            ->whereExists(function ($query) use ($table, $alias, $relation) {
                 $query->table([$table => $relation])
                 ->field($relation . '.' . $this->localKey)
-                ->whereColumn($model . '.' . $this->foreignKey, $relation . '.' . $this->localKey);
+                ->whereColumn($alias . '.' . $this->foreignKey, $relation . '.' . $this->localKey);
 
             $this->getRelationSoftDelete($query, $relation);
         });
@@ -174,12 +175,13 @@ class BelongsTo extends OneToOne
         $relation = Str::snake(class_basename($this->model));
         $table    = $this->query->getTable();
         $query    = $query ?: $this->parent->getQuery();
-        $fields   = $this->getRelationQueryFields($fields, $model);
+        $alias    = $query->getAlias() ?: $model;
+        $fields   = $this->getRelationQueryFields($fields, $alias);
 
-        $query->alias($model)
+        $query->alias($alias)
             ->via($model)
             ->field($fields)
-            ->join([$table => $relation], $model . '.' . $this->foreignKey . '=' . $relation . '.' . $this->localKey, $joinType);
+            ->join([$table => $relation], $alias . '.' . $this->foreignKey . '=' . $relation . '.' . $this->localKey, $joinType);
 
         return $this->getRelationSoftDelete($query, $relation, $where);
     }
