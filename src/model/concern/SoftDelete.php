@@ -184,7 +184,7 @@ trait SoftDelete
      */
     public function getDeleteTimeField(bool $read = false): bool | string
     {
-        $field = $this->getOption('deleteTime') ?: 'delete_time';
+        $field = $this->getOption('deleteTime', 'delete_time');
 
         if (false === $field) {
             return false;

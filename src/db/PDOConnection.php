@@ -483,7 +483,7 @@ abstract class PDOConnection extends Connection
      *
      * @param mixed $tableName 数据表名
      *
-     * @return string
+     * @return string|null
      */
     public function getAutoInc($tableName)
     {
