@@ -341,7 +341,7 @@ class BelongsToMany extends Relation
     {
         $pk = $result->getPk();
 
-        if (isset($result->$pk)) {
+        if (is_string($pk) && isset($result->$pk)) {
             $pk = $result->$pk;
             // 查询管理数据
             $data = $this->eagerlyManyToMany([

@@ -340,7 +340,7 @@ trait ModelRelationQuery
             return $this;
         }
 
-        $this->options['with'] = (array) $with;
+        $this->options['with'] = array_merge($this->options['with'] ?? [], (array) $with);
 
         return $this;
     }
