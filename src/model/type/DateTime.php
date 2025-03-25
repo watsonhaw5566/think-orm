@@ -24,7 +24,10 @@ class DateTime implements Typeable
         $date = new \DateTime;
 
         $this->value = is_numeric($time) ? (int) $time : strtotime($time);
-        $this->data  = $date->setTimestamp($this->value)->format($format);
+        $this->data  = $date->setTimestamp($this->value);
+        if ($format) {
+            $this->data->format($format);            
+        }
     }
 
     public function format($format)
