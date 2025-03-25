@@ -21,16 +21,16 @@ class DateTime implements Typeable
 
     public function data($time, $format)
     {
-        $date = new \DateTime;
-
-        $this->value = is_numeric($time) ? (int) $time : strtotime($time);
-        $this->data  = $date->setTimestamp($this->value);
         if ($format) {
-            $this->data->format($format);            
+            $date        = new \DateTime;
+            $this->value = is_numeric($time) ? (int) $time : strtotime($time);
+            $this->data  = $date->setTimestamp($this->value)->format($format);
+        } else {
+            $this->data  = $time;
         }
     }
 
-    public function format($format)
+    public function format(string $format)
     {
         $date = new \DateTime;
         return $date->setTimestamp($this->value)->format($format);
