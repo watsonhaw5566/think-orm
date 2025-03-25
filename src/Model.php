@@ -762,8 +762,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      */
     public function __isset(string $name): bool
     {
-        $name = $this->getRealFieldName($name);
-        return isset(self::$weakMap[$this]['data'][$name]);
+        return !is_null($this->get($name, false));
     }
 
     /**

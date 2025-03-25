@@ -260,10 +260,12 @@ class MorphMany extends Relation
         if ($closure) {
             $closure($this->query, $name);
         }
-
+        $alias = Str::snake(class_basename($this->model));
+        $alias = $this->query->getAlias() ?: $alias . '_' . $aggregate;
         return $this->query
-            ->whereColumn($this->morphKey, $this->parent->getTable(true) . '.' . $this->parent->getPk())
-            ->where($this->morphType, '=', $this->type)
+            ->alias($alias)
+            ->whereColumn($alias . '.' . $this->morphKey, $this->parent->getTable(true) . '.' . $this->parent->getPk())
+            ->where($alias . '.' . $this->morphType, '=', $this->type)
             ->fetchSql()
             ->$aggregate($field);
     }

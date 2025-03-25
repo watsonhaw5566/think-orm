@@ -96,8 +96,11 @@ class BelongsTo extends OneToOne
             $closure($this->query, $name);
         }
 
+        $alias = Str::snake(class_basename($this->model));
+        $alias = $this->query->getAlias() ?: $alias . '_' . $aggregate;
         return $this->query
-            ->whereColumn($this->localKey, $this->parent->getTable(true) . '.' . $this->foreignKey)
+            ->alias($alias)
+            ->whereColumn($alias . '.' . $this->localKey, $this->parent->getTable(true) . '.' . $this->foreignKey)
             ->fetchSql()
             ->$aggregate($field);
     }

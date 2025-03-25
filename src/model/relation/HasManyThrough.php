@@ -301,6 +301,7 @@ class HasManyThrough extends Relation
         }
 
         $alias        = Str::snake(class_basename($this->model));
+        $alias        = $this->query->getAlias() ?: $alias;
         $throughTable = $this->through->getTable();
         $pk           = $this->throughPk;
         $throughKey   = $this->throughKey;
@@ -335,6 +336,7 @@ class HasManyThrough extends Relation
         }
 
         $alias        = Str::snake(class_basename($this->model));
+        $alias        = $this->query->getAlias() ?: $alias . '_' . $aggregate;
         $throughTable = $this->through->getTable();
         $pk           = $this->throughPk;
         $throughKey   = $this->throughKey;

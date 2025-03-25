@@ -404,6 +404,7 @@ class BelongsToMany extends Relation
         }
 
         $alias = Str::snake(class_basename($this->model));
+        $alias = $this->query->getAlias() ?: $alias . '_' . $aggregate;
         if (!str_contains($field, '.')) {
             $field = $alias . '.' . $field;
         }

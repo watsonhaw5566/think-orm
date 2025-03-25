@@ -180,8 +180,10 @@ class HasMany extends Relation
             $closure($this->query, $name);
         }
 
-        return $this->query->alias($aggregate . '_table')
-            ->whereColumn($aggregate . '_table.' . $this->foreignKey, $this->parent->getTable(true) . '.' . $this->localKey)
+        $alias = Str::snake(class_basename($this->model));
+        $alias = $this->query->getAlias() ?: $alias . '_' . $aggregate;
+        return $this->query->alias($alias)
+            ->whereColumn($alias . '.' . $this->foreignKey, $this->parent->getTable(true) . '.' . $this->localKey)
             ->fetchSql()
             ->$aggregate($field);
     }

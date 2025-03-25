@@ -95,9 +95,11 @@ class HasOne extends OneToOne
         if ($closure) {
             $closure($this->query, $name);
         }
-
+        $alias = Str::snake(class_basename($this->model));
+        $alias = $this->query->getAlias() ?: $alias . '_' . $aggregate;
         return $this->query
-            ->whereColumn($this->foreignKey, $this->parent->getTable(true) . '.' . $this->localKey)
+            ->alias($alias)
+            ->whereColumn($alias . '.' . $this->foreignKey, $this->parent->getTable(true) . '.' . $this->localKey)
             ->fetchSql()
             ->$aggregate($field);
     }
