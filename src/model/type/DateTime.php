@@ -21,11 +21,12 @@ class DateTime implements Typeable
 
     public function data($time, $format)
     {
+        $this->value = is_numeric($time) ? (int) $time : strtotime($time);
         if ($format) {
             $date        = new \DateTime;
-            $this->value = is_numeric($time) ? (int) $time : strtotime($time);
             $this->data  = $date->setTimestamp($this->value)->format($format);
         } else {
+            // 不做格式化输出转换
             $this->data  = $time;
         }
     }
