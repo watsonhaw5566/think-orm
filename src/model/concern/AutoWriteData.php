@@ -110,7 +110,7 @@ trait AutoWriteData
         return $this->getOption('autoWriteTimestamp');
     }
 
-    public function isAutoWriteTimestamp(bool $auto)
+    public function isAutoWriteTimestamp($auto)
     {
         $this->setOption('autoWriteTimestamp', $auto);
     }
