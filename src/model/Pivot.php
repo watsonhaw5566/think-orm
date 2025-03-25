@@ -26,7 +26,7 @@ class Pivot extends Model
      * @var Model
      */
     public $parent;
-    protected $name;
+    protected $pivotName;
 
     /**
      * 是否时间自动写入.
@@ -44,8 +44,8 @@ class Pivot extends Model
      */
     public function __construct(array $data = [], ?Model $parent = null, string $table = '')
     {
-        $this->name   = $table;
-        $this->parent = $parent;
+        $this->pivotName   = $table;
+        $this->parent      = $parent;
         parent::__construct($data);
     }
 
@@ -57,7 +57,7 @@ class Pivot extends Model
     protected function init() 
     {
         if (is_null($this->getOption('name'))) {
-            $this->setOption('name', $this->name);
+            $this->setOption('name', $this->pivotName);
         }        
     }
 
