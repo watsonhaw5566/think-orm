@@ -85,8 +85,12 @@ trait DbConnect
                 $fields = $model->getFieldsType();
                 $schema = array_merge($fields, $this->getOption('type', $model->getType()));
                 // 获取主键和自增字段
-                $this->setOption('pk', $model->getPk());
-                $this->setOption('autoInc', $model->getAutoInc());
+                if (!$this->getOption('pk')) {
+                    $this->setOption('pk', $model->getPk());
+                }
+                if (!$this->getOption('autoInc')) {
+                    $this->setOption('autoInc', $model->getAutoInc());
+                }
             }
 
             $this->setOption('schema', $schema);
