@@ -544,18 +544,16 @@ trait RelationShip
      *
      * @param string $model      模型名
      * @param string $foreignKey 关联外键
-     * @param string $localKey   当前主键
      *
      * @return HasOne
      */
-    public function hasOne(string $model, string $foreignKey = '', string $localKey = ''): HasOne
+    public function hasOne(string $model, string $foreignKey = ''): HasOne
     {
         // 记录当前关联信息
         $model      = $this->parseRelationModel($model);
-        $localKey   = $localKey ?: $this->getPk();
         $foreignKey = $foreignKey ?: $this->getForeignKey($this->getName());
 
-        return new HasOne($this, $model, $foreignKey, $localKey);
+        return new HasOne($this, $model, $foreignKey, $this->getPk());
     }
 
     /**
@@ -563,16 +561,15 @@ trait RelationShip
      *
      * @param string $model      模型名
      * @param string $foreignKey 关联外键
-     * @param string $localKey   关联主键
      *
      * @return BelongsTo
      */
-    public function belongsTo(string $model, string $foreignKey = '', string $localKey = ''): BelongsTo
+    public function belongsTo(string $model, string $foreignKey = ''): BelongsTo
     {
         // 记录当前关联信息
         $model      = $this->parseRelationModel($model);
         $foreignKey = $foreignKey ?: $this->getForeignKey((new $model())->getName());
-        $localKey   = $localKey ?: (new $model())->getPk();
+        $localKey   = (new $model())->getPk();
         $trace      = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
         $relation   = Str::snake($trace[1]['function']);
 
@@ -584,18 +581,16 @@ trait RelationShip
      *
      * @param string $model      模型名
      * @param string $foreignKey 关联外键
-     * @param string $localKey   当前主键
      *
      * @return HasMany
      */
-    public function hasMany(string $model, string $foreignKey = '', string $localKey = ''): HasMany
+    public function hasMany(string $model, string $foreignKey = ''): HasMany
     {
         // 记录当前关联信息
         $model      = $this->parseRelationModel($model);
-        $localKey   = $localKey ?: $this->getPk();
         $foreignKey = $foreignKey ?: $this->getForeignKey($this->getName());
 
-        return new HasMany($this, $model, $foreignKey, $localKey);
+        return new HasMany($this, $model, $foreignKey, $this->getPk());
     }
 
     /**
@@ -605,20 +600,18 @@ trait RelationShip
      * @param string $through    中间模型名
      * @param string $foreignKey 关联外键
      * @param string $throughKey 关联外键
-     * @param string $localKey   当前主键
-     * @param string $throughPk  中间表主键
      *
      * @return HasManyThrough
      */
-    public function hasManyThrough(string $model, string $through, string $foreignKey = '', string $throughKey = '', string $localKey = '', string $throughPk = ''): HasManyThrough
+    public function hasManyThrough(string $model, string $through, string $foreignKey = '', string $throughKey = ''): HasManyThrough
     {
         // 记录当前关联信息
         $model      = $this->parseRelationModel($model);
         $through    = $this->parseRelationModel($through);
-        $localKey   = $localKey ?: $this->getPk();
         $foreignKey = $foreignKey ?: $this->getForeignKey($this->getName());
         $throughKey = $throughKey ?: $this->getForeignKey((new $through())->getName());
-        $throughPk  = $throughPk ?: (new $through())->getPk();
+        $localKey   = $this->getPk();
+        $throughPk  = (new $through())->getPk();
 
         return new HasManyThrough($this, $model, $through, $foreignKey, $throughKey, $localKey, $throughPk);
     }
@@ -630,20 +623,18 @@ trait RelationShip
      * @param string $through    中间模型名
      * @param string $foreignKey 关联外键
      * @param string $throughKey 关联外键
-     * @param string $localKey   当前主键
-     * @param string $throughPk  中间表主键
      *
      * @return HasOneThrough
      */
-    public function hasOneThrough(string $model, string $through, string $foreignKey = '', string $throughKey = '', string $localKey = '', string $throughPk = ''): HasOneThrough
+    public function hasOneThrough(string $model, string $through, string $foreignKey = '', string $throughKey = ''): HasOneThrough
     {
         // 记录当前关联信息
         $model      = $this->parseRelationModel($model);
         $through    = $this->parseRelationModel($through);
-        $localKey   = $localKey ?: $this->getPk();
         $foreignKey = $foreignKey ?: $this->getForeignKey($this->getName());
         $throughKey = $throughKey ?: $this->getForeignKey((new $through())->getName());
-        $throughPk  = $throughPk ?: (new $through())->getPk();
+        $localKey   = $this->getPk();
+        $throughPk  = (new $through())->getPk();
 
         return new HasOneThrough($this, $model, $through, $foreignKey, $throughKey, $localKey, $throughPk);
     }
