@@ -348,7 +348,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         $this->autoWriteData($data, $isUpdate, $allow);
 
         $db     = $this->getDbWhere($where);
-        $result = $db->field($allow)->save($data, !$isUpdate);
+        $result = $db->field($allow)->removeOption('data')->save($data, !$isUpdate);
         if (!$isUpdate) {
             $this->exists(true);
             $this->setKey($db->getLastInsID());
