@@ -24,6 +24,7 @@ use think\db\Express;
 use think\exception\ValidateException;
 use think\model\Collection;
 use think\model\contract\Modelable;
+use think\model\View;
 use WeakMap;
 
 /**
@@ -245,7 +246,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         if (!empty($data)) {
             $model->exists(true);
         }
-        if (class_exists($class) && is_subclass_of($class, Entity::class)) {
+        if (class_exists($class) && is_subclass_of($class, Entity::class) && !is_subclass_of($class, View::class)) {
             $entity = new $class($model);
             $model->entity($entity);
             return $entity;
@@ -474,23 +475,23 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     }
 
     /**
+     * 设置为视图模型（不能写入）.
+     *
+     * @return bool
+     */
+    public function asView(bool $isView = true)
+    {
+        $this->setOption('is_view', $isView);
+    }
+
+    /**
      * 是否为视图模型（不能写入 也不会绑定模型）.
      *
      * @return bool
      */
     public function isView(): bool
     {
-        return false;
-    }
-
-    /**
-     * 是否为简单模型（单表操作 不支持关联 不绑定模型）.
-     *
-     * @return bool
-     */
-    public function isSimple(): bool
-    {
-        return false;
+        return $this->getOption('is_view', false);
     }
 
     /**

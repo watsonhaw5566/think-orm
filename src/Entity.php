@@ -54,71 +54,7 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
         ];
 
         // 初始化模型
-        $this->initData($options);
         $this->init($options);
-    }
-
-    /**
-     * 初始化实体数据属性.
-     *
-     * @param array $options 模型参数
-     * @return void
-     */
-    private function initData(array $options)
-    {
-        if ($this->isEntity() && !$this->model()->isEmpty()) {
-            $properties = $this->getEntityProperties($options);
-            foreach ($properties as $key => $field) {
-                if (is_int($key)) {
-                    $this->$field = $this->model()->$field;
-                } elseif (strpos($field, '->')) {
-                    $items  = explode('->', $field);
-                    $value  = $this->model();
-                    foreach ($items as $item) {
-                        $value = $value->$item;
-                    }
-                    $this->$key = $value;
-                } else {
-                    $this->$key = $this->model()->$field;
-                }
-            }
-        }
-    }
-
-    /**
-     * 获取实体属性列表.
-     *
-     * @param array $options 模型参数
-     * @return array
-     */
-    private function getEntityProperties(array $options = []): array
-    {
-        $reflection = new ReflectionClass($this);
-        $mapping    = $options['property_mapping'] ?? [];
-        $properties = [];
-
-        foreach ($reflection->getProperties() as $property) {
-            $property->setAccessible(true);
-            $field = $property->getName();
-            if (isset($mapping[$field])) {
-                $properties[$field] = $mapping[$field];
-            } else {
-                $properties[] = $field;
-            }
-        }
-
-        return $properties;
-    }
-
-    /**
-     * 是否为实体对象（必须定义实体属性）.
-     * 实体对象只能取值 不能写入
-     *
-     * @return bool
-     */
-    public function isEntity(): bool
-    {
-        return false;
     }
 
     /**
@@ -204,11 +140,7 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
 
     public function __debugInfo()
     {
-        if ($this->isEntity()) {
-            return [];
-        } else {
-            return $this->model()->getData();            
-        }
+        return $this->model()->getData();
     }
 
     // JsonSerializable
