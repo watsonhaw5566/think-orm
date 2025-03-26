@@ -604,6 +604,10 @@ abstract class BaseQuery
         // 添加统一的前缀
         $prefix = $prefix ?: $tableName;
         foreach ($field as $key => &$val) {
+            if (strpos($val, '.')) {
+                continue;
+            }
+
             if (is_numeric($key) && $alias) {
                 $field[$prefix . '.' . $val] = $alias . $val;
                 unset($field[$key]);
