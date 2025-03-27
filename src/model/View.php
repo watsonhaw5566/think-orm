@@ -139,7 +139,7 @@ abstract class View extends Entity
     {
         $properties = $this->getEntityProperties();
         foreach ($properties as $key => $field) {
-            if (strpos($field, '->') && str_starts_with($relation, $field)) {
+            if (strpos($field, '->') && str_starts_with($field, $relation)) {
                 // 关联映射属性
                 $items  = explode('->', $field);
                 array_shift($items);
