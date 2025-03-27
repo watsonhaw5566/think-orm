@@ -215,11 +215,11 @@ trait RelationShip
         $data = is_array($model) ? $model : $model->getData();
         foreach ($data as $key => $val) {
             if (isset($bind[$key])) {
-                $this->set($bind[$key], $val);                    
+                $this->set($bind[$key], $val);
             } elseif ($attr = array_search($key, $bind)) {
                 if (is_numeric($attr) || $this->__isset($attr)) {
                 } else {
-                    $this->set($attr, $val);                    
+                    $this->set($attr, $val);
                 }
             } elseif (in_array($key, $bind) && !$this->__isset($key)) {
                 $this->set($key, $val);

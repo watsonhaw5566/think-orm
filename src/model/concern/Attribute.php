@@ -87,6 +87,9 @@ trait Attribute
                 }
                 // 数据赋值
                 $this->setData($trueName, $value);
+                if ($trueName == $this->getPk()) {
+                    $this->setKey($value);
+                }
                 // 记录原始数据
                 $origin[$trueName] = $value;
             } else {

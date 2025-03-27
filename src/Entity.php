@@ -54,6 +54,7 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
         ];
 
         // 初始化模型
+        $model->setOptions($options);
         $this->init($options);
     }
 
