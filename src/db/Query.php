@@ -317,7 +317,7 @@ class Query extends BaseQuery
     /**
      * 获取当前数据表的主键.
      *
-     * @return string|array
+     * @return string|array|null
      */
     public function getPk()
     {

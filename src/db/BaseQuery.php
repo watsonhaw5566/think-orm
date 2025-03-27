@@ -1189,11 +1189,11 @@ abstract class BaseQuery
     /**
      * 指定数据表主键.
      *
-     * @param string|array|bool $pk 主键
+     * @param string|array|bool|null $pk 主键
      *
      * @return $this
      */
-    public function pk(string | array | bool $pk)
+    public function pk(string | array | bool | null $pk)
     {
         $this->pk = $pk;
 
