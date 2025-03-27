@@ -67,7 +67,7 @@ trait RelationShip
             $bind     = $this->getBindAttr($this->getOption('bindAttr'), $relation);
             if (!empty($bind)) {
                 // 绑定关联属性
-                $this->bindRelationAttr($val, $bind);
+                $this->bindRelationAttr($val, $bind, $relation);
             } elseif (is_subclass_of($type, Model::class)) {
                 // 明确类型直接设置关联属性
                 $this->setRelation($relation, new $type($val));

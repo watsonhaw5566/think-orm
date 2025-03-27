@@ -246,7 +246,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         if (!empty($data)) {
             $model->exists(true);
         }
-        if (class_exists($class) && is_subclass_of($class, Entity::class) && !is_subclass_of($class, View::class)) {
+        if (class_exists($class) && is_subclass_of($class, Entity::class)) {
             $entity = new $class($model);
             $model->entity($entity);
             return $entity;
@@ -765,6 +765,9 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      */
     public function __isset(string $name): bool
     {
+        if ($this->isView()) {
+            return isset(self::$weakMap[$this]['data'][$name]);
+        }
         return !is_null($this->get($name, false));
     }
 

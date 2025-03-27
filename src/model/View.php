@@ -31,12 +31,13 @@ abstract class View extends Entity
     {
         parent::__construct($model);
 
-        // 获取实体模型参数
-        $options = $this->getOptions();
+        // 设置为视图模型
         $this->model()->asView(true);
 
         // 初始化模型
-        $this->initData();
+        if (!$this->model()->isEmpty()) {
+            $this->initData();
+        }
     }
 
     /**
@@ -46,22 +47,26 @@ abstract class View extends Entity
      */
     private function initData()
     {
-        if (!$this->model()->isEmpty()) {
-            $options    = $this->getOptions();
-            $properties = $this->getEntityProperties($options);
-            foreach ($properties as $key => $field) {
-                if (is_int($key)) {
-                    $this->$field = $this->model()->$field;
-                } elseif (strpos($field, '->')) {
-                    $items  = explode('->', $field);
-                    $value  = $this->model();
+        // 获取实体属性
+        $properties = $this->getEntityProperties();
+        foreach ($properties as $key => $field) {
+            if (is_int($key)) {
+                $this->$field = $this->model()->$field;
+            } elseif (strpos($field, '->')) {
+                $items    = explode('->', $field);
+                $relation = array_shift($items);
+                if (isset($data->$relation)) {
+                    // 存在关联数据
+                    $value    = $this->model()->$relation;
                     foreach ($items as $item) {
                         $value = $value->$item;
                     }
                     $this->$key = $value;
                 } else {
-                    $this->$key = $this->model()->$field;
+                    $this->$key = $this->model()->$key;
                 }
+            } else {
+                $this->$key = $this->model()->$field;
             }
         }
     }
@@ -69,17 +74,16 @@ abstract class View extends Entity
     /**
      * 获取实体属性列表.
      *
-     * @param array $options 模型参数
      * @return array
      */
-    private function getEntityProperties(array $options = []): array
+    private function getEntityProperties(): array
     {
         $reflection = new ReflectionClass($this);
+        $options    = $this->getOptions();
         $mapping    = $options['property_mapping'] ?? [];
         $properties = [];
 
         foreach ($reflection->getProperties() as $property) {
-            $property->setAccessible(true);
             $field = $property->getName();
             if (isset($mapping[$field])) {
                 $properties[$field] = $mapping[$field];
@@ -92,7 +96,7 @@ abstract class View extends Entity
     }
 
     /**
-     * 转换为数组.
+     * 转换为数组. 视图模型不支持 hidden visible append
      *
      * @return array
      */
@@ -124,6 +128,47 @@ abstract class View extends Entity
     }
 
     /**
+     * 设置关联数据.
+     *
+     * @param string $relation 关联属性
+     * @param Model  $model  关联数据
+     *
+     * @return void
+     */
+    public function setRelation($relation, $model)
+    {
+        $properties = $this->getEntityProperties();
+        foreach ($properties as $key => $field) {
+            if (strpos($field, '->') && str_starts_with($relation, $field)) {
+                // 关联映射属性
+                $items  = explode('->', $field);
+                array_shift($items);
+
+                $value  = $model;
+                foreach ($items as $item) {
+                    $value = $value->$item;
+                }
+                $this->$key = $value;
+            }
+        }
+    }
+
+    /**
+     * 设置关联绑定数据
+     *
+     * @param Model  $model 关联对象
+     * @param array  $bind  绑定属性
+     * @param string $relation  关联名称
+     * @return void
+     */
+    public function bindRelationAttr($model, $bind, $relation) 
+    {
+        if ($relation) {
+            $this->setRelation($relation, $model);
+        }
+    }
+
+    /**
      * 获取属性 支持获取器
      *
      * @param string $name 名称
@@ -132,7 +177,10 @@ abstract class View extends Entity
      */
     public function __get(string $name)
     {
-        return $this->$name ?? null;
+        if (property_exists($this, $name)) {
+            return $this->$name ?? null;
+        }
+        return $this->model()->$name;
     }
 
     /**
@@ -176,6 +224,6 @@ abstract class View extends Entity
 
     public function __debugInfo()
     {
-        return [];            
+        return [];
     }
 }
