@@ -271,7 +271,8 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      */
     protected function parseValidate(): string
     {
-        $validate = str_contains(static::class, '\\model\\') ? str_replace('\\model\\', '\\validate\\', static::class) : '';
+        $auto     = $this->getOption('autoValidate', false);
+        $validate = $auto && str_contains(static::class, '\\model\\') ? str_replace('\\model\\', '\\validate\\', static::class) : '';
         return $validate && class_exists($validate) ? $validate : '';
     }
 
