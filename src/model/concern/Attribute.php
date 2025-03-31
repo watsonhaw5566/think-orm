@@ -477,7 +477,7 @@ trait Attribute
         if (is_null($value) && is_subclass_of($type, Model::class)) {
             // 关联数据为空 设置一个空模型
             $value = new $type();
-        } elseif (!($value instanceof Model || $value instanceof Collection) && $type && !$this->hasSetAttr($name)) {
+        } elseif (!($value instanceof Model || $value instanceof Collection || $value instanceof FieldTypeTransform) && $type && !$this->hasSetAttr($name)) {
             // 类型自动转换
             $value = $this->readTransform($value, $type);
         }
