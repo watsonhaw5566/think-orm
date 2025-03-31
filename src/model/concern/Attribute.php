@@ -208,6 +208,7 @@ trait Attribute
             return $value;
         }
 
+        $param = null;
         if (is_array($type)) {
             [$type, $param] = $type;
         } elseif (str_contains($type, ':')) {
