@@ -388,6 +388,9 @@ abstract class PDOConnection extends Connection
         if ($this->config['fields_cache'] && !empty($this->cache) && !$force) {
             $info = $this->cache->get($cacheKey);
             if (!empty($info)) {
+                if (is_object($info)) {
+                    $info = get_object_vars($info);
+                }
                 return $info;
             }
         }
@@ -725,7 +728,7 @@ abstract class PDOConnection extends Connection
 
                 if ($this->cache->has($key)) {
                     $data = $this->cache->get($key);
-                    if (null !== $data) {
+                    if (null !== $data && is_array($data)) {
                         return $data;
                     }
                 }
