@@ -439,11 +439,11 @@ trait Attribute
     /**
      * 判断JSON数据是否为数组格式.
      *
-     * @return bool
+     * @return bool|null
      */
-    public function isJsonAssoc(): bool
+    public function isJsonAssoc(): bool|null
     {
-        return $this->getOption('jsonAssoc', false);
+        return $this->getOption('jsonAssoc');
     }
 
     /**
