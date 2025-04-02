@@ -309,8 +309,7 @@ trait WhereQuery
             $field             = 'json_extract(' . $field1 . ',\'$.' . $field2 . '\')';
         }
 
-        $value = is_string($condition) ? '"' . $condition . '"' : $condition;
-        $value = is_null($value) ? 'NULL' : '\''.$value.'\'';
+        $value = is_null($condition) ? 'NULL' : '\'' . json_encode($condition) . '\'';
 
         return $this->whereRaw('json_contains(' . $field . ',' . $value . ')', [], $logic);
     }
