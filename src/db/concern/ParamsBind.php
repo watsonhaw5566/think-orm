@@ -111,11 +111,6 @@ trait ParamsBind
     public function bindParams(string &$sql, array $bind = []): void
     {
         foreach ($bind as $key => $value) {
-            if (str_starts_with($key, 'ThinkBind_')) {
-                // 避免重复绑定
-                continue;
-            }
-
             if (is_array($value)) {
                 $name = $this->bindValue($value[0], $value[1], $value[2] ?? null);
             } else {

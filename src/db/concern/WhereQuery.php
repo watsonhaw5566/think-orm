@@ -309,10 +309,8 @@ trait WhereQuery
             $field             = 'json_extract(' . $field1 . ',\'$.' . $field2 . '\')';
         }
 
-        $value       = is_string($condition) ? '"' . $condition . '"' : $condition;
-        $name        = $this->bindValue($value);
-        $bind[$name] = $value;
-        return $this->whereRaw('json_contains(' . $field . ',:' . $name . ')', $bind, $logic);
+        $value = is_string($condition) ? '"' . $condition . '"' : $condition;
+        return $this->whereRaw('json_contains(' . $field . ',\'' . $value . '\')', [], $logic);
     }
 
     public function whereOrJsonContains(string $field, $condition)
