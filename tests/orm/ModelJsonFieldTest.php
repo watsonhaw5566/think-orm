@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace tests\orm;
 
@@ -32,13 +32,13 @@ SQL
         Db::execute('TRUNCATE TABLE `test_json_model`;');
         self::$testData = [
             [
-                'id' => 1,
+                'id'   => 1,
                 'name' => 'test1',
                 'info' => json_encode(['age' => 18, 'city' => 'beijing']),
                 'tags' => json_encode(['php', 'mysql']),
             ],
             [
-                'id' => 2,
+                'id'   => 2,
                 'name' => 'test2',
                 'info' => json_encode(['age' => 20, 'city' => 'shanghai']),
                 'tags' => json_encode(['java', 'redis']),
@@ -74,7 +74,7 @@ SQL
 
         // 测试JSON字段更新
         $updateData = ['info->age' => 26];
-        $result = JsonModel::where('id', $found->id)->update($updateData);
+        $result     = JsonModel::where('id', $found->id)->update($updateData);
         $this->assertTrue($result > 0);
 
         $updated = JsonModel::find($found->id);
@@ -95,6 +95,22 @@ SQL
         $result = JsonModel::whereJsonContains('tags', 'net')->find();
         $this->assertNull($result);
 
+        // 测试whereJsonContains方法 - 数组参数完全匹配
+        $result = JsonModel::whereJsonContains('tags', ['php', 'mysql'])->find();
+        $this->assertNotNull($result);
+        $this->assertEquals(1, $result->id);
+        $this->assertEquals(['php', 'mysql'], $result->tags);
+
+        // 测试whereJsonContains方法 - 数组参数部分匹配
+        $result = JsonModel::whereJsonContains('tags', ['php'])->find();
+        $this->assertNotNull($result);
+        $this->assertEquals(1, $result->id);
+        $this->assertContains('php', $result->tags);
+
+        // 测试whereJsonContains方法 - 数组参数不匹配
+        $result = JsonModel::whereJsonContains('tags', ['php', 'mongodb'])->find();
+        $this->assertNull($result);
+
         // 测试whereJsonContains方法 - 多个条件
         $result = JsonModel::where('info->age', 20)
             ->whereJsonContains('tags', 'redis')
@@ -109,9 +125,9 @@ SQL
         $this->assertNull($result);
 
         // 测试JSON数组追加
-        $record = JsonModel::find(1);
-        $tags = $record->tags;
-        $tags[] = 'nginx';
+        $record       = JsonModel::find(1);
+        $tags         = $record->tags;
+        $tags[]       = 'nginx';
         $record->tags = $tags;
         $record->save();
 
@@ -127,14 +143,14 @@ SQL
 
 class JsonModel extends Model
 {
-    protected $table = 'test_json_model';
+    protected $table              = 'test_json_model';
     protected $autoWriteTimestamp = true;
-    protected $jsonAssoc = true;
+    protected $jsonAssoc          = true;
 }
 
 class JsonObjectModel extends Model
 {
-    protected $table = 'test_json_model';
+    protected $table              = 'test_json_model';
     protected $autoWriteTimestamp = true;
-    protected $jsonAssoc = false;
+    protected $jsonAssoc          = false;
 }
