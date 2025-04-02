@@ -310,7 +310,9 @@ trait WhereQuery
         }
 
         $value = is_string($condition) ? '"' . $condition . '"' : $condition;
-        return $this->whereRaw('json_contains(' . $field . ',\'' . $value . '\')', [], $logic);
+        $value = is_null($value) ? 'NULL' : '\''.$value.'\'';
+
+        return $this->whereRaw('json_contains(' . $field . ',' . $value . ')', [], $logic);
     }
 
     public function whereOrJsonContains(string $field, $condition)
