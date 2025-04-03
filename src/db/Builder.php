@@ -435,7 +435,7 @@ class Builder extends BaseBuilder
                     $value = array_column($value::cases(), 'name');
                 }
             } else {
-                $value = array_unique(is_array($value) ? $value : explode(',', (string) $value));
+                $value = is_array($value) ? $value : array_unique(explode(',', (string) $value));
             }
 
             if (count($value) === 0) {
@@ -445,14 +445,24 @@ class Builder extends BaseBuilder
             if ($query->isAutoBind()) {
                 $array = [];
                 foreach ($value as $v) {
+                    if ($v instanceof UnitEnum) {
+                        $v = $this->parseEnum($v);
+                    }
                     $name    = $query->bindValue($v, $bindType);
                     $array[] = ':' . $name;
                 }
                 $value = implode(',', $array);
-            } elseif (Connection::PARAM_STR == $bindType) {
-                $value = '\'' . implode('\',\'', $value) . '\'';
-            } else {
-                $value = implode(',', $value);
+            } else{
+                foreach ($value as &$v) {
+                    if ($v instanceof UnitEnum) {
+                        $v = $this->parseEnum($v);
+                    }
+                }
+                if (Connection::PARAM_STR == $bindType) {
+                    $value = '\'' . implode('\',\'', $value) . '\'';
+                } else {
+                    $value = implode(',', $value);
+                }
             }
 
             if (!str_contains($value, ',')) {

@@ -212,7 +212,7 @@ trait RelationShip
      */
     public function bindRelationAttr(Model | array $model, array $bind = [])
     {
-        $data = is_array($model) ? $model : $model->getData();
+        $data = is_array($model) ? $model : $model->toArray();
         foreach ($data as $key => $val) {
             if (isset($bind[$key])) {
                 $this->set($bind[$key], $val);
