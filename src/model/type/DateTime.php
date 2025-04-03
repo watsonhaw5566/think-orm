@@ -22,13 +22,15 @@ class DateTime implements Typeable
 
     public function data($time, $format)
     {
-        $this->value = is_numeric($time) ? (int) $time : strtotime($time);
         if ($format) {
-            if (str_contains($format, '\\') && class_exists($format)) {
-                $this->data = new $format($time);
+            if (class_exists($format)) {
+                $this->data = $time instanceof $format ? $time : new $format($time);
             } else {
-                $date        = new \DateTime;
-                $this->data  = $date->setTimestamp($this->value)->format($format);
+                if (!is_object($time)) {
+                    $this->value = is_numeric($time) ? (int) $time : strtotime($time);
+                    $time  = (new \DateTime())->setTimestamp($this->value);
+                }
+                $this->data = $time->format($format);
             }
         } else {
             // 不做格式化输出转换
