@@ -45,9 +45,9 @@ class DateTime implements Typeable
         return $date->setTimestamp($this->value)->format($format);
     }
 
-    public function value()
+    public function value(bool $auto = true)
     {
-        if (is_object($this->data) && $this->data instanceof Stringable) {
+        if ($auto && is_object($this->data) && $this->data instanceof Stringable) {
             // 对象数据写入
             return $this->data->__toString();
         }
@@ -59,6 +59,6 @@ class DateTime implements Typeable
      */
     public function __toString()
     {
-        return $this->data;
+        return $this->value();
     }
 }
