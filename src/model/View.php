@@ -41,6 +41,20 @@ abstract class View extends Entity
     }
 
     /**
+     * 设置Model对象并初始化数据
+     *
+     * @param Model $model
+     *
+     * @return $this
+     */
+    public function setModel(Model $model)
+    {
+        parent::setModel($model);
+        $this->initData();
+        return $this;
+    }
+
+    /**
      * 初始化实体数据属性.
      *
      * @return void

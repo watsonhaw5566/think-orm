@@ -241,11 +241,17 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      */
     public function newInstance(array $data = [])
     {
-        $class = $this->getOption('entityClass', str_replace('\\model\\', '\\entity\\', static::class));
         $model = new static($data);
         if (!empty($data)) {
             $model->exists(true);
         }
+
+        if ($this->getEntity()) {
+            // 存在对应实体模型实例
+            return $this->getEntity()->setModel($model);
+        }
+
+        $class = $this->getOption('entityClass', str_replace('\\model\\', '\\entity\\', static::class));
         if (class_exists($class) && is_subclass_of($class, Entity::class)) {
             $entity = new $class($model);
             $model->entity($entity);
