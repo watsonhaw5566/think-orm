@@ -619,13 +619,18 @@ trait Attribute
             } else {
                 $value = $value->value();
             }
-        } elseif (is_int($value) && in_array($name, [$this->getOption('createTime'), $this->getOption('updateTime'), $this->getOption('deleteTime')]) && false != $this->getDateFormat()) {
+        } elseif (is_int($value) && $this->isTimeAttr($name) && false != $this->getDateFormat()) {
             // 兼容数字类型时间字段的自动转换输出
             $value = (new \DateTime())
                 ->setTimestamp($value)
                 ->format($this->getDateFormat());
         }
         return $value;
+    }
+
+    protected function isTimeAttr(string $name): bool
+    {
+        return in_array($name, [$this->getOption('createTime'), $this->getOption('updateTime'), $this->getOption('deleteTime')]) || str_ends_with($name, '_time');
     }
 
     /**
