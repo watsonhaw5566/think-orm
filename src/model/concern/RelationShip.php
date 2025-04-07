@@ -117,21 +117,28 @@ trait RelationShip
             if (is_numeric($key) && isset($relations[$name])) {
                 // 支持关联写入或更新
                 $relation = $relations[$name];
+                $data     = null;
                 if ($relation instanceof Model) {
                     if ($isUpdate) {
                         $relation->save();
                     } else {
-                        $this->$name()->save($relation);
-                        $relation->setKey($relation->getLastInsID());
+                        $data = $this->$name()->save($relation);
                     }
                 } else {
                     // 数组或数据集
                     $relationModel = $this->$name();
                     if ($relationModel instanceof OneToOne) {
-                        $relationModel->save($relation);
+                        $data = $relationModel->save($relation);
                     } elseif ($relationModel instanceof HasMany || $relationModel instanceof MorphMany) {
-                        $relationModel->saveAll($relation);
+                        $data = $relationModel->saveAll($relation);
+                        if ($data) {
+                            $data = $this->toCollection($data);
+                        }
                     }
+                }
+                if ($data) {
+                    // 重新赋值关联数据
+                    $this->set($name, $data);
                 }
             } elseif (is_array($name)) {
                 // 关联写入
