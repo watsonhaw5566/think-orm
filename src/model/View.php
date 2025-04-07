@@ -106,6 +106,16 @@ abstract class View extends Entity
     }
 
     /**
+     * 判断数据是否为空.
+     *
+     * @return bool
+     */
+    public function isEmpty(): bool
+    {
+        return $this->model()->isEmpty();
+    }
+    
+    /**
      * 模型数据转Json.
      *
      * @param int $options json参数
