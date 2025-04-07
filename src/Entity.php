@@ -39,7 +39,6 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
             self::$weakMap = new WeakMap;
         }
 
-        self::$weakMap[$this] = [];
         // 获取实体模型参数
         $options = $this->getOptions();
 
@@ -50,9 +49,12 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
             unset($options['model_class']);
         }
 
+        self::$weakMap[$this] = [
+            'model' =>  $model,
+        ];
+
         // 初始化模型
         $model->setOptions($options);
-        $this->setModel($model);
         $this->init($options);
     }
 
@@ -64,6 +66,11 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
     protected function getOptions(): array
     {
         return [];
+    }
+
+    public function newInstance(?Model $model)
+    {
+        return new static($model);
     }
 
     /**
@@ -81,19 +88,6 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
     public function model()
     {
         return self::$weakMap[$this]['model'];
-    }
-
-    /**
-     * 设置Model对象
-     *
-     * @param Model $model
-     *
-     * @return $this
-     */
-    public function setModel(Model $model)
-    {
-        self::$weakMap[$this]['model'] = $model;
-        return $this;
     }
 
     /**

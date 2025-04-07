@@ -248,7 +248,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
 
         if ($this->getEntity()) {
             // 存在对应实体模型实例
-            return $this->getEntity()->setModel($model);
+            return $this->getEntity()->newInstance($model);
         }
 
         $class = $this->getOption('entityClass', str_replace('\\model\\', '\\entity\\', static::class));
