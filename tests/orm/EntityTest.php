@@ -23,7 +23,7 @@ class TestProfileEntity extends Entity
 
 class TestProfileModel extends Model
 {
-    protected $name = 'profile';
+    protected $name = 'entity_profile';
 }
 
 // 测试用的实体类
@@ -65,7 +65,7 @@ class EntityTest extends TestCase
         parent::setUp();
 
         Db::execute('DROP TABLE IF EXISTS `test_entity`');
-        Db::execute('DROP TABLE IF EXISTS `test_profile`');
+        Db::execute('DROP TABLE IF EXISTS `test_entity_profile`');
         
         Db::execute(<<<SQL
 CREATE TABLE `test_entity` (
@@ -80,7 +80,7 @@ SQL
         );
 
         Db::execute(<<<SQL
-CREATE TABLE `test_profile` (
+CREATE TABLE `test_entity_profile` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `entity_id` int(11) NOT NULL,
     `email` varchar(255) NOT NULL,

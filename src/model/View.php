@@ -49,10 +49,10 @@ abstract class View extends Entity
     {
         // 获取实体属性
         $properties = $this->getEntityProperties();
-        $data       = $this->model()->toArray();
+        $data       = $this->model()->getData();
         foreach ($properties as $key => $field) {
             if (is_int($key)) {
-                $this->$field = $data[$field] ?? null;
+                $this->$field = $this->model()->$field;
             } elseif (strpos($field, '->')) {
                 $items    = explode('->', $field);
                 $relation = array_shift($items);
@@ -65,7 +65,7 @@ abstract class View extends Entity
                     $this->$key = $value;
                 }
             } else {
-                $this->$key = $data[$field] ?? null;
+                $this->$key = $this->model()->$field;
             }
         }
     }
@@ -113,7 +113,7 @@ abstract class View extends Entity
     {
         return $this->model()->isEmpty();
     }
-    
+
     /**
      * 模型数据转Json.
      *
