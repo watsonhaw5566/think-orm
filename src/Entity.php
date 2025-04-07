@@ -23,6 +23,7 @@ use WeakMap;
 
 /**
  * Class Entity.
+ * @mixin Model
  */
 abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsonable, Modelable
 {
