@@ -386,13 +386,14 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         $readonly = $this->getOption('readonly');
         $disuse   = $this->getOption('disuse');
         $allow    = array_diff($allow, $disuse, $isUpdate ? $readonly : []);
+        $together = $this->getOption('together');
 
         // 验证数据
         $this->validate($data, $allow);
 
         $relations = [];
         foreach ($data as $name => &$val) {
-            if ($val instanceof Modelable) {
+            if ($val instanceof Modelable || in_array($name, $together)) {
                 $relations[$name] = $val;
                 unset($data[$name]);
             } elseif ($val instanceof Collection || !in_array($name, $allow)) {
