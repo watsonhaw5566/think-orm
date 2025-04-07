@@ -35,6 +35,7 @@ trait DbConnect
     public function db()
     {
         return $this->getOption('db')
+            ->newQuery()
             ->schema($this->getOption('schema'))
             ->pk($this->getPk())
             ->autoInc($this->getOption('autoInc'))
