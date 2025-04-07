@@ -217,11 +217,8 @@ trait RelationShip
             if (isset($bind[$key])) {
                 $this->set($bind[$key], $val);
             } elseif ($attr = array_search($key, $bind)) {
-                if (is_numeric($attr) || $this->__isset($attr)) {
-                } else {
-                    $this->set($attr, $val);
-                }
-            } elseif (in_array($key, $bind) && !$this->__isset($key)) {
+                $this->set(is_numeric($attr) ? $key : $attr, $val);
+            } elseif (in_array($key, $bind)) {
                 $this->set($key, $val);
             }
         }
