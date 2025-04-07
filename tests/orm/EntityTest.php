@@ -256,7 +256,7 @@ SQL
         
         // 测试数据存取
         $entity->name = 'test';
-        $this->assertEquals('test', $entity->getData('name'));
+        $this->assertEquals('test', $entity->name);
         
         // 测试批量赋值
         $data = [
@@ -268,13 +268,13 @@ SQL
             $entity->set($key, $value);
         }
         
-        $this->assertEquals($data['name'], $entity->getData('name'));
-        $this->assertEquals($data['age'], $entity->getData('age'));
-        $this->assertEquals($data['status'], $entity->getData('status'));
+        $this->assertEquals($data['name'], $entity->name);
+        $this->assertEquals($data['age'], $entity->age);
+        $this->assertEquals($data['status'], $entity->status);
         
         // 测试原始数据获取
         $entity->age = '35'; // 字符串类型
-        $this->assertEquals(35, $entity->getData('age')); // 应该被转换为整数
+        $this->assertEquals(35, $entity->age); // 应该被转换为整数
     }
 
     public function testEntityDataChanges()
