@@ -609,9 +609,24 @@ trait ModelRelationQuery
             return $this->model->toCollection();
         }
 
+        $this->options['is_resultSet'] = true;
+
         foreach ($resultSet as $key => &$result) {
             // 数据转换为模型对象
             $this->resultToModel($result);
+        }
+
+        foreach (['with', 'with_join'] as $with) {
+            // 关联预载入
+            if (!empty($this->options[$with])) {
+                $result->eagerlyResultSet(
+                    $resultSet,
+                    $this->options[$with],
+                    $this->options['with_relation_attr'],
+                    'with_join' == $with,
+                    $this->options['with_cache'] ?? false
+                );
+            }
         }
 
         // 模型数据集转换
@@ -654,15 +669,17 @@ trait ModelRelationQuery
         }
 
         // 关联预载入查询
-        foreach (['with', 'with_join'] as $with) {
-            if (!empty($this->options[$with])) {
-                $result->eagerlyResult(
-                    $result,
-                    $this->options[$with],
-                    $this->options['with_relation_attr'],
-                    'with_join' == $with,
-                    $this->options['with_cache'] ?? false
-                );
+        if (empty($this->options['is_resultSet'])) {
+            foreach (['with', 'with_join'] as $with) {
+                if (!empty($this->options[$with])) {
+                    $result->eagerlyResult(
+                        $result,
+                        $this->options[$with],
+                        $this->options['with_relation_attr'],
+                        'with_join' == $with,
+                        $this->options['with_cache'] ?? false
+                    );
+                }
             }
         }
 

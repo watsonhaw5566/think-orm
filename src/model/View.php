@@ -216,7 +216,7 @@ abstract class View extends Entity
      */
     public function __isset(string $name): bool
     {
-        return isset($this->$name);
+        return !is_null($this->__get($name));
     }
 
     /**
