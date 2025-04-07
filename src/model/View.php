@@ -49,24 +49,23 @@ abstract class View extends Entity
     {
         // 获取实体属性
         $properties = $this->getEntityProperties();
+        $data       = $this->model()->toArray();
         foreach ($properties as $key => $field) {
             if (is_int($key)) {
-                $this->$field = $this->model()->$field;
+                $this->$field = $data[$field] ?? null;
             } elseif (strpos($field, '->')) {
                 $items    = explode('->', $field);
                 $relation = array_shift($items);
-                if (isset($data->$relation)) {
+                if (isset($data[$relation])) {
                     // 存在关联数据
-                    $value    = $this->model()->$relation;
+                    $value    = $data[$relation];
                     foreach ($items as $item) {
                         $value = $value->$item;
                     }
                     $this->$key = $value;
-                } else {
-                    $this->$key = $this->model()->$key;
                 }
             } else {
-                $this->$key = $this->model()->$field;
+                $this->$key = $data[$field] ?? null;
             }
         }
     }
