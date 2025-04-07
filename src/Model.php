@@ -251,7 +251,19 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
             return $this->getEntity()->newInstance($model);
         }
 
-        $class = $this->getOption('entityClass', str_replace('\\model\\', '\\entity\\', static::class));
+        return $this->fetchModel($model);
+    }
+
+    /**
+     * 获取实际模型实例.
+     *
+     * @param Model $model
+     *
+     * @return Modelable
+     */
+    protected function fetchModel(Model $model): Modelable
+    {
+        $class = $model->getOption('entityClass', str_replace('\\model\\', '\\entity\\', static::class));
         if (class_exists($class) && is_subclass_of($class, Entity::class)) {
             $entity = new $class($model);
             $model->entity($entity);
@@ -578,15 +590,15 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      * @param array|object  $data 数据
      * @param array  $allowField  允许字段
      * @param bool   $replace     使用Replace
-     * @return static
+     * @return Modelable
      */
-    public static function create(array | object $data, array $allowField = [], bool $replace = false): static
+    public static function create(array | object $data, array $allowField = [], bool $replace = false): Modelable
     {
         $model = new static();
 
         $model->allowField($allowField)->replace($replace)->save($data, true);
-
-        return $model;
+        
+        return $model->fetchModel($model);
     }
 
     /**
