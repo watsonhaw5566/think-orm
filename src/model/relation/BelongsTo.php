@@ -181,10 +181,12 @@ class BelongsTo extends OneToOne
         $alias    = $query->getAlias() ?: $model;
         $fields   = $this->getRelationQueryFields($fields, $alias);
 
-        $query->alias($alias)
-            ->via($model)
-            ->field($fields)
-            ->join([$table => $relation], $alias . '.' . $this->foreignKey . '=' . $relation . '.' . $this->localKey, $joinType);
+        if (!$query->getAlias($table)) {
+            $query->alias($alias)
+                ->via($model)
+                ->field($fields)
+                ->join([$table => $relation], $alias . '.' . $this->foreignKey . '=' . $relation . '.' . $this->localKey, $joinType);
+        }
 
         return $this->getRelationSoftDelete($query, $relation, $where, $logic);
     }

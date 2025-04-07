@@ -179,10 +179,12 @@ class HasOne extends OneToOne
         $alias    = $query->getAlias() ?: $model;
         $fields   = $this->getRelationQueryFields($fields, $alias);
 
-        $query->alias($alias)
+        if (!$query->getAlias($table)) {
+            $query->alias($alias)
             ->via($alias)
             ->field($fields)
-            ->join([$table => $relation], $alias . '.' . $this->localKey . '=' . $relation . '.' . $this->foreignKey, $joinType);            
+            ->join([$table => $relation], $alias . '.' . $this->localKey . '=' . $relation . '.' . $this->foreignKey, $joinType);
+        }            
 
         return $this->getRelationSoftDelete($query, $relation, $where, $logic);
     }

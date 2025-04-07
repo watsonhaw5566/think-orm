@@ -610,7 +610,7 @@ trait Attribute
             $value = $this->$method($value, $data);
         } elseif ($value instanceof Typeable || is_subclass_of($value, EnumTransform::class)) {
             // 类型自动转换
-            if ($value instanceof DateTime && class_exists($this->getDateFormat())) {
+            if ($value instanceof DateTime && is_string($this->getDateFormat()) && class_exists($this->getDateFormat())) {
                 $value = $value->value(false);
             } else {
                 $value = $value->value();
