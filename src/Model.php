@@ -690,8 +690,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      */
     public function setCache($key = true, $expire = null, $tag = null)
     {
-        $this->db()->cache($key, $expire, $tag);
-        return $this;
+        return $this->setOption('cache', [$key, $expire, $tag]);
     }
 
     /**

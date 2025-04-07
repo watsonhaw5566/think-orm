@@ -32,15 +32,24 @@ trait DbConnect
      * 获取Db对象实例.
      * @return Query
      */
-    public function db()
+    public function db(bool $newQuery = true)
     {
-        return $this->getOption('db')
-            ->newQuery()
-            ->schema($this->getOption('schema'))
+        $db = $this->getOption('db');
+        if ($newQuery) {
+            $db = $db->newQuery();
+        }
+        
+        if ($this->getOption('cache')) {
+            [$key, $expire, $tag] = $this->getOption('cache');
+            $db->cache($key, $expire, $tag);
+        }
+
+        return $db->schema($this->getOption('schema'))
             ->pk($this->getPk())
             ->autoInc($this->getOption('autoInc'))
             ->suffix($this->getOption('suffix'))
             ->setKey($this->getKey())
+            ->replace($this->getOption('replace', false))
             ->model($this);
     }
 
@@ -114,9 +123,7 @@ trait DbConnect
      */
     public function replace(bool $replace = true)
     {
-        $this->db()->replace($replace);
-
-        return $this;
+        return $this->setOption('replace', $replace);
     }
 
     /**
