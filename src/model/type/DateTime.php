@@ -27,8 +27,8 @@ class DateTime implements Typeable
                 $this->data = $time instanceof $format ? $time : new $format($time);
             } else {
                 if (!is_object($time)) {
-                    $this->value = is_numeric($time) ? (int) $time : strtotime($time);
-                    $time  = (new \DateTime())->setTimestamp($this->value);
+                    $value = is_numeric($time) ? (int) $time : strtotime($time);
+                    $time  = (new \DateTime())->setTimestamp($value);
                 }
                 $this->data = $time->format($format);
             }
@@ -43,8 +43,7 @@ class DateTime implements Typeable
         if (is_object($this->data)) {
             return $this->data->format($format);
         }
-        $date = new \DateTime;
-        return $date->setTimestamp($this->value)->format($format);
+        return (new \DateTime($this->data))->format($format);
     }
 
     public function value(bool $auto = true)
