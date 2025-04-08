@@ -250,7 +250,7 @@ class BelongsToMany extends Relation
      * @param Query|null     $query Query对象
      * @return Query
      */
-    public function hasWhere($where = [], $fields = null, string $joinType = '', ?Query $query = null, string $logic = ''): Query
+    public function hasWhere($where = [], $fields = null, string $joinType = '', ?Query $query = null, string $logic = '', string $relationAlias = ''): Query
     {
         $table    = $this->query->getTable();
         $pivot    = $this->pivot->getTable();
@@ -259,14 +259,15 @@ class BelongsToMany extends Relation
         $query    = $query ?: $this->parent->getQuery();
         $alias    = $query->getAlias() ?: $model;
         $fields   = $this->getRelationQueryFields($fields, $alias);
+        $relAlias = $relationAlias ?: $relation;
 
         $query->alias($alias)
             ->join([$pivot => 'pivot'], 'pivot.' . $this->localKey . '=' . $alias . '.' . $this->parent->getPk(), $joinType)
-            ->join($table . ' ' . $relation, $relation . '.' . $this->query->getPk() . '= pivot.' . $this->foreignKey, $joinType)
+            ->join([$table => $relAlias], $relAlias . '.' . $this->query->getPk() . '= pivot.' . $this->foreignKey, $joinType)
             ->group($alias . '.' . $this->parent->getPk())
             ->field($fields);
 
-        return $this->getRelationSoftDelete($query, $relation, $where, $logic);            
+        return $this->getRelationSoftDelete($query, $relAlias, $where, $logic);            
     }
 
     /**

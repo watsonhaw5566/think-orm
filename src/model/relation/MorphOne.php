@@ -141,7 +141,7 @@ class MorphOne extends Relation
      *
      * @return Query
      */
-    public function hasWhere($where = [], $fields = null, string $joinType = '', ?Query $query = null, string $logic = '')
+    public function hasWhere($where = [], $fields = null, string $joinType = '', ?Query $query = null, string $logic = '', string $relationAlias = '')
     {
         $table    = $this->query->getTable();
         $model    = Str::snake(class_basename($this->parent));
@@ -149,14 +149,15 @@ class MorphOne extends Relation
         $query    = $query ?: $this->parent->getQuery();
         $alias    = $query->getAlias() ?: $model;
         $fields   = $this->getRelationQueryFields($fields, $alias);
+        $relAlias = $relationAlias ?: $relation;
 
         $query->alias($alias)
-            ->join([$table => $relation], $alias . '.' . $this->parent->getPk() . '=' . $relation . '.' . $this->morphKey, $joinType)
-            ->where($relation . '.' . $this->morphType, '=', $this->type)
-            ->group($relation . '.' . $this->morphKey)
+            ->join([$table => $relAlias], $alias . '.' . $this->parent->getPk() . '=' . $relAlias . '.' . $this->morphKey, $joinType)
+            ->where($relAlias . '.' . $this->morphType, '=', $this->type)
+            ->group($relAlias . '.' . $this->morphKey)
             ->field($fields);
 
-        return $this->getRelationSoftDelete($query, $relation, $where, $logic);
+        return $this->getRelationSoftDelete($query, $relAlias, $where, $logic);
     }
 
     /**

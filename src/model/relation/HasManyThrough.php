@@ -128,7 +128,7 @@ class HasManyThrough extends Relation
      * @param Query  $query    Query对象
      * @return Query
      */
-    public function hasWhere($where = [], $fields = null, $joinType = '', ?Query $query = null, string $logic = ''): Query
+    public function hasWhere($where = [], $fields = null, $joinType = '', ?Query $query = null, string $logic = '', string $relationAlias = ''): Query
     {
         $model          = Str::snake(class_basename($this->parent));
         $relation       = Str::snake(class_basename($this->model));
@@ -136,14 +136,15 @@ class HasManyThrough extends Relation
         $relationTable  = (new $this->model())->getTable();
         $query          = $query ?: $this->parent->getQuery();
         $alias          = $query->getAlias() ?: $model;
+        $relAlias       = $relationAlias ?: $relation;
 
         // EXISTS子查询
         $subQuery = $this->through
             ->table($table)
-            ->join([$relationTable => $relation], $relation . '.' . $this->throughKey . '=' . $table . '.' . $this->throughPk, $joinType)
+            ->join([$relationTable => $relAlias], $relAlias . '.' . $this->throughKey . '=' . $table . '.' . $this->throughPk, $joinType)
             ->whereColumn($table . '.' . $this->throughPk, $alias . '.' . $this->localKey);
 
-        $this->getRelationSoftDelete($subQuery, $relation, $where, $logic);
+        $this->getRelationSoftDelete($subQuery, $relAlias, $where, $logic);
         return $query->alias($alias)->whereExists($subQuery->buildSql());
     }
 

@@ -569,14 +569,14 @@ trait ModelRelationQuery
     /**
      * 根据关联条件查询当前模型.
      *
-     * @param string $relation 关联方法名
+     * @param string|array $relation 关联方法名 或 ['关联方法名', '关联表别名']
      * @param mixed  $where    查询条件（数组或者闭包）
      * @param mixed  $fields   字段
      * @param string $joinType JOIN类型
      *
      * @return $this
      */
-    public function hasWhere(string $relation, $where = [], string $fields = '*', string $joinType = '')
+    public function hasWhere(string|array $relation, $where = [], string $fields = '*', string $joinType = '')
     {
         return $this->model->hasWhere($relation, $where, $fields, $joinType, $this);
     }
@@ -584,14 +584,14 @@ trait ModelRelationQuery
     /**
      * 根据关联条件查询当前模型.
      *
-     * @param string $relation 关联方法名
+     * @param string|array $relation 关联方法名 或 ['关联方法名', '关联表别名']
      * @param mixed  $where    查询条件（数组或者闭包）
      * @param mixed  $fields   字段
      * @param string $joinType JOIN类型
      *
      * @return $this
      */
-    public function hasWhereOr(string $relation, $where = [], string $fields = '*', string $joinType = '')
+    public function hasWhereOr(string|array $relation, $where = [], string $fields = '*', string $joinType = '')
     {
         return $this->model->hasWhereOr($relation, $where, $fields, $joinType, $this);
     }

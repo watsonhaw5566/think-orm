@@ -172,7 +172,7 @@ class BelongsTo extends OneToOne
      *
      * @return Query
      */
-    public function hasWhere($where = [], $fields = null, string $joinType = '', ?Query $query = null, string $logic = ''): Query
+    public function hasWhere($where = [], $fields = null, string $joinType = '', ?Query $query = null, string $logic = '', string $relationAlias = ''): Query
     {
         $model    = Str::snake(class_basename($this->parent));
         $relation = Str::snake(class_basename($this->model));
@@ -180,15 +180,14 @@ class BelongsTo extends OneToOne
         $query    = $query ?: $this->parent->getQuery();
         $alias    = $query->getAlias() ?: $model;
         $fields   = $this->getRelationQueryFields($fields, $alias);
+        $relAlias = $relationAlias ?: $relation;
 
-        if (!$query->getAlias($table)) {
-            $query->alias($alias)
-                ->via($model)
-                ->field($fields)
-                ->join([$table => $relation], $alias . '.' . $this->foreignKey . '=' . $relation . '.' . $this->localKey, $joinType);
-        }
+        $query->alias($alias)
+            ->via($model)
+            ->field($fields)
+            ->join([$table => $relAlias], $alias . '.' . $this->foreignKey . '=' . $relAlias . '.' . $this->localKey, $joinType);
 
-        return $this->getRelationSoftDelete($query, $relation, $where, $logic);
+        return $this->getRelationSoftDelete($query, $relAlias, $where, $logic);
     }
 
     /**
