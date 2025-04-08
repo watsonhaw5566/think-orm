@@ -201,7 +201,7 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
     public static function __callStatic($method, $args)
     {
         $entity = new static();
-        if (in_array($method, ['destroy', 'create', 'update'])) {
+        if (in_array($method, ['destroy', 'create', 'update', 'saveAll'])) {
             // 调用model的静态方法
             $db = $entity->model();
         } else {
