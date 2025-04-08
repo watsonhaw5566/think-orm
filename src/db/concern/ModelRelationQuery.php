@@ -215,7 +215,7 @@ trait ModelRelationQuery
      *
      * @return $this
      */
-    public function withSearch(string | array $fields, $data = [], bool $strict = true)
+    public function withSearch(string | array $fields, $data = [], bool $strict = false)
     {
         if (is_string($fields)) {
             $fields = explode(',', $fields);
@@ -228,14 +228,13 @@ trait ModelRelationQuery
                 $field($this, $data[$key] ?? null, $data);
             } elseif ($this->model) {
                 // 检查字段是否有数据
-                if ($strict && (!isset($data[$field]) || (empty($data[$field]) && !in_array($data[$field], ['0', 0])))) {
+                $fieldName = is_numeric($key) ? $field : $key;
+                if ($strict && (!isset($data[$fieldName]) || (empty($data[$fieldName]) && !in_array($data[$fieldName], ['0', 0])))) {
                     continue;
                 }
-
-                $fieldName = is_numeric($key) ? $field : $key;
                 $method    = 'search' . Str::studly($fieldName) . 'Attr';
                 if (method_exists($this->model, $method)) {
-                    $this->model->$method($this, $data[$field] ?? null, $data);
+                    $this->model->$method($this, $data[$fieldName] ?? null, $data);
                 } elseif (isset($data[$field])) {
                     $this->where($fieldName, in_array($fieldName, $likeFields) ? 'like' : '=', in_array($fieldName, $likeFields) ? '%' . $data[$field] . '%' : $data[$field]);
                 }
