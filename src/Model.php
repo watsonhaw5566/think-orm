@@ -542,7 +542,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         foreach ($dataSet as $key => $data) {
             $model = new static;
             $model->replace($replace)->save($data);
-            $result[$key] = $model;
+            $result[$key] = $model->fetchModel($model);
         }
         return $model->toCollection($result);
     }
@@ -615,7 +615,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
 
         $model->allowField($allowField)->exists(true)->save($data, $where);
 
-        return $model;
+        return $model->fetchModel($model);
     }
 
     /**
