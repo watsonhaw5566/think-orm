@@ -211,10 +211,11 @@ trait ModelRelationQuery
      *
      * @param string|array $fields 搜索字段
      * @param mixed        $data   搜索数据
+     * @param bool         $strict 是否严格检查数据
      *
      * @return $this
      */
-    public function withSearch(string | array $fields, $data = [])
+    public function withSearch(string | array $fields, $data = [], bool $strict = true)
     {
         if (is_string($fields)) {
             $fields = explode(',', $fields);
@@ -226,6 +227,11 @@ trait ModelRelationQuery
             if ($field instanceof Closure) {
                 $field($this, $data[$key] ?? null, $data);
             } elseif ($this->model) {
+                // 检查字段是否有数据
+                if ($strict && (!isset($data[$field]) || (empty($data[$field]) && !in_array($data[$field], ['0', 0])))) {
+                    continue;
+                }
+
                 $fieldName = is_numeric($key) ? $field : $key;
                 $method    = 'search' . Str::studly($fieldName) . 'Attr';
                 if (method_exists($this->model, $method)) {
