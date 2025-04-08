@@ -37,7 +37,7 @@ class HasOne extends OneToOne
         $this->model      = $model;
         $this->foreignKey = $foreignKey;
         $this->localKey   = $localKey;
-        $this->query      = (new $model())->getQuery();
+        $this->query      = (new $model())->db();
 
         if (get_class($parent) == $model) {
             $this->selfRelation = true;
@@ -148,7 +148,7 @@ class HasOne extends OneToOne
         $model    = Str::snake(class_basename($this->parent));
         $relation = Str::snake(class_basename($this->model));
         $table    = $this->query->getTable();
-        $query    = $query ?: $this->parent->getQuery();
+        $query    = $query ?: $this->parent->db();
         $alias    = $query->getAlias() ?: $model;
         $method   = (0 == $count && '=' == $operator) ? 'whereNotExists' : 'whereExists';
 
@@ -175,7 +175,7 @@ class HasOne extends OneToOne
         $model    = Str::snake(class_basename($this->parent));
         $relation = Str::snake(class_basename($this->model));
         $table    = $this->query->getTable();
-        $query    = $query ?: $this->parent->getQuery();
+        $query    = $query ?: $this->parent->db();
         $alias    = $query->getAlias() ?: $model;
         $fields   = $this->getRelationQueryFields($fields, $alias);
         $relAlias = $relationAlias ?: $relation;

@@ -9,6 +9,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
+declare (strict_types = 1);
 
 namespace think\model\relation;
 
@@ -60,12 +61,12 @@ class HasManyThrough extends Relation
     {
         $this->parent     = $parent;
         $this->model      = $model;
-        $this->through    = (new $through())->getQuery();
+        $this->through    = (new $through())->db();
         $this->foreignKey = $foreignKey;
         $this->throughKey = $throughKey;
         $this->localKey   = $localKey;
         $this->throughPk  = $throughPk;
-        $this->query      = (new $model())->getQuery();
+        $this->query      = (new $model())->db();
     }
 
     /**
@@ -105,7 +106,7 @@ class HasManyThrough extends Relation
         $table          = $this->through->getTable();
         $relation       = Str::snake(class_basename($this->model));
         $relationTable  = (new $this->model())->getTable();
-        $query          = $query ?: $this->parent->getQuery();
+        $query          = $query ?: $this->parent->db();
         $alias          = $query->getAlias() ?: $model;
 
         // 统计子查询
@@ -134,7 +135,7 @@ class HasManyThrough extends Relation
         $relation       = Str::snake(class_basename($this->model));
         $table          = $this->through->getTable();
         $relationTable  = (new $this->model())->getTable();
-        $query          = $query ?: $this->parent->getQuery();
+        $query          = $query ?: $this->parent->db();
         $alias          = $query->getAlias() ?: $model;
         $relAlias       = $relationAlias ?: $relation;
 

@@ -9,6 +9,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
+declare (strict_types = 1);
 
 namespace think\model\relation;
 
@@ -68,7 +69,7 @@ class MorphOne extends Relation
         $this->type      = $type;
         $this->morphKey  = $morphKey;
         $this->morphType = $morphType;
-        $this->query     = (new $model())->getQuery();
+        $this->query     = (new $model())->db();
     }
 
     /**
@@ -118,7 +119,7 @@ class MorphOne extends Relation
         $model    = Str::snake(class_basename($this->parent));
         $relation = Str::snake(class_basename($this->model));
         $table    = $this->query->getTable();
-        $query    = $query ?: $this->parent->getQuery();
+        $query    = $query ?: $this->parent->db();
         $alias    = $query->getAlias() ?: $model;
 
         $query->alias($alias)
@@ -146,7 +147,7 @@ class MorphOne extends Relation
         $table    = $this->query->getTable();
         $model    = Str::snake(class_basename($this->parent));
         $relation = Str::snake(class_basename($this->model));
-        $query    = $query ?: $this->parent->getQuery();
+        $query    = $query ?: $this->parent->db();
         $alias    = $query->getAlias() ?: $model;
         $fields   = $this->getRelationQueryFields($fields, $alias);
         $relAlias = $relationAlias ?: $relation;

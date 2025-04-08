@@ -206,7 +206,7 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
             $db = $entity->model();
         } else {
             // 调用Query类查询方法
-            $db = $entity->model()->getQuery();
+            $db = $entity->model()->db();
         }
 
         return call_user_func_array([$db, $method], $args);

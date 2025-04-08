@@ -213,21 +213,6 @@ abstract class Relation
     }
 
     /**
-     * 根据关联条件查询当前模型.
-     *
-     * @param mixed  $where    查询条件（数组或者闭包）
-     * @param mixed  $fields   字段
-     * @param string $joinType JOIN类型
-     * @param Query  $query    Query对象
-     *
-     * @return Query
-     */
-    public function hasWhereOr($where = [], $fields = null, string $joinType = '', ?Query $query = null): Query
-    {
-        return $this->hasWhere($where, $fields, $joinType, $query, 'OR');
-    }
-
-    /**
      * 处理关联查询条件
      *
      * 为查询条件添加关联表前缀

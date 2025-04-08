@@ -9,6 +9,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
+declare (strict_types = 1);
 
 namespace think\model\relation;
 
@@ -61,7 +62,7 @@ class MorphMany extends Relation
         $this->type      = $type;
         $this->morphKey  = $morphKey;
         $this->morphType = $morphType;
-        $this->query     = (new $model())->getQuery();
+        $this->query     = (new $model())->db();
     }
 
     /**
@@ -99,7 +100,7 @@ class MorphMany extends Relation
         $model    = Str::snake(class_basename($this->parent));
         $relation = Str::snake(class_basename($this->model));
         $table    = $this->query->getTable();
-        $query    = $query ?: $this->parent->getQuery();
+        $query    = $query ?: $this->parent->db();
         $alias    = $query->getAlias() ?: $model;
 
         $query->alias($alias)
@@ -125,7 +126,7 @@ class MorphMany extends Relation
     public function hasWhere($where = [], $fields = null, string $joinType = '', ?Query $query = null, string $logic = '', string $relationAlias = '')
     {
         $table    = $this->query->getTable();
-        $query    = $query ?: $this->parent->getQuery();
+        $query    = $query ?: $this->parent->db();
         $model    = Str::snake(class_basename($this->parent));
         $relation = Str::snake(class_basename($this->model));
         $alias    = $query->getAlias() ?: $model;

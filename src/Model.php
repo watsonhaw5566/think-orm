@@ -522,7 +522,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     public function refresh(): static
     {
         if ($this->isExists()) {
-            $data = $this->getQuery()->find($this->getKey())->getData();
+            $data = $this->db()->find($this->getKey())->getData();
             $this->data($data);
         }
         return $this;

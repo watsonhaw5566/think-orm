@@ -32,12 +32,9 @@ trait DbConnect
      * 获取Db对象实例.
      * @return Query
      */
-    public function db(bool $newQuery = true)
+    public function getQuery()
     {
-        $db = $this->getOption('db');
-        if ($newQuery) {
-            $db = $db->newQuery();
-        }
+        $db = $this->getOption('db')->newQuery();
         
         if ($this->getOption('cache')) {
             [$key, $expire, $tag] = $this->getOption('cache');
@@ -164,9 +161,9 @@ trait DbConnect
      * @param array|null $scope 设置不使用的全局查询范围
      * @return Query
      */
-    public function getQuery(array | null $scope = []): Query
+    public function db(array | null $scope = []): Query
     {
-        $query = $this->db();
+        $query = $this->getQuery();
         // 全局查询范围
         if (is_array($scope)) {
             $globalScope = array_diff($this->getOption('globalScope', []), $scope);
@@ -188,7 +185,7 @@ trait DbConnect
     {
         $model = new static();
 
-        return $model->getQuery($scope);
+        return $model->db($scope);
     }
 
     public static function __callStatic($method, $args)
@@ -199,7 +196,7 @@ trait DbConnect
             throw new Exception('virtual model not support db query');
         }
 
-        $db = $model->getQuery();
+        $db = $model->db();
 
         if (!empty(self::$weakMap[$model]['autoRelation'])) {
             // 自动获取关联数据
@@ -215,6 +212,6 @@ trait DbConnect
             return call_user_func_array([$this, 'withFieldAttr'], $args);
         }
 
-        return call_user_func_array([$this->getQuery(), $method], $args);
+        return call_user_func_array([$this->db(), $method], $args);
     }    
 }
