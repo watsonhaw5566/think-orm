@@ -359,11 +359,12 @@ trait Attribute
      *
      * @param array $data
      *
-     * @return void
+     * @return $this
      */
     public function data(array $data)
     {
         $this->initializeData($data);
+        return $this;
     }
 
     /**
