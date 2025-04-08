@@ -11,7 +11,6 @@ use think\model\contract\Typeable;
 class DateTime implements Typeable
 {
     protected $data;
-    protected $value;
 
     public static function from(mixed $value, Modelable $model)
     {
