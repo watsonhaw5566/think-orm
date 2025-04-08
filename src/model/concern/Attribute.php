@@ -626,7 +626,7 @@ trait Attribute
 
     protected function isTimeAttr(string $name): bool
     {
-        return in_array($name, [$this->getOption('createTime'), $this->getOption('updateTime'), $this->getOption('deleteTime')]) || str_ends_with($name, '_time');
+        return in_array($name, [$this->getOption('createTime'), $this->getOption('updateTime'), $this->getOption('deleteTime')]) || in_array($name, $this->getOption('timestamp_field', []));
     }
 
     /**
