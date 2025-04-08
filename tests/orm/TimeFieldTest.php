@@ -305,16 +305,68 @@ SQL
         // 创建使用整数时间戳的模型
         $model       = new IntegerTimeModel();
         $model->name = 'integer_time_test';
+        $model->timestamp_field = time();
         $model->save();
 
         // 从数据库重新获取并验证
         $model = IntegerTimeModel::find($model->id);
-        $this->assertIsInt($model->timestamp_field);
-
-        // 验证时间戳值是合理的
-        $this->assertGreaterThan(strtotime('2023-01-01'), $model->timestamp_field);
-        $this->assertLessThan(strtotime('2030-01-01'), $model->timestamp_field);
+        $this->assertTrue(is_string($model->timestamp_field));
+        $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $model->timestamp_field);
     }
+
+    /**
+     * 测试 DateTime 类与时间字段的交互
+     */
+    public function testDateTimeField()
+    {
+        // 1. 测试将 DateTime 对象写入数据库
+        $model       = new TimeFieldModel();
+        $model->name = 'datetime_test';
+
+        // 创建不同的 DateTime 对象并设置到模型字段
+        $now          = new DateTime();
+        $yesterday    = new DateTime('-1 day');
+        $specificDate = '2023-05-20 15:30:45';
+
+        $model->custom_time      = $now;
+        $model->date_field       = $yesterday;
+        $model->time_with_format = '2023-05-20 15:30:45';
+        $model->save();
+
+        // 验证存储到数据库的值
+        $data = Db::table('test_time_field')->where('id', $model->id)->find();
+        $this->assertTrue(! empty($data['custom_time']), 'DateTime 对象应该被正确存储');
+        $this->assertTrue(! empty($data['date_field']), '日期字段应该被正确存储');
+
+        // 3. 测试 DateTime 对象的比较查询
+        // 准备测试数据
+        $dates = [
+            ['name' => 'past_date', 'custom_time' => new DateTime('-1 month')],
+            ['name' => 'current_date', 'custom_time' => new DateTime()],
+            ['name' => 'future_date', 'custom_time' => new DateTime('+1 month')],
+        ];
+
+        foreach ($dates as $date) {
+            $model              = new DateTimeFieldModel();
+            $model->name        = $date['name'];
+            $model->custom_time = $date['custom_time'];
+            $model->save();
+        }
+
+
+        // 4. 测试 DateTime 对象的格式化输出
+        $model              = new DateTimeFormatModel();
+        $model->name        = 'datetime_format_test';
+        $model->custom_time = new DateTime('2023-12-25 18:30:00');
+        $model->save();
+
+        // 重新获取模型
+        $model = DateTimeFormatModel::find($model->id);
+
+        // 验证格式化输出
+        $this->assertEquals('2023-12-25', $model->custom_time, '应该按照指定格式输出');
+    }
+
 }
 
 /**
@@ -365,14 +417,7 @@ class CustomFormatTimeModel extends Model
 class IntegerTimeModel extends Model
 {
     protected $table              = 'test_time_field';
-    protected $autoWriteTimestamp = true;
-
-    public function init()
-    {
-        $this->setOption('createTime', 'timestamp_field');
-        $this->setOption('updateTime', 'timestamp_field');
-        $this->setOption('dateFormat', false);
-    }
+    protected $timestamp_field    = ['timestamp_field'];
 }
 
 /**
@@ -382,4 +427,29 @@ class DisabledTimeModel extends Model
 {
     protected $table              = 'test_time_field';
     protected $autoWriteTimestamp = false;
+}
+
+/**
+ * 将时间字段转换为 DateTime 对象的模型
+ */
+class DateTimeFieldModel extends Model
+{
+    protected $table              = 'test_time_field';
+    protected $autoWriteTimestamp = true;
+    protected $dateFormat         = DateTime::class;
+
+}
+
+/**
+ * 自定义时间格式的模型
+ */
+class DateTimeFormatModel extends Model
+{
+    protected $table              = 'test_time_field';
+    protected $autoWriteTimestamp = true;
+    protected $dateFormat         = 'Y-m-d';
+
+    protected $type = [
+        'custom_time' => 'datetime',
+    ];
 }
