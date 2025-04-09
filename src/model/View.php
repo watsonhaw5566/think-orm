@@ -16,6 +16,8 @@ namespace think\model;
 use ReflectionClass;
 use think\Entity;
 use think\Model;
+use think\model\Collection;
+use think\model\contract\Modelable;
 
 /**
  * 视图模型
@@ -101,7 +103,13 @@ abstract class View extends Entity
      */
     public function toArray(): array
     {
-        return get_object_vars($this);
+        $data = get_object_vars($this);
+        foreach ($data as $name => &$val) {
+            if ($val instanceof Modelable || $val instanceof Collection) {
+                $val = $val->toArray();
+            }
+        }
+        return $data;
     }
 
     /**
