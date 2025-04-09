@@ -316,9 +316,7 @@ trait Attribute
      */
     public function refreshOrigin()
     {
-        $this->setOption('origin', $this->getData());
-
-        return $this;
+        return $this->setOption('origin', $this->getData());
     }
 
     /**
@@ -664,9 +662,7 @@ trait Attribute
      */
     public function exists(bool $exists = true)
     {
-        $this->setOption('exists', $exists);
-
-        return $this;
+        return $this->setOption('exists', $exists);
     }
 
     /**
@@ -688,8 +684,6 @@ trait Attribute
      */
     public function withEnumRead(bool | string $method = true)
     {
-        $this->setOption('enumReadName', $method);
-
-        return $this;
+        return $this->setOption('enumReadName', $method);
     }
 }

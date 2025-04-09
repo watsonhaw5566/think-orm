@@ -112,9 +112,7 @@ trait AutoWriteData
 
     public function isAutoWriteTimestamp(string | bool $auto)
     {
-        $this->setOption('autoWriteTimestamp', $auto);
-
-        return $this;
+        return $this->setOption('autoWriteTimestamp', $auto);
     }
 
     public function getDateFormat()
@@ -124,9 +122,7 @@ trait AutoWriteData
 
     public function setDateFormat(string | bool $format)
     {
-        $this->setOption('dateFormat', $format);
-
-        return $this;
+        return $this->setOption('dateFormat', $format);
     }
 
     public function setTimeField($createTime, $updateTime)

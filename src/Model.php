@@ -497,11 +497,11 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     /**
      * 设置为视图模型（不能写入）.
      *
-     * @return bool
+     * @return $this
      */
     public function asView(bool $isView = true)
     {
-        $this->setOption('is_view', $isView);
+        return $this->setOption('is_view', $isView);
     }
 
     /**
@@ -702,9 +702,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      */
     public function allowField(array $allow)
     {
-        $this->setOption('allow', $allow);
-
-        return $this;
+        return $this->setOption('allow', $allow);
     }
 
     /**
@@ -716,9 +714,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      */
     public function readonly(array $fields)
     {
-        $this->setOption('readonly', $fields);
-
-        return $this;
+        return $this->setOption('readonly', $fields);
     }
 
     /**
@@ -730,9 +726,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      */
     public function force(bool $force = true)
     {
-        $this->setOption('force', $force);
-
-        return $this;
+        return $this->setOption('force', $force);
     }
 
     /**

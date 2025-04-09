@@ -47,9 +47,7 @@ trait RelationShip
      */
     public function together(array $relation)
     {
-        $this->setOption('together', $relation);
-
-        return $this;
+        return $this->setOption('together', $relation);
     }
 
     /**

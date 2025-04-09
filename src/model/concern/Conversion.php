@@ -33,9 +33,7 @@ trait Conversion
      */
     public function append(array $append, bool $merge = false)
     {
-        $this->setOption('append', $merge ? array_merge($this->getOption('append'), $append) : $append);
-
-        return $this;
+        return $this->setOption('append', $merge ? array_merge($this->getOption('append'), $append) : $append);
     }
 
     /**
@@ -48,9 +46,7 @@ trait Conversion
      */
     public function hidden(array $hidden, bool $merge = false)
     {
-        $this->setOption('hidden', $merge ? array_merge($this->getOption('hidden'), $hidden) : $hidden);
-
-        return $this;
+        return $this->setOption('hidden', $merge ? array_merge($this->getOption('hidden'), $hidden) : $hidden);
     }
 
     /**
@@ -63,9 +59,7 @@ trait Conversion
      */
     public function visible(array $visible, bool $merge = false)
     {
-        $this->setOption('visible', $merge ? array_merge($this->getOption('visible'), $visible) : $visible);
-
-        return $this;
+        return $this->setOption('visible', $merge ? array_merge($this->getOption('visible'), $visible) : $visible);
     }
 
     /**
@@ -77,9 +71,7 @@ trait Conversion
      */
     public function mapping(array $map)
     {
-        $this->setOption('mapping', $map);
-
-        return $this;
+        return $this->setOption('mapping', $map);
     }
 
     /**
