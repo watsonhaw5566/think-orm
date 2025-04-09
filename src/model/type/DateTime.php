@@ -25,9 +25,11 @@ class DateTime implements Typeable
             if (class_exists($format)) {
                 $this->data = $time instanceof $format ? $time : new $format($time);
             } else {
-                if (!is_object($time)) {
-                    $value = is_numeric($time) ? (int) $time : strtotime($time);
-                    $time  = (new \DateTime())->setTimestamp($value);
+                if (is_object($time)) {
+                } elseif (is_numeric($time)) {
+                    $time  = (new \DateTime())->setTimestamp((int) $time);
+                } else {
+                    $time  = (new \DateTime($time));
                 }
                 $this->data = $time->format($format);
             }
