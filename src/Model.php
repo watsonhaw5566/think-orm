@@ -216,10 +216,13 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     public function getOption(string $name, $default = null)
     {
         // 兼容读取3.0版本的属性参数定义
-        if (property_exists($this, $name) && isset($this->$name)) {
+        if (isset(self::$weakMap[$this][$name])) {
+            return self::$weakMap[$this][$name];
+        } elseif (property_exists($this, $name) && isset($this->$name)) {
             return $this->$name;
+        } else {
+            return $default;
         }
-        return self::$weakMap[$this][$name] ?? $default;
     }
 
     private function setWeakData(string $key, string $name, $value): void
