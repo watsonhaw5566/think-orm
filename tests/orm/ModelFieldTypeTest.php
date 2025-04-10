@@ -223,7 +223,6 @@ class FieldTypeModel extends Model
         'array_field'   => 'array',
         'object_field'  => 'object',
         'bool_field'    =>  'bool',
-        'status' => UserStatus::class,
     ];
 
     public function __construct(array $data = [])
