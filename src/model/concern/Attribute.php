@@ -208,7 +208,7 @@ trait Attribute
             return $value;
         }
 
-        $param = null;
+        $param = '';
         if (is_array($type)) {
             [$type, $param] = $type;
         } elseif (str_contains($type, ':')) {
@@ -219,9 +219,9 @@ trait Attribute
             if (class_exists($type) && !($value instanceof $type)) {
                 if (is_subclass_of($type, Typeable::class)) {
                     $value = $type::from($value, $model);
-                    if ($param && DateTime::class == $type) {
-                        $value = $value->format($param);
-                    }
+                    if ($value instanceof DateTime && $param) {
+                        $value->setFormat($param);
+                    }                    
                 } elseif (is_subclass_of($type, FieldTypeTransform::class)) {
                     $value = $type::get($value, $model);
                 } elseif (is_subclass_of($type, BackedEnum::class)) {
@@ -273,16 +273,21 @@ trait Attribute
             return $value;
         }
 
+        $param = '';
         if (is_array($type)) {
             [$type, $param] = $type;
         } elseif (str_contains($type, ':')) {
             [$type, $param] = explode(':', $type, 2);
         }
 
-        $typeTransform = static function (string $type, $value, $model) {
+        $typeTransform = static function (string $type, $value, $model, $param) {
             if (class_exists($type)) {
                 if (is_subclass_of($type, Typeable::class)) {
-                    $value = $value->value();
+                    if ($value instanceof DateTime && $param) {
+                        $value = $value->format($param);
+                    } else {
+                        $value = $value->value();
+                    }
                 } elseif (is_subclass_of($type, FieldTypeTransform::class)) {
                     $value = $type::set($value, $model);
                 } elseif ($value instanceof BackedEnum) {
@@ -301,11 +306,11 @@ trait Attribute
             'bool', 'boolean' => $value ? 1 : 0,
             'object'         => is_object($value) ? json_encode($value, JSON_FORCE_OBJECT) : $value,
             'array'          => json_encode((array) $value, JSON_UNESCAPED_UNICODE),
-            'json'           => $typeTransform(Json::class, $value, $this),
-            'date'           => $typeTransform(Date::class, $value, $this),
-            'datetime'       => $typeTransform(DateTime::class, $value, $this),
-            'timestamp'      => $typeTransform(DateTime::class, $value, $this),
-            default          => $typeTransform($type, $value, $this),
+            'json'           => $typeTransform(Json::class, $value, $this, $param),
+            'date'           => $typeTransform(Date::class, $value, $this, $param),
+            'datetime'       => $typeTransform(DateTime::class, $value, $this, $param),
+            'timestamp'      => $typeTransform(DateTime::class, $value, $this, $param),
+            default          => $typeTransform($type, $value, $this, $param),
         };
     }
 
@@ -609,11 +614,7 @@ trait Attribute
             $value = $this->$method($value, $data);
         } elseif ($value instanceof Typeable || is_subclass_of($value, EnumTransform::class)) {
             // 类型自动转换
-            if ($value instanceof DateTime && is_string($this->getDateFormat()) && class_exists($this->getDateFormat())) {
-                $value = $value->value(false);
-            } else {
-                $value = $value->value();
-            }
+            $value = $value->value();
         } elseif (is_int($value) && $this->isTimeAttr($name) && false != $this->getDateFormat()) {
             // 兼容数字类型时间字段的自动转换输出
             $value = (new \DateTime())

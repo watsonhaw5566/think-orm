@@ -11,6 +11,7 @@ use think\model\contract\Typeable;
 class DateTime implements Typeable
 {
     protected $data;
+    protected $format;
 
     public static function from(mixed $value, Modelable $model)
     {
@@ -23,37 +24,40 @@ class DateTime implements Typeable
     {
         if ($format) {
             if (class_exists($format)) {
-                $this->data = $time instanceof $format ? $time : new $format($time);
+                $time = $time instanceof $format ? $time : new $format($time);
+                $this->format = 'Y-m-d H:i:s.u';
             } else {
                 if (is_object($time)) {
                 } elseif (is_numeric($time)) {
                     $time  = (new \DateTime())->setTimestamp((int) $time);
+                } elseif (strpos('.', $time)) {
+                    $time  = \DateTime::createFromFormat('Y-m-d H:i:s.u', $time);
                 } else {
                     $time  = (new \DateTime($time));
                 }
-                $this->data = $time->format($format);
+                $this->format = $format;
             }
-        } else {
-            // 不做格式化输出转换
-            $this->data  = $time;
-        }
+        } 
+        $this->data  = $time;
     }
 
-    public function format(string $format)
+    public function setFormat(string $format)
     {
-        if (is_object($this->data)) {
-            return $this->data->format($format);
-        }
-        return (new \DateTime($this->data))->format($format);
+        $this->format = $format;
     }
 
-    public function value(bool $auto = true)
+    public function format(string $format = '')
     {
-        if ($auto && is_object($this->data) && $this->data instanceof Stringable) {
-            // 对象数据写入
+        if ($this->data instanceof Stringable) {
             return $this->data->__toString();
         }
-        return $this->data;
+
+        return $this->data->format($format ?: $this->format);
+    }
+
+    public function value()
+    {
+        return $this->format();
     }
 
     /**
