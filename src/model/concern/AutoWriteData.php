@@ -92,7 +92,7 @@ trait AutoWriteData
         if (in_array($type, ['int', 'integer'])) {
             return time();
         } elseif (is_subclass_of($type, Typeable::class)) {
-            return $type::from('now', $this)->value();
+            return $type::from('now', $this)->format('Y-m-d H:i:s.u');
         } elseif (str_contains($type, '\\')) {
             $obj = new $type();
             if ($obj instanceof Stringable) {
@@ -101,7 +101,7 @@ trait AutoWriteData
                 return (string) $obj;
             }
         } else {
-            return DateTime::from('now', $this)->value();
+            return DateTime::from('now', $this)->format('Y-m-d H:i:s.u');
         }
     }
 

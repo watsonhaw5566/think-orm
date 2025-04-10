@@ -280,14 +280,10 @@ trait Attribute
             [$type, $param] = explode(':', $type, 2);
         }
 
-        $typeTransform = static function (string $type, $value, $model, $param) {
+        $typeTransform = static function (string $type, $value, $model) {
             if (class_exists($type)) {
                 if (is_subclass_of($type, Typeable::class)) {
-                    if ($value instanceof DateTime && $param) {
-                        $value = $value->format($param);
-                    } else {
-                        $value = $value->value();
-                    }
+                    $value = $value->value();
                 } elseif (is_subclass_of($type, FieldTypeTransform::class)) {
                     $value = $type::set($value, $model);
                 } elseif ($value instanceof BackedEnum) {
@@ -306,11 +302,11 @@ trait Attribute
             'bool', 'boolean' => $value ? 1 : 0,
             'object'         => is_object($value) ? json_encode($value, JSON_FORCE_OBJECT) : $value,
             'array'          => json_encode((array) $value, JSON_UNESCAPED_UNICODE),
-            'json'           => $typeTransform(Json::class, $value, $this, $param),
-            'date'           => $typeTransform(Date::class, $value, $this, $param),
-            'datetime'       => $typeTransform(DateTime::class, $value, $this, $param),
-            'timestamp'      => $typeTransform(DateTime::class, $value, $this, $param),
-            default          => $typeTransform($type, $value, $this, $param),
+            'json'           => $typeTransform(Json::class, $value, $this),
+            'date'           => $typeTransform(Date::class, $value, $this),
+            'datetime'       => $typeTransform(DateTime::class, $value, $this),
+            'timestamp'      => $typeTransform(DateTime::class, $value, $this),
+            default          => $typeTransform($type, $value, $this),
         };
     }
 
