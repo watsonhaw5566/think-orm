@@ -343,6 +343,10 @@ trait Attribute
     public function getKey()
     {
         $pk = $this->getPk();
+        if (is_null($pk)) {
+            return;
+        }
+        
         if (is_string($pk)) {
             return $this->get($pk);
         }
