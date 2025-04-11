@@ -610,9 +610,9 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      * @param array|object  $data 数据
      * @param mixed  $where       更新条件
      * @param array  $allowField  允许字段
-     * @return static
+     * @return Modelable
      */
-    public static function update(array | object $data, $where = [], array $allowField = []): static
+    public static function update(array | object $data, $where = [], array $allowField = []): Modelable
     {
         $model = new static();
 
