@@ -25,6 +25,7 @@ use think\exception\ValidateException;
 use think\model\Collection;
 use think\model\contract\Modelable;
 use think\model\View;
+use think\model\WeakMapData;
 use WeakMap;
 
 /**
@@ -145,6 +146,15 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         // 设置额外参数
         $this->setOptions(array_diff_key($options, self::$weakMap[$this]));
 
+        // 模型初始化
+        $this->initialize();
+
+        // 初始化数据
+        $this->initializeData($data);
+    }
+
+    protected function initialize()
+    {
         if (!empty(static::$_maker)) {
             foreach (static::$_maker as $maker) {
                 call_user_func($maker, $this);
@@ -156,9 +166,6 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
 
         // 设置数据库连接
         $this->initDb();
-
-        // 初始化数据
-        $this->initializeData($data);
     }
 
     /**
@@ -840,5 +847,43 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     public function offsetUnset(mixed $name): void
     {
         $this->__unset($name);
+    }
+
+    /**
+     * 序列化模型实例
+     * 
+     * @return array
+     */
+    public function __sleep()
+    {
+        // 保存 WeakMap 中的数据到WeakMapData
+        $removeKeys   = ['invoker', 'db', 'event'];
+        $weakMapData = array_diff_key(self::$weakMap[$this], array_flip($removeKeys));
+
+        WeakMapData::set(static::class, $weakMapData);
+
+        // 返回需要序列化的属性
+        return array_keys(get_object_vars($this));
+    }
+
+    /**
+     * 反序列化模型实例
+     * 
+     * @return void
+     */
+    public function __wakeup()
+    {
+        // 初始化 WeakMap
+        if (!self::$weakMap) {
+            self::$weakMap = new WeakMap;
+        }
+
+        // 恢复 WeakMapData中的数据
+        if (WeakMapData::has(static::class)) {
+            self::$weakMap[$this] = WeakMapData::get(static::class);
+        }
+        
+        // 重新初始化
+        $this->initialize();
     }
 }
