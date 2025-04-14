@@ -857,10 +857,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     public function __sleep()
     {
         // 保存 WeakMap 中的数据到WeakMapData
-        $removeKeys   = ['invoker', 'db', 'event'];
-        $weakMapData = array_diff_key(self::$weakMap[$this], array_flip($removeKeys));
-
-        WeakMapData::set(static::class, $weakMapData);
+        WeakMapData::set(static::class, self::$weakMap[$this]);
 
         // 返回需要序列化的属性
         return array_keys(get_object_vars($this));
