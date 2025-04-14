@@ -92,6 +92,28 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
     }
 
     /**
+     * 获取克隆的模型实例.
+     *
+     * @return static
+     */
+    public function clone()
+    {
+        $model = new static();
+        self::$weakMap[$model] = self::$weakMap[$this];
+        return $model;
+    }
+
+    public function __serialize() 
+    {
+        return array_diff_key(self::$weakMap[$this]);
+    }
+
+    public function __unserialize($data) 
+    {
+        self::$weakMap[$this] = $data;
+    }
+
+    /**
      * 获取属性 支持获取器
      *
      * @param string $name 名称
