@@ -244,11 +244,11 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     /**
      * 创建新的模型实例.
      *
-     * @param array $data
+     * @param array|object $data
      *
      * @return Model|Entity
      */
-    public function newInstance(array $data = [])
+    public function newInstance(array | object $data = [])
     {
         $model = new static($data);
         if (!empty($data)) {
@@ -261,6 +261,18 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         }
 
         return $this->fetchModel($model);
+    }
+
+    /**
+     * 获取克隆的模型实例.
+     *
+     * @return static
+     */
+    public function clone()
+    {
+        $model = new static();
+        self::$weakMap[$model] = self::$weakMap[$this];
+        return $model;
     }
 
     /**
@@ -838,6 +850,16 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         self::$weakMap[$this] = $data;
         // 重新初始化
         $this->initialize();
+    }
+
+    /**
+     * 克隆模型实例
+     * 
+     * @return void
+     */
+    public function __clone()
+    {
+        throw new InvalidArgumentException('use $modelObj->clone() replace clone $modelObj');
     }
 
     // ArrayAccess
