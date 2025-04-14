@@ -37,7 +37,7 @@ abstract class View extends Entity
         $this->model()->asView(true);
 
         // 初始化模型
-        if (!$this->model()->isEmpty()) {
+        if (!$this->isEmpty()) {
             $this->initData();
         }
     }
@@ -120,6 +120,22 @@ abstract class View extends Entity
     public function isEmpty(): bool
     {
         return $this->model()->isEmpty();
+    }
+
+    /**
+     * 获取克隆的模型实例.
+     *
+     * @return static
+     */
+    public function clone()
+    {
+        $model = new static();
+        $model->setModel($this->model());
+        // 初始化模型
+        if (!$this->isEmpty()) {
+            $model->initData();
+        }
+        return $model;
     }
 
     /**

@@ -91,6 +91,11 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
         return self::$weakMap[$this]['model'];
     }
 
+    public function setModel($model)
+    {
+        self::$weakMap[$this]['model'] = $model;
+    }
+
     /**
      * 获取克隆的模型实例.
      *
