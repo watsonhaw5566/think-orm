@@ -259,4 +259,25 @@ abstract class View extends Entity
     {
         return [];
     }
+
+    /**
+     * 克隆模型实例
+     * 
+     * @return void
+     */
+    public function __clone()
+    {
+    }
+
+    public function __serialize() 
+    {
+        return get_object_vars($this);
+    }
+
+    public function __unserialize($data) 
+    {
+        foreach ($data as $name => $val) {
+            $this->$name = $val;
+        }
+    }
 }

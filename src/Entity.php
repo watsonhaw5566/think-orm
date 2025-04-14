@@ -14,6 +14,7 @@ declare (strict_types = 1);
 namespace think;
 
 use ArrayAccess;
+use InvalidArgumentException;
 use JsonSerializable;
 use ReflectionClass;
 use think\contract\Arrayable;
@@ -106,6 +107,16 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
         $model = new static();
         self::$weakMap[$model] = self::$weakMap[$this];
         return $model;
+    }
+
+    /**
+     * 克隆模型实例
+     * 
+     * @return void
+     */
+    public function __clone()
+    {
+        throw new InvalidArgumentException('use $modelObj->clone() replace clone $modelObj');
     }
 
     public function __serialize() 
