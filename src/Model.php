@@ -560,6 +560,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     public static function saveAll(iterable $dataSet, bool $replace = true): Collection
     {
         $result = [];
+        $model  = new static;
         foreach ($dataSet as $key => $data) {
             $model = new static;
             $model->replace($replace)->save($data);
