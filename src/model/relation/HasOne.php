@@ -99,7 +99,7 @@ class HasOne extends OneToOne
         $alias = $this->query->getAlias() ?: $alias . '_' . $aggregate;
         return $this->query
             ->alias($alias)
-            ->whereColumn($alias . '.' . $this->foreignKey, $this->parent->getTable(true) . '.' . $this->localKey)
+            ->whereExp($alias . '.' . $this->foreignKey, '=' . $this->parent->getTable(true) . '.' . $this->localKey)
             ->fetchSql()
             ->$aggregate($field);
     }
@@ -152,6 +152,10 @@ class HasOne extends OneToOne
         $alias    = $query->getAlias() ?: $model;
         $method   = (0 == $count && '=' == $operator) ? 'whereNotExists' : 'whereExists';
 
+        if ($this->isSelfRelation() && $alias == $relation) {
+            $relation .= '_'; 
+        }
+
         return $query->alias($alias)->$method(function ($query) use ($table, $alias, $relation) {
             $query->table([$table => $relation])
                 ->field($relation . '.' . $this->foreignKey)
@@ -179,6 +183,10 @@ class HasOne extends OneToOne
         $alias    = $query->getAlias() ?: $model;
         $fields   = $this->getRelationQueryFields($fields, $alias);
         $relAlias = $relationAlias ?: $relation;
+
+        if ($this->isSelfRelation() && $alias == $relAlias) {
+            $relAlias .= '_'; 
+        }
 
         $query->alias($alias)
         ->via($alias)
