@@ -839,13 +839,24 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         return $this->toArray();
     }
 
-    public function __serialize() 
+    /**
+     * 序列化模型对象
+     * 
+     * @return array
+     */
+    public function __serialize(): array
     {
         $removeKeys = ['invoker', 'db', 'event'];
         return array_diff_key(self::$weakMap[$this], array_flip($removeKeys));
     }
 
-    public function __unserialize($data) 
+    /**
+     * 反序列化模型对象
+     * 
+     * @param array $data 
+     * @return void
+     */
+    public function __unserialize(array $data) 
     {
         self::$weakMap[$this] = $data;
         // 重新初始化

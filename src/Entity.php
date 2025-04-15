@@ -119,12 +119,23 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
         throw new InvalidArgumentException('use $modelObj->clone() replace clone $modelObj');
     }
 
-    public function __serialize() 
+    /**
+     * 序列化模型对象
+     * 
+     * @return array
+     */
+    public function __serialize(): array
     {
         return array_diff_key(self::$weakMap[$this]);
     }
 
-    public function __unserialize($data) 
+    /**
+     * 反序列化模型对象
+     * 
+     * @param array $data 
+     * @return void
+     */
+    public function __unserialize(array $data) 
     {
         self::$weakMap[$this] = $data;
     }

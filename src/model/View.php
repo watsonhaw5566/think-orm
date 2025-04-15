@@ -269,12 +269,23 @@ abstract class View extends Entity
     {
     }
 
-    public function __serialize() 
+    /**
+     * 序列化模型对象
+     * 
+     * @return array
+     */
+    public function __serialize(): array
     {
         return get_object_vars($this);
     }
 
-    public function __unserialize($data) 
+    /**
+     * 反序列化模型对象
+     * 
+     * @param array $data 
+     * @return void
+     */
+    public function __unserialize(array $data) 
     {
         foreach ($data as $name => $val) {
             $this->$name = $val;
