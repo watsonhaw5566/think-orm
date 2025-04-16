@@ -114,17 +114,18 @@ trait RelationShip
         foreach ($together as $key => $name) {
             if (is_numeric($key) && isset($relations[$name])) {
                 // 支持关联写入或更新
+                $method   = Str::camel($name);
                 $relation = $relations[$name];
                 $data     = null;
                 if ($relation instanceof Model) {
                     if ($isUpdate) {
                         $relation->save();
                     } else {
-                        $data = $this->$name()->save($relation);
+                        $data = $this->$method()->save($relation);
                     }
                 } else {
                     // 数组或数据集
-                    $relationModel = $this->$name();
+                    $relationModel = $this->$method();
                     if ($relationModel instanceof OneToOne) {
                         $data = $relationModel->save($relation);
                     } elseif ($relationModel instanceof HasMany || $relationModel instanceof MorphMany) {
@@ -151,7 +152,8 @@ trait RelationShip
                 } else {
                     $data = $name;
                 }
-                $this->$key()->save($data);
+                $method = Str::camel($key);
+                $this->$method()->save($data);
             }
         }
     }
