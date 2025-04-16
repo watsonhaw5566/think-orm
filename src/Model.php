@@ -244,18 +244,19 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     /**
      * 创建新的模型实例.
      *
-     * @param array|object $data 数据
-     * @param bool         $with 是否包含关联查询
+     * @param array|object $data
+     * @param array        $options
      *
      * @return Model|Entity
      */
-    public function newInstance(array | object $data = [], bool $with = false)
+    public function newInstance(array | object $data = [], array $options = [])
     {
         $model = new static($data);
         if (!empty($data)) {
             $model->exists(true);
         }
 
+        $with = !empty($options['with']) || !empty($options['with_join']);
         if ($this->getEntity()) {
             // 存在对应实体模型实例
             return $this->getEntity()->newInstance($model, $with);
@@ -279,7 +280,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     /**
      * 获取实际模型实例.
      *
-     * @param Model $model 模型实例
+     * @param Model $model
      * @param bool  $with 是否包含关联查询
      *
      * @return Modelable
@@ -389,8 +390,11 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         // 自动写入数据
         $this->autoWriteData($data, $isUpdate, $allow);
 
-        $db     = $this->getDbWhere($where);
-        $result = $db->field($allow)->removeOption('data')->save($data, !$isUpdate);
+        $result = $this->getDbWhere($where)
+            ->field($allow)
+            ->removeOption('data')
+            ->save($data, !$isUpdate);
+
         if (!$isUpdate) {
             $this->exists(true);
             $this->setKey($db->getLastInsID());
@@ -453,14 +457,16 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     {
     }
 
-    protected function getDbWhere($where)
+    protected function getDbWhere($where = [])
     {
         $db = $this->db();
         // 检查条件
         if (!empty($where)) {
             $db->where($where);
-        } else {
+        } elseif ($this->getKey()) {
             $db->setKey($this->getKey());
+        } else {
+            $db->where($this->getOrigin());
         }
         return $db;
     }
@@ -594,7 +600,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
             }
         }
 
-        $result = $this->db()->setKey($this->getKey())->delete();
+        $result = $this->getDbWhere()->delete();
 
         $this->trigger('AfterDelete');
 

@@ -64,12 +64,12 @@ class Pivot extends Model
     /**
      * 创建新的模型实例.
      *
-     * @param array|object $data 数据
-     * @param bool         $with 是否包含关联查询
+     * @param array|object $data    数据
+     * @param array        $options
      *
      * @return Model
      */
-    public function newInstance(array | object $data = [], bool $with = false)
+    public function newInstance(array | object $data = [], array $options = [])
     {
         $this->data($data);
         return $this->clone();
