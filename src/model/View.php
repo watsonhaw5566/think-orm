@@ -15,6 +15,7 @@ namespace think\model;
 
 use ReflectionClass;
 use think\Entity;
+use think\helper\Str;
 use think\Model;
 use think\model\Collection;
 use think\model\contract\Modelable;
@@ -54,7 +55,7 @@ abstract class View extends Entity
         $data       = $this->model()->getData();
         foreach ($properties as $key => $field) {
             if (is_int($key)) {
-                $this->$field = $this->model()->$field;
+                $this->$field = $this->fetchViewAttr($field);
             } elseif (strpos($field, '->')) {
                 $items    = explode('->', $field);
                 $relation = array_shift($items);
@@ -67,9 +68,28 @@ abstract class View extends Entity
                     $this->$key = $value;
                 }
             } else {
-                $this->$key = $this->model()->$field;
+                $this->$key = $this->fetchViewAttr($field);
             }
         }
+    }
+
+    /**
+     * 获取视图属性值.
+     *
+     * @param string $field 视图属性
+     *
+     * @return mixed
+     */
+    private function fetchViewAttr(string $field)
+    {
+        $method = 'get' . Str::camel($field) . 'Attr';
+        if (method_exists($this, $method)) {
+            $value = $this->$method($this->model()); 
+        } else {
+            $value = $this->model()->$field;
+        }
+
+        return $value;
     }
 
     /**
