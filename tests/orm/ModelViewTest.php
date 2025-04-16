@@ -24,12 +24,12 @@ class UserViewModel extends View
     protected function getOptions(): array
     {
         return [
-            'model_class'   =>  TestUserModel::class,
+            'model_class'      => TestUserModel::class,
             'property_mapping' => [
-                'nickname'  => 'name',
-                'user_age'  => 'age',
-                'email'     => 'profile->email',
-                'address'   => 'profile->address',
+                'nickname' => 'name',
+                'user_age' => 'age',
+                'email'    => 'profile->email',
+                'address'  => 'profile->address',
             ],
         ];
     }
@@ -56,7 +56,7 @@ class ModelViewTest extends TestCase
     {
         Db::execute('DROP TABLE IF EXISTS `test_user_view`;');
         Db::execute('DROP TABLE IF EXISTS `test_user_profile`;');
-        
+
         Db::execute(
             <<<'SQL'
 CREATE TABLE `test_user_view` (
@@ -93,9 +93,9 @@ SQL
     {
         // 创建测试数据
         $model = TestUserModel::create([
-            'name' => 'test1',
-            'age'  => 25,
-            'status' => 1
+            'name'   => 'test1',
+            'age'    => 25,
+            'status' => 1,
         ]);
 
         // 使用视图模型
@@ -128,9 +128,9 @@ SQL
     {
         // 创建测试数据
         $user = TestUserModel::create([
-            'name' => 'test2',
-            'age'  => 30,
-            'status' => 1
+            'name'   => 'test2',
+            'age'    => 30,
+            'status' => 1,
         ]);
 
         $viewModel = UserViewModel::find($user->id);
@@ -150,11 +150,11 @@ SQL
     public function testEmptyViewModel()
     {
         $viewModel = new UserViewModel();
-        
+
         // 测试空模型的属性访问
         $this->assertNull($viewModel->nickname);
         $this->assertNull($viewModel->user_age);
-        
+
         // 测试空模型的数组转换
         $array = $viewModel->toArray();
         $this->assertIsArray($array);
@@ -165,16 +165,16 @@ SQL
     {
         // 创建测试数据
         $user = TestUserModel::create([
-            'name' => 'test3',
-            'age'  => 28,
-            'status' => 1
+            'name'   => 'test3',
+            'age'    => 28,
+            'status' => 1,
         ]);
 
         // 创建关联数据
         $profile = UserProfileModel::create([
             'user_id' => $user->id,
-            'email' => 'test3@example.com',
-            'address' => 'Test Address'
+            'email'   => 'test3@example.com',
+            'address' => 'Test Address',
         ]);
 
         // 加载关联数据
@@ -203,9 +203,9 @@ SQL
     {
         // 创建测试数据但不加载关联
         $user = TestUserModel::create([
-            'name' => 'test4',
-            'age'  => 35,
-            'status' => 1
+            'name'   => 'test4',
+            'age'    => 35,
+            'status' => 1,
         ]);
 
         $viewModel = UserViewModel::find($user->id);
@@ -224,20 +224,20 @@ SQL
     {
         // 创建测试数据和关联数据
         $user = TestUserModel::create([
-            'name' => 'test5',
-            'age'  => 40,
-            'status' => 1
+            'name'   => 'test5',
+            'age'    => 40,
+            'status' => 1,
         ]);
 
         UserProfileModel::create([
             'user_id' => $user->id,
-            'email' => 'test5@example.com',
-            'address' => 'Clone Test Address'
+            'email'   => 'test5@example.com',
+            'address' => 'Clone Test Address',
         ]);
 
         // 测试基础克隆（不带关联数据）
-        $viewModel = UserViewModel::find($user->id);
-        $clonedModel = clone $viewModel;
+        $viewModel   = UserViewModel::find($user->id);
+        $clonedModel = $viewModel->clone();
 
         // 验证基本属性映射
         $this->assertEquals($viewModel->nickname, $clonedModel->nickname);
@@ -251,7 +251,7 @@ SQL
         $this->assertNotEquals($viewModel->nickname, $clonedModel->nickname);
 
         // 测试带关联数据的克隆
-        $viewModelWithRelation = UserViewModel::with(['profile'])->find($user->id);
+        $viewModelWithRelation   = UserViewModel::with(['profile'])->find($user->id);
         $clonedModelWithRelation = clone $viewModelWithRelation;
 
         // 验证关联数据
