@@ -219,4 +219,44 @@ SQL
         $this->assertNull($array['email']);
         $this->assertNull($array['address']);
     }
+
+    public function testViewModelClone()
+    {
+        // 创建测试数据和关联数据
+        $user = TestUserModel::create([
+            'name' => 'test5',
+            'age'  => 40,
+            'status' => 1
+        ]);
+
+        UserProfileModel::create([
+            'user_id' => $user->id,
+            'email' => 'test5@example.com',
+            'address' => 'Clone Test Address'
+        ]);
+
+        // 测试基础克隆（不带关联数据）
+        $viewModel = UserViewModel::find($user->id);
+        $clonedModel = clone $viewModel;
+
+        // 验证基本属性映射
+        $this->assertEquals($viewModel->nickname, $clonedModel->nickname);
+        $this->assertEquals($viewModel->user_age, $clonedModel->user_age);
+
+        // 验证获取器方法
+        $this->assertEquals($viewModel->test_name, $clonedModel->test_name);
+
+        // 验证克隆对象的独立性
+        $clonedModel->nickname = 'modified_name';
+        $this->assertNotEquals($viewModel->nickname, $clonedModel->nickname);
+
+        // 测试带关联数据的克隆
+        $viewModelWithRelation = UserViewModel::with(['profile'])->find($user->id);
+        $clonedModelWithRelation = clone $viewModelWithRelation;
+
+        // 验证关联数据
+        $this->assertEquals($viewModelWithRelation->email, $clonedModelWithRelation->email);
+        $this->assertEquals($viewModelWithRelation->address, $clonedModelWithRelation->address);
+
+    }
 }
