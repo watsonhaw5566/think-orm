@@ -390,8 +390,8 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         // 自动写入数据
         $this->autoWriteData($data, $isUpdate, $allow);
 
-        $result = $this->getDbWhere($where)
-            ->field($allow)
+        $db     = $this->getDbWhere($where);
+        $result = $db->field($allow)
             ->removeOption('data')
             ->save($data, !$isUpdate);
 
