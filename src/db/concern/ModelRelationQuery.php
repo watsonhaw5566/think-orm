@@ -657,7 +657,8 @@ trait ModelRelationQuery
             }
         }
 
-        $result = $this->model->newInstance($result, $this->options);
+        $withRelation = !empty($this->options['with']) || !empty($this->options['with_join']);
+        $result       = $this->model->newInstance($result, $withRelation);
 
         if ($this->suffix) {
             $result->setSuffix($this->suffix);
