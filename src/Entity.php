@@ -70,9 +70,15 @@ abstract class Entity implements JsonSerializable, ArrayAccess, Arrayable, Jsona
         return [];
     }
 
-    public function newInstance(?Model $model)
+    /**
+     * 创建新的实例.
+     *
+     * @param Model $model 模型连接对象
+     * @param bool  $with  是否存在with关联查询
+     */
+    public function newInstance(?Model $model, bool $with = false)
     {
-        return new static($model);
+        return new static($model, $with);
     }
 
     /**

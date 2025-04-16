@@ -29,8 +29,9 @@ abstract class View extends Entity
      * 架构函数.
      *
      * @param Model $model 模型连接对象
+     * @param bool  $with  是否存在with关联查询
      */
-    public function __construct(?Model $model = null)
+    public function __construct(?Model $model = null, bool $with = false)
     {
         parent::__construct($model);
 
@@ -38,17 +39,17 @@ abstract class View extends Entity
         $this->model()->asView(true);
 
         // 初始化模型
-        if (!$this->isEmpty()) {
+        if (!$this->isEmpty() && !$with) {
             $this->initData();
         }
     }
 
     /**
-     * 初始化实体数据属性.
+     * 初始化实体数据属性（如果存在关联查询则会延迟执行）.
      *
      * @return void
      */
-    private function initData()
+    public function initData()
     {
         // 获取实体属性
         $properties = $this->getEntityProperties();
@@ -74,7 +75,7 @@ abstract class View extends Entity
     }
 
     /**
-     * 获取视图属性值.
+     * 获取视图属性值（支持视图获取器）.
      *
      * @param string $field 视图属性
      *
@@ -190,20 +191,7 @@ abstract class View extends Entity
      */
     public function setRelation($relation, $model)
     {
-        $properties = $this->getEntityProperties();
-        foreach ($properties as $key => $field) {
-            if (strpos($field, '->') && str_starts_with($field, $relation)) {
-                // 关联映射属性
-                $items  = explode('->', $field);
-                array_shift($items);
-
-                $value  = $model;
-                foreach ($items as $item) {
-                    $value = $value->$item;
-                }
-                $this->$key = $value;
-            }
-        }
+        $this->model()->setRelation($relation, $model);
     }
 
     /**

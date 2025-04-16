@@ -32,6 +32,7 @@ use think\model\relation\MorphOne;
 use think\model\relation\MorphTo;
 use think\model\relation\MorphToMany;
 use think\model\relation\OneToOne;
+use think\model\View;
 
 /**
  * 实体模型关联处理.
@@ -446,6 +447,13 @@ trait RelationShip
 
             $relationResult->eagerlyResultSet($resultSet, $relationName, $subRelation, $closure, $relationCache, $join);            
         }
+
+        // 视图模型初始化数据
+        foreach ($resultSet as $result) {
+            if ($result instanceof View) {
+                $result->initData();
+            }
+        }
     }
 
     /**
@@ -493,6 +501,11 @@ trait RelationShip
             }
 
             $relationResult->eagerlyResult($result, $relationName, $subRelation, $closure, $relationCache, $join);
+        }
+
+        if ($result instanceof View) {
+            // 视图模型初始化数据
+            $result->initData();
         }
     }
 
