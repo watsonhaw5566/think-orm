@@ -65,10 +65,11 @@ class Pivot extends Model
      * 创建新的模型实例.
      *
      * @param array|object $data    数据
+     * @param array        $options
      *
      * @return Model
      */
-    public function newInstance(array | object $data = [])
+    public function newInstance(array | object $data = [], array $options = [])
     {
         $this->data($data);
         return $this->clone();
