@@ -180,6 +180,7 @@ abstract class Relation
     protected function getQueryFields(string $model)
     {
         $fields = $this->query->getOptions('field');
+        $this->query->removeOption('field');
 
         return $this->getRelationQueryFields($fields, $model);
     }
