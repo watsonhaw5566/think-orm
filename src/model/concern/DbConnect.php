@@ -34,7 +34,7 @@ trait DbConnect
      */
     public function getQuery()
     {
-        $db = $this->getOption('db')->newQuery();
+        $db = $this->initDb()->newQuery();
         
         if ($this->getOption('cache')) {
             [$key, $expire, $tag] = $this->getOption('cache');
@@ -71,7 +71,7 @@ trait DbConnect
             $db->suffix($this->getOption('suffix'));
         }
 
-        $this->setOption('db', $db);
+        return $db;
     }
 
     /**
@@ -89,15 +89,15 @@ trait DbConnect
                 $schema = $this->getOption('type', []);
             } else {
                 // 获取数据表信息
-                $model  = $this->getOption('db');
-                $fields = $model->getFieldsType();
-                $schema = array_merge($fields, $this->getOption('type', $model->getType()));
+                $db     = $this->initDb();
+                $fields = $db->getFieldsType();
+                $schema = array_merge($fields, $this->getOption('type', $db->getType()));
                 // 获取主键和自增字段
                 if (!$this->getOption('pk')) {
-                    $this->setOption('pk', $model->getPk());
+                    $this->setOption('pk', $db->getPk());
                 }
                 if (!$this->getOption('autoInc')) {
-                    $this->setOption('autoInc', $model->getAutoInc());
+                    $this->setOption('autoInc', $db->getAutoInc());
                 }
             }
 
