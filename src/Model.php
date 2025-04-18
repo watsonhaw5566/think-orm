@@ -569,9 +569,16 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     {
         $result = [];
         $model  = new static;
+        $pk     = $model->getPk();
         foreach ($dataSet as $key => $data) {
-            $model = new static;
-            $model->replace($replace)->save($data);
+            $model  = new static;
+            $exists = true;
+            foreach ((array) $pk as $field) {
+                if (is_string($field) && !isset($data[$field])) {
+                    $exists = false;
+                }
+            }
+            $model->replace($replace)->exists($exists)->save($data);
             $result[$key] = $model->fetchModel($model);
         }
         return $model->toCollection($result);
