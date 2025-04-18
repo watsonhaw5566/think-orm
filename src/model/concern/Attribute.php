@@ -447,7 +447,7 @@ trait Attribute
      */
     public function isJsonAssoc(): bool|null
     {
-        return $this->getOption('jsonAssoc');
+        return $this->getOption('jsonAssoc', true);
     }
 
     /**
