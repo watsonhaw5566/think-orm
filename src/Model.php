@@ -128,7 +128,6 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
             'updateTime'   => $options['updateTime'] ?? 'update_time',
             'createTime'   => $options['createTime'] ?? 'create_time',
             'suffix'       => $options['suffix'] ?? '',
-            'pk'           => $options['pk'] ?? 'id',
             'validate'     => $options['validate'] ?? $this->parseValidate(),
             'type'         => $options['type'] ?? [],
             'readonly'     => $options['readonly'] ?? [],
