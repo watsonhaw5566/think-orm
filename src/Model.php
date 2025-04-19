@@ -148,9 +148,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         $this->initialize();
 
         // 初始化数据
-        if (!empty($data)) {
-            $this->initializeData($data);
-        }
+        $this->initializeData($data);        
     }
 
     protected function initialize()
