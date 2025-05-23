@@ -245,7 +245,6 @@ class Mongo extends Connection
     public function getCursor(BaseQuery $query, $mongoQuery, bool $master = false): Cursor
     {
         $this->initConnect($master);
-        $this->db->updateQueryTimes();
 
         $options   = $query->getOptions();
         $namespace = $options['table'];
@@ -380,7 +379,6 @@ class Mongo extends Connection
     protected function mongoExecute(BaseQuery $query, BulkWrite $bulk)
     {
         $this->initConnect(true);
-        $this->db->updateQueryTimes();
 
         $options   = $query->getOptions();
         $namespace = $options['table'];
@@ -447,7 +445,6 @@ class Mongo extends Connection
     public function command(Command $command, string $dbName = '', ?ReadPreference $readPreference = null, $typeMap = null, bool $master = false): array
     {
         $this->initConnect($master);
-        $this->db->updateQueryTimes();
 
         $this->queryStartTime = microtime(true);
 
@@ -760,7 +757,7 @@ class Mongo extends Connection
 
             $query->setOption('data', $data);
 
-            $this->db->trigger('after_insert', $query);
+            $this->db?->trigger('after_insert', $query);
 
             if ($getLastInsID) {
                 return $lastInsId;
@@ -849,7 +846,7 @@ class Mongo extends Connection
         $result      = $writeResult->getModifiedCount();
 
         if ($result) {
-            $this->db->trigger('after_update', $query);
+            $this->db?->trigger('after_update', $query);
         }
 
         return $result;
@@ -881,7 +878,7 @@ class Mongo extends Connection
         $result      = $writeResult->getDeletedCount();
 
         if ($result) {
-            $this->db->trigger('after_delete', $query);
+            $this->db?->trigger('after_delete', $query);
         }
 
         return $result;
@@ -904,7 +901,7 @@ class Mongo extends Connection
     public function select(BaseQuery $query): array
     {
         try {
-            $this->db->trigger('before_select', $query);
+            $this->db?->trigger('before_select', $query);
         } catch (DbEventException $e) {
             return [];
         }
@@ -932,7 +929,7 @@ class Mongo extends Connection
     {
         // 事件回调
         try {
-            $this->db->trigger('before_find', $query);
+            $this->db?->trigger('before_find', $query);
         } catch (DbEventException $e) {
             return [];
         }

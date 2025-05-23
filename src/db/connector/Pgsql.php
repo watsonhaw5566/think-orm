@@ -160,7 +160,7 @@ class Pgsql extends PDOConnection
 
             $query->setOption('data', $data);
 
-            $this->db->trigger('after_insert', $query);
+            $this->db?->trigger('after_insert', $query);
 
             if ($getLastInsID && $lastInsId) {
                 return $lastInsId;

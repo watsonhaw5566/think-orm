@@ -585,7 +585,7 @@ abstract class PDOConnection extends Connection
             return $this->links[$linkNum];
         } catch (\PDOException $e) {
             if ($autoConnection) {
-                $this->db->log($e->getMessage(), 'error');
+                $this->db?->log($e->getMessage(), 'error');
 
                 return $this->connect($autoConnection, $linkNum);
             } else {
@@ -912,7 +912,7 @@ abstract class PDOConnection extends Connection
     {
         // 事件回调
         try {
-            $this->db->trigger('before_find', $query);
+            $this->db?->trigger('before_find', $query);
         } catch (DbEventException $e) {
             return [];
         }
@@ -958,7 +958,7 @@ abstract class PDOConnection extends Connection
     public function select(BaseQuery $query): array
     {
         try {
-            $this->db->trigger('before_select', $query);
+            $this->db?->trigger('before_select', $query);
         } catch (DbEventException $e) {
             return [];
         }
@@ -1003,7 +1003,7 @@ abstract class PDOConnection extends Connection
 
             $query->setOption('data', $data);
 
-            $this->db->trigger('after_insert', $query);
+            $this->db?->trigger('after_insert', $query);
 
             if ($getLastInsID && $lastInsId) {
                 return $lastInsId;
@@ -1167,7 +1167,7 @@ abstract class PDOConnection extends Connection
         $result = '' == $sql ? 0 : $this->pdoExecute($query, $sql);
 
         if ($result) {
-            $this->db->trigger('after_update', $query);
+            $this->db?->trigger('after_update', $query);
         }
 
         return $result;
@@ -1194,7 +1194,7 @@ abstract class PDOConnection extends Connection
         $result = $this->pdoExecute($query, $sql);
 
         if ($result) {
-            $this->db->trigger('after_delete', $query);
+            $this->db?->trigger('after_delete', $query);
         }
 
         return $result;

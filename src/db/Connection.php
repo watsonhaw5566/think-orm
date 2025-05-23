@@ -168,7 +168,7 @@ abstract class Connection implements ConnectionInterface
         /** @var BaseQuery $query */
         $query = new $class($this);
 
-        $timeRule = $this->db->getConfig('time_query_rule');
+        $timeRule = $this->db?->getConfig('time_query_rule');
         if (!empty($timeRule)) {
             $query->timeRule($timeRule);
         }
@@ -253,44 +253,46 @@ abstract class Connection implements ConnectionInterface
     /**
      * 数据库SQL监控.
      *
-     * @param string $sql    执行的SQL语句 留空自动获取
-     * @param bool   $master 主从标记
+     * @param string $sql 执行的SQL语句 留空自动获取
+     * @param bool $master 主从标记
      *
      * @return void
      */
     protected function trigger(string $sql = '', bool $master = false): void
     {
-        $listen = $this->db->getListen();
-        if (empty($listen)) {
-            $listen[] = function ($sql, $time, $master) {
-                if (str_starts_with($sql, 'CONNECT:')) {
-                    $this->db->log($sql);
+        if ($this->db) {
+            $listen = $this->db->getListen();
+            if (empty($listen)) {
+                $listen[] = function ($sql, $time, $master) {
+                    if (str_starts_with($sql, 'CONNECT:')) {
+                        $this->db->log($sql);
 
-                    return;
+                        return;
+                    }
+
+                    // 记录SQL
+                    if (is_bool($master)) {
+                        // 分布式记录当前操作的主从
+                        $master = $master ? 'master|' : 'slave|';
+                    } else {
+                        $master = '';
+                    }
+
+                    $this->db->log($sql . ' [ ' . $master . 'RunTime:' . $time . 's ]');
+                };
+            }
+
+            $runtime = number_format((microtime(true) - $this->queryStartTime), 6);
+            $sql     = $sql ?: $this->getLastsql();
+
+            if (empty($this->config['deploy'])) {
+                $master = null;
+            }
+
+            foreach ($listen as $callback) {
+                if (is_callable($callback)) {
+                    $callback($sql, $runtime, $master);
                 }
-
-                // 记录SQL
-                if (is_bool($master)) {
-                    // 分布式记录当前操作的主从
-                    $master = $master ? 'master|' : 'slave|';
-                } else {
-                    $master = '';
-                }
-
-                $this->db->log($sql . ' [ ' . $master . 'RunTime:' . $time . 's ]');
-            };
-        }
-
-        $runtime = number_format((microtime(true) - $this->queryStartTime), 6);
-        $sql     = $sql ?: $this->getLastsql();
-
-        if (empty($this->config['deploy'])) {
-            $master = null;
-        }
-
-        foreach ($listen as $callback) {
-            if (is_callable($callback)) {
-                $callback($sql, $runtime, $master);
             }
         }
     }
@@ -303,7 +305,8 @@ abstract class Connection implements ConnectionInterface
     protected function cacheData(CacheItem $cacheItem)
     {
         if ($cacheItem->getTag() && method_exists($this->cache, 'tag')) {
-            $this->cache->tag($cacheItem->getTag())->set($cacheItem->getKey(), $cacheItem->get(), $cacheItem->getExpire());
+            $this->cache->tag($cacheItem->getTag())
+                ->set($cacheItem->getKey(), $cacheItem->get(), $cacheItem->getExpire());
         } else {
             $this->cache->set($cacheItem->getKey(), $cacheItem->get(), $cacheItem->getExpire());
         }
@@ -312,8 +315,8 @@ abstract class Connection implements ConnectionInterface
     /**
      * 分析缓存Key.
      *
-     * @param BaseQuery $query  查询对象
-     * @param string    $method 查询方法
+     * @param BaseQuery $query 查询对象
+     * @param string $method 查询方法
      *
      * @return string
      */
@@ -331,9 +334,9 @@ abstract class Connection implements ConnectionInterface
     /**
      * 分析缓存.
      *
-     * @param BaseQuery $query  查询对象
-     * @param array     $cache  缓存信息
-     * @param string    $method 查询方法
+     * @param BaseQuery $query 查询对象
+     * @param array $cache 缓存信息
+     * @param string $method 查询方法
      *
      * @return CacheItem
      */
@@ -369,8 +372,8 @@ abstract class Connection implements ConnectionInterface
     /**
      * 获取最终的SQL语句.
      *
-     * @param string $sql  带参数绑定的sql语句
-     * @param array  $bind 参数绑定列表
+     * @param string $sql 带参数绑定的sql语句
+     * @param array $bind 参数绑定列表
      *
      * @return string
      */
@@ -388,11 +391,11 @@ abstract class Connection implements ConnectionInterface
 
             // 判断占位符
             $sql = is_numeric($key) ?
-            substr_replace($sql, $value, strpos($sql, '?'), 1) :
-            str_replace(
-                [':' . $key . ' ', ':' . $key . ',', ':' . $key . ')'],
-                [$value . ' ', $value . ',', $value . ')'],
-                $sql);
+                substr_replace($sql, $value, strpos($sql, '?'), 1) :
+                str_replace(
+                    [':' . $key . ' ', ':' . $key . ',', ':' . $key . ')'],
+                    [$value . ' ', $value . ',', $value . ')'],
+                    $sql);
         }
 
         return rtrim($sql);
