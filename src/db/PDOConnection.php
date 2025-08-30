@@ -648,24 +648,17 @@ abstract class PDOConnection extends Connection
      *
      * @param BaseQuery  $query     查询对象
      * @param string     $sql       sql指令
-     * @param Model|null $model     模型对象实例
-     * @param null       $condition 查询条件
-     *
      * @throws DbException
      *
      * @return \Generator
      */
-    public function getCursor(BaseQuery $query, string $sql, $model = null, $condition = null)
+    public function getCursor(BaseQuery $query, string $sql)
     {
         $this->queryPDOStatement($query, $sql);
 
         // 返回结果集
         while ($result = $this->PDOStatement->fetch($this->fetchType)) {
-            if ($model) {
-                yield $model->newInstance($result, $condition);
-            } else {
-                yield $result;
-            }
+            yield $result;
         }
     }
 
@@ -934,16 +927,11 @@ abstract class PDOConnection extends Connection
      */
     public function cursor(BaseQuery $query)
     {
-        // 分析查询表达式
-        $options = $query->parseOptions();
-
         // 生成查询SQL
         $sql = $this->builder->select($query);
 
-        $condition = $options['where']['AND'] ?? null;
-
         // 执行查询操作
-        return $this->getCursor($query, $sql, $query->getModel(), $condition);
+        return $this->getCursor($query, $sql);
     }
 
     /**

@@ -573,7 +573,21 @@ class Query extends BaseQuery
 
         $connection = clone $this->connection;
 
-        return $connection->cursor($this);
+        // 分析查询表达式
+        $options   = $this->parseOptions();
+        $condition = $options['where']['AND'] ?? null;
+
+        foreach ($connection->cursor($this) as $result) {
+            if ($this->model) {
+                // JSON数据处理
+                if (!empty($options['json'])) {
+                    $this->jsonModelResult($result);
+                }
+                yield $this->model->newInstance($result, $condition);
+            } else {
+                yield $result;
+            }
+        }
     }
 
     /**
