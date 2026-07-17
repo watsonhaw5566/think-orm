@@ -74,7 +74,10 @@
       "@composer run db-rollback",
       "@composer run db-migrate"
     ],
-    "test": "phpunit",
+    "test": "phpunit --testsuite Integration",
+    "test:unit": "phpunit --testsuite Unit",
+    "test:integration": "phpunit --testsuite Integration",
+    "test:all": "phpunit --testsuite All",
     "fix-style": "php-cs-fixer fix",
     "check-style": "php-cs-fixer fix --dry-run",
     "analyze": "phpstan --no-progress --memory-limit=1G"

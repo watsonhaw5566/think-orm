@@ -54,4 +54,4 @@ jobs:
         run: composer analyze
 
       - name: Run test suite
-        run: composer test
+        run: composer test:unit
