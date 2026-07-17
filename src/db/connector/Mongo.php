@@ -206,6 +206,7 @@ class Mongo extends Connection
             return $this->dbName;
         } else {
             $this->dbName = $db;
+
             return $this;
         }
     }
