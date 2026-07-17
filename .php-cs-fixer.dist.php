@@ -5,7 +5,7 @@ use PhpCsFixer\Finder;
 
 $finder = (new Finder())
     ->in([__DIR__ . '/src', __DIR__ . '/tests'])
-    ->notName(
+    ->notPath(
         [
             'src/db/connector/Pgsql.php',
             'src/db/PDOConnection.php'
