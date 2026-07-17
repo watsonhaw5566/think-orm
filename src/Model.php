@@ -9,7 +9,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare (strict_types = 1);
+declare (strict_types=1);
 
 namespace think;
 
@@ -19,6 +19,7 @@ use JsonSerializable;
 use think\contract\Arrayable;
 use think\contract\Jsonable;
 use think\db\BaseQuery as Query;
+use Exception;
 
 /**
  * Class Model.
@@ -173,6 +174,35 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     protected static $macro = [];
 
     /**
+     * 架构函数.
+     *
+     * @param array|object $data 数据
+     */
+    public function __construct(array | object $data = [])
+    {
+        // 设置数据
+        $this->data($data);
+
+        // 记录原始数据
+        $this->origin = $this->data;
+
+        if (empty($this->name)) {
+            // 当前模型名
+            $name       = str_replace('\\', '/', static::class);
+            $this->name = basename($name);
+        }
+
+        if (!empty(static::$maker)) {
+            foreach (static::$maker as $maker) {
+                call_user_func($maker, $this);
+            }
+        }
+
+        // 执行初始化操作
+        $this->initialize();
+    }
+
+    /**
      * 设置服务注入.
      *
      * @param Closure $maker
@@ -246,35 +276,6 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         }
 
         return call_user_func_array($method, $vars);
-    }
-
-    /**
-     * 架构函数.
-     *
-     * @param array|object $data 数据
-     */
-    public function __construct(array | object $data = [])
-    {
-        // 设置数据
-        $this->data($data);
-
-        // 记录原始数据
-        $this->origin = $this->data;
-
-        if (empty($this->name)) {
-            // 当前模型名
-            $name       = str_replace('\\', '/', static::class);
-            $this->name = basename($name);
-        }
-
-        if (!empty(static::$maker)) {
-            foreach (static::$maker as $maker) {
-                call_user_func($maker, $this);
-            }
-        }
-
-        // 执行初始化操作
-        $this->initialize();
     }
 
     /**
@@ -577,6 +578,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     {
         $this->setAttr($field, ['INC', $step]);
         $this->change[$field] = $this->origin[$field] + $step;
+
         return $this;
     }
 
@@ -592,6 +594,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     {
         $this->setAttr($field, ['DEC', $step]);
         $this->change[$field] = $this->origin[$field] - $step;
+
         return $this;
     }
 
@@ -869,7 +872,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      * @param iterable $dataSet 数据
      * @param bool     $replace 是否自动识别更新和写入
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @return Collection
      */
@@ -1016,7 +1019,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         if (is_array($data) && key($data) !== 0) {
             $query->where($data);
             $data = [];
-        } elseif ($data instanceof \Closure) {
+        } elseif ($data instanceof Closure) {
             $data($query);
             $data = [];
         }
@@ -1174,7 +1177,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         if ($this->exists && strtolower($method) == 'withattr') {
             return call_user_func_array([$this, 'withFieldAttr'], $args);
         }
-        
+
         return call_user_func_array([$this->db(), $method], $args);
     }
 

@@ -11,7 +11,7 @@ use think\db\ConnectionInterface;
 use think\db\connector\Pgsql;
 use think\facade\Db;
 use think\Model;
-use function version_compare;
+use Exception;
 
 /**
  * @property string $connectName;
@@ -37,7 +37,7 @@ class TestCaseBase extends TestCase
             return static::$connectName;
         }
 
-        throw new \Exception('Undefined property: ' . static::class . '::$' . $name);
+        throw new Exception('Undefined property: ' . static::class . '::$' . $name);
     }
 
     public function setUp(): void
@@ -81,7 +81,7 @@ class TestCaseBase extends TestCase
 
     protected function proxyAssertMatchesRegularExpression(string $pattern, string $string, string $message = '')
     {
-        if (version_compare(Version::id(), '9.1', '>=')) {
+        if (\version_compare(Version::id(), '9.1', '>=')) {
             $this->assertMatchesRegularExpression($pattern, $string, $message);
         } else {
             $this->assertRegExp($pattern, $string, $message);

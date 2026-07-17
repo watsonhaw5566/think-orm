@@ -9,7 +9,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare (strict_types = 1);
+declare (strict_types=1);
 
 namespace think\db;
 
@@ -25,7 +25,6 @@ use UnitEnum;
  */
 class Builder extends BaseBuilder
 {
-
     /**
      * 数据分析.
      *
@@ -728,6 +727,7 @@ class Builder extends BaseBuilder
         if (is_string($lock) && !empty($lock)) {
             return ' ' . trim($lock) . ' ';
         }
+
         return '';
     }
 

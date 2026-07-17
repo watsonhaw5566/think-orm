@@ -9,7 +9,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare (strict_types = 1);
+declare (strict_types=1);
 
 namespace think\db\concern;
 
@@ -215,7 +215,7 @@ trait JoinAndViewQuery
         if (empty($options['order'])) {
             return;
         }
-        
+
         // 视图查询排序处理
         foreach ($options['order'] as $key => $val) {
             if (is_numeric($key) && is_string($val)) {

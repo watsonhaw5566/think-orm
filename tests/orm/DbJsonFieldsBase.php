@@ -15,6 +15,7 @@ abstract class DbJsonFieldsBase extends TestCaseBase
             ['id' => 4, 'name' => '卫生纸', 'extend' => '{"brand": null, "standard": null, "type": "日用品" ,"amount": 20}'],
             ['id' => 5, 'name' => '香肠', 'extend' => '{"brand": null, "weight": 480, "type": "食品" ,"pack": 1}'],
         ];
+
         return array_map(fn ($item) => ['extend' => json_decode($item['extend'], true)] + $item, $data);
     }
 

@@ -1,18 +1,19 @@
 <?php
+
 declare(strict_types=1);
 
 namespace tests\stubs;
 
 use think\Model;
 use think\model\contract\FieldTypeTransform;
+use JsonSerializable;
 
-class TestFieldJsonDTO implements FieldTypeTransform, \JsonSerializable
+class TestFieldJsonDTO implements FieldTypeTransform, JsonSerializable
 {
     public function __construct(
         public int $num1,
         public string $str1
-    )
-    {
+    ) {
     }
 
     public static function fromData(array|string $data): ?static
@@ -23,6 +24,7 @@ class TestFieldJsonDTO implements FieldTypeTransform, \JsonSerializable
                 return null;
             }
         }
+
         return new self(...$data);
     }
 

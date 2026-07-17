@@ -91,9 +91,9 @@ abstract class OneToOne extends Relation
         }
 
         // 预载入封装
-        $joinTable  = $this->query->getTable();
-        $joinAlias  = Str::snake($relation);
-        $joinType   = $joinType ?: $this->joinType;
+        $joinTable = $this->query->getTable();
+        $joinAlias = Str::snake($relation);
+        $joinType  = $joinType ?: $this->joinType;
 
         $query->via($joinAlias);
 

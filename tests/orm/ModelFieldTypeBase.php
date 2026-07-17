@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace tests\orm;
@@ -62,9 +63,9 @@ class ModelFieldTypeBase extends TestCaseBase
     public function testFieldReadAndWrite()
     {
         /** @var FieldTypeModel $result */
-        $result = FieldTypeModel::query()->where('id', '=', 3)->find();
+        $result         = FieldTypeModel::query()->where('id', '=', 3)->find();
         $result->t_json = new TestFieldJsonDTO(30, 'ddd');
-        $result->t_php = new TestFieldPhpDTO(40, 'eee');
+        $result->t_php  = new TestFieldPhpDTO(40, 'eee');
         $result->save();
 
         /** @var FieldTypeModel $result */
@@ -78,9 +79,9 @@ class ModelFieldTypeBase extends TestCaseBase
     {
 
         $model = new FieldTypeModel([
-            'id' => 1,
+            'id'     => 1,
             't_json' => '???Invalid',
-            't_php' => '???Invalid',
+            't_php'  => '???Invalid',
         ]);
         $this->assertNull($model->t_json);
         $this->assertNull($model->t_php);

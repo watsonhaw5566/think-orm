@@ -2,24 +2,20 @@
 
 namespace tests;
 
-use function array_column;
-use function array_combine;
-use function array_map;
-use function call_user_func;
-use function is_callable;
-use function is_int;
-use function sort;
 use think\db\ConnectionInterface;
 use think\facade\Db;
+use PDO;
+use RuntimeException;
+use Throwable;
 
 function array_column_ex(array $arr, array $column, ?string $key = null): array
 {
-    $result = array_map(function ($val) use ($column) {
+    $result = \array_map(function ($val) use ($column) {
         $item = [];
         foreach ($column as $index => $key) {
-            if (is_callable($key)) {
-                $item[$index] = call_user_func($key, $val);
-            } elseif (is_int($index)) {
+            if (\is_callable($key)) {
+                $item[$index] = \call_user_func($key, $val);
+            } elseif (\is_int($index)) {
                 $item[$key] = $val[$key];
             } else {
                 $item[$key] = $val[$index];
@@ -30,7 +26,7 @@ function array_column_ex(array $arr, array $column, ?string $key = null): array
     }, $arr);
 
     if (!empty($key)) {
-        $result = array_combine(array_column($arr, 'id'), $result);
+        $result = \array_combine(\array_column($arr, 'id'), $result);
     }
 
     return $result;
@@ -39,7 +35,7 @@ function array_column_ex(array $arr, array $column, ?string $key = null): array
 function array_value_sort(array $arr)
 {
     foreach ($arr as &$value) {
-        sort($value);
+        \sort($value);
     }
 }
 
@@ -64,7 +60,7 @@ function query_connection_id(ConnectionInterface $connect): int
     } elseif ($connect->getConfig('type') === 'pgsql') {
         return query_pgsql_connection_id($connect);
     } else {
-        throw new \RuntimeException('Unsupported database type');
+        throw new RuntimeException('Unsupported database type');
     }
 }
 
@@ -87,7 +83,7 @@ function kill_connection(string $name, $cid): void
     } elseif ($connect->getConfig('type') === 'pgsql') {
         pgsql_kill_connection($name, $cid);
     } else {
-        throw new \RuntimeException('Unsupported database type');
+        throw new RuntimeException('Unsupported database type');
     }
 }
 
@@ -96,8 +92,8 @@ $pg_func_installed = [];
 
 function pg_server_version(string $name = 'pgsql', bool $raw = false): string
 {
-    $pdo = Db::connect($name)->connect();
-    $version = $pdo->getAttribute(\PDO::ATTR_SERVER_VERSION);
+    $pdo     = Db::connect($name)->connect();
+    $version = $pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
 
     return $raw ? $version : explode(' ', $version)[0];
 }
@@ -110,21 +106,22 @@ function pg_install_func(string $name = 'pgsql'): void
         return;
     }
 
-    /** @var \PDO $pdo */
+    /** @var PDO $pdo */
     $pdo = Db::connect($name)->connect();
 
     $rawVersion = pg_server_version($name, true);
-    $version = pg_server_version($name);
-    $file_path = version_compare($version, '12.0', '>=')
+    $version    = pg_server_version($name);
+    $file_path  = version_compare($version, '12.0', '>=')
         ? __DIR__ . '/../src/db/connector/pgsql12.sql'
         : __DIR__ . '/../src/db/connector/pgsql.sql';
 
     echo PHP_EOL, "> Installing PostgreSQL({$rawVersion}) functions from {$file_path}", PHP_EOL;
 
-    $content = file_get_contents($file_path);
+    $content    = file_get_contents($file_path);
     $statements = preg_split('/;\s*(?=CREATE|COMMENT|DROP)/i', $content);
 
     $pdo->beginTransaction();
+
     try {
         foreach ($statements as $stmt) {
             $stmt = trim($stmt);
@@ -133,8 +130,9 @@ function pg_install_func(string $name = 'pgsql'): void
             }
         }
         $pdo->commit();
-    } catch (\Throwable $exception) {
+    } catch (Throwable $exception) {
         $pdo->rollBack();
+
         throw $exception;
     }
 
@@ -145,7 +143,7 @@ function pg_reset_function(string $name = 'pgsql'): void
 {
     global $pg_func_installed;
 
-    /** @var \PDO $pdo */
+    /** @var PDO $pdo */
     $pdo = Db::connect($name)->connect();
 
     $statements = [
@@ -155,13 +153,15 @@ function pg_reset_function(string $name = 'pgsql'): void
         "DROP TYPE IF EXISTS public.tablestruct CASCADE",
     ];
     $pdo->beginTransaction();
+
     try {
         foreach ($statements as $statement) {
             $pdo->exec($statement);
         }
         $pdo->commit();
-    } catch (\Throwable $exception) {
+    } catch (Throwable $exception) {
         $pdo->rollBack();
+
         throw $exception;
     }
 

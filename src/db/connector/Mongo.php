@@ -7,7 +7,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare (strict_types = 1);
+declare (strict_types=1);
 
 namespace think\db\connector;
 
@@ -31,6 +31,7 @@ use think\db\Connection;
 use think\db\exception\DbEventException;
 use think\db\exception\DbException as Exception;
 use think\db\Mongo as Query;
+use Throwable;
 
 /**
  * Mongo数据库驱动.
@@ -1106,7 +1107,7 @@ class Mongo extends Connection
      *
      * @throws PDOException
      * @throws \Exception
-     * @throws \Throwable
+     * @throws Throwable
      *
      * @return mixed
      */
@@ -1122,7 +1123,7 @@ class Mongo extends Connection
             $this->commit();
 
             return $result;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->rollback();
 
             throw $e;

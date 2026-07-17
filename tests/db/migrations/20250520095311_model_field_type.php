@@ -38,7 +38,8 @@ final class ModelFieldType extends AbstractMigration
                 [
                     'null'    => true,
                     'default' => null,
-                ])
+                ]
+            )
             ->addColumn(
                 't_php',
                 'text',
@@ -52,10 +53,10 @@ final class ModelFieldType extends AbstractMigration
                 'bigint',
                 $adapterType === 'pgsql' ? 'decimal' : 'biginteger',
                 [
-                    'signed'  => false,
-                    'null'    => true,
-                    'default' => null,
-                    'after'   => 't_php', // 可选字段排序
+                    'signed'    => false,
+                    'null'      => true,
+                    'default'   => null,
+                    'after'     => 't_php', // 可选字段排序
                     'precision' => $adapterType === 'pgsql' ? 20 : null, // PG BIGINT 最大19位
                 ]
             )

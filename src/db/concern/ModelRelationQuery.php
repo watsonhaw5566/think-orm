@@ -9,7 +9,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare (strict_types = 1);
+declare (strict_types=1);
 
 namespace think\db\concern;
 
@@ -17,6 +17,9 @@ use Closure;
 use think\helper\Str;
 use think\Model;
 use think\model\Collection as ModelCollection;
+use DateInterval;
+use DateTime;
+use DateTimeInterface;
 
 /**
  * 模型及关联查询.
@@ -128,6 +131,7 @@ trait ModelRelationQuery
 
         if ($scope instanceof Closure) {
             $this->options['scope'][] = [$scope, $args];
+
             return $this;
         }
 
@@ -176,6 +180,7 @@ trait ModelRelationQuery
     {
         if (empty($scope)) {
             $this->options['scope'] = [];
+
             return $this;
         }
 
@@ -297,6 +302,7 @@ trait ModelRelationQuery
     public function withBind(array $attr)
     {
         $this->options['bind_attr'] = $attr;
+
         return $this;
     }
 
@@ -434,7 +440,7 @@ trait ModelRelationQuery
      *
      * @param string|array|bool $relation 关联方法名
      * @param mixed             $key      缓存key
-     * @param int|\DateTime     $expire   缓存有效期
+     * @param int|DateTime     $expire   缓存有效期
      * @param string            $tag      缓存标签
      *
      * @return $this
@@ -449,7 +455,7 @@ trait ModelRelationQuery
             return $this;
         }
 
-        if ($key instanceof \DateTimeInterface  || $key instanceof \DateInterval  || (is_int($key) && is_null($expire))) {
+        if ($key instanceof DateTimeInterface || $key instanceof DateInterval || (is_int($key) && is_null($expire))) {
             $expire = $key;
             $key    = true;
         }
@@ -672,7 +678,7 @@ trait ModelRelationQuery
         if ($this->suffix) {
             $result->setSuffix($this->suffix);
         }
-            
+
         // 模型数据处理
         foreach ($this->options['filter'] as $filter) {
             call_user_func_array($filter, [$result, $this->options]);
