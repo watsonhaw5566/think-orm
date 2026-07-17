@@ -640,6 +640,7 @@ class Mongo extends BaseQuery
         if (is_array($column)) {
             $times = 1;
             $query = $this->options($options)->page($times, $count);
+            $key   = null;
         } else {
             $query = $this->options($options)->limit($count);
 

@@ -206,6 +206,7 @@ class Mongo extends Connection
             return $this->dbName;
         } else {
             $this->dbName = $db;
+            return $this;
         }
     }
 
@@ -589,6 +590,8 @@ class Mongo extends Connection
 
     /**
      * 关闭数据库.
+     *
+     * @return $this
      */
     public function close()
     {
@@ -597,6 +600,8 @@ class Mongo extends Connection
         $this->linkRead  = null;
         $this->linkWrite = null;
         $this->links     = [];
+
+        return $this;
     }
 
     /**
@@ -693,7 +698,7 @@ class Mongo extends Connection
         $manager = new Manager($this->buildUrl(), $this->config['params']);
 
         // 记录数据库连接信息
-        if (!empty($config['trigger_sql'])) {
+        if (!empty($this->config['trigger_sql'])) {
             $this->trigger('CONNECT:ReplicaSet[ UseTime:' . number_format(microtime(true) - $startTime, 6) . 's ] ' . $this->config['dsn']);
         }
 

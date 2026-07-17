@@ -527,6 +527,7 @@ class BelongsToMany extends Relation
             $id = $data->getKey();
         }
 
+        $result = [];
         if (!empty($id)) {
             // 保存中间表数据
             $pivot[$this->localKey] = $this->parent->getKey();

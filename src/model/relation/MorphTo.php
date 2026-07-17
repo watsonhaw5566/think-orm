@@ -311,8 +311,9 @@ class MorphTo extends Relation
      *
      * @return int
      */
-    public function relationCount(Model $result, ?Closure $closure = null, string $aggregate = 'count', string $field = '*')
+    public function relationCount(Model $result, ?Closure $closure = null, string $aggregate = 'count', string $field = '*'): int
     {
+        return 0;
     }
 
     /**

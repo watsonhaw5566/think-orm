@@ -171,15 +171,16 @@ class Mysql extends Builder
             $allowFields = $options['field'];
         }
 
-        $fields = [];
-        $values = [];
+        $fields       = [];
+        $values       = [];
+        $insertFields = [];
 
         foreach ($dataSet as $data) {
             $data = $this->parseData($query, $data, $allowFields, $bind);
 
             $values[] = '( ' . implode(',', array_values($data)) . ' )';
 
-            if (!isset($insertFields)) {
+            if (empty($insertFields)) {
                 $insertFields = array_keys($data);
             }
         }
