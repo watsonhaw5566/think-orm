@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace tests\stubs;
@@ -12,7 +13,7 @@ use think\model\relation\HasOne;
 class UserModel extends Model
 {
     protected $table = 'orm_test_user';
-    protected $pk = 'id';
+    protected $pk    = 'id';
 
     /**
      * 用户资料
@@ -23,8 +24,8 @@ class UserModel extends Model
         return $this->hasOne(ProfileModel::class, 'uid')
             ->bind([
                 'email',
-                'new_name'	=> 'nickname',
-                'call_name' => fn ($model) =>$model?->getAttr('nickname')
+                'new_name'  => 'nickname',
+                'call_name' => fn ($model) => $model?->getAttr('nickname')
             ]);
     }
 }

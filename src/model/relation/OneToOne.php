@@ -91,9 +91,9 @@ abstract class OneToOne extends Relation
         }
 
         // 预载入封装
-        $joinTable  = $this->query->getTable();
-        $joinAlias  = Str::snake($relation);
-        $joinType   = $joinType ?: $this->joinType;
+        $joinTable = $this->query->getTable();
+        $joinAlias = Str::snake($relation);
+        $joinType  = $joinType ?: $this->joinType;
 
         $query->via($joinAlias);
 
@@ -131,28 +131,28 @@ abstract class OneToOne extends Relation
     }
 
     /**
-     *  预载入关联查询（数据集）.
+     * 预载入关联查询（数据集）.
      *
-     * @param array   $resultSet
-     * @param string  $relation
-     * @param array   $subRelation
-     * @param Closure $closure
+     * @param array   $resultSet   数据集
+     * @param string  $relation    当前关联名
+     * @param array   $subRelation 子关联名
+     * @param Closure $closure     闭包
      *
      * @return mixed
      */
-    abstract protected function eagerlySet(array &$resultSet, string $relation, array $subRelation = [], ?Closure $closure = null);
+    abstract protected function eagerlySet(array &$resultSet, string $relation, array $subRelation = [], ?Closure $closure = null, array $cache = []);
 
     /**
      * 预载入关联查询（数据）.
      *
      * @param Model   $result
-     * @param string  $relation
-     * @param array   $subRelation
-     * @param Closure $closure
+     * @param string  $relation    当前关联名
+     * @param array   $subRelation 子关联名
+     * @param Closure $closure     闭包
      *
      * @return mixed
      */
-    abstract protected function eagerlyOne(Model $result, string $relation, array $subRelation = [], ?Closure $closure = null);
+    abstract protected function eagerlyOne(Model $result, string $relation, array $subRelation = [], ?Closure $closure = null, array $cache = []);
 
     /**
      * 预载入关联查询（数据集）.

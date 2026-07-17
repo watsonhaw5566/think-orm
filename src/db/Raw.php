@@ -39,7 +39,7 @@ class Raw
      */
     public function getValue(): string
     {
-        return $this->value;
+        return (string) $this->value;
     }
 
     /**

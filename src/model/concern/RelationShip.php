@@ -140,8 +140,8 @@ trait RelationShip
 
         $name = $this->getRealFieldName($name);
 
-        $this->relation[$name]  = $value;
-        $this->with[$name]      = true;
+        $this->relation[$name] = $value;
+        $this->with[$name]     = true;
 
         return $this;
     }
@@ -158,17 +158,17 @@ trait RelationShip
     {
         foreach ($relations as $key => $relation) {
             $subRelation = [];
-            $closure = null;
+            $closure     = null;
 
             if ($relation instanceof Closure) {
                 // 支持闭包查询过滤关联条件
-                $closure    = $relation;
-                $relation   = $key;
+                $closure  = $relation;
+                $relation = $key;
             }
 
             if (is_array($relation)) {
-                $subRelation    = $relation;
-                $relation       = $key;
+                $subRelation = $relation;
+                $relation    = $key;
             } elseif (str_contains($relation, '.')) {
                 [$relation, $subRelation] = explode('.', $relation, 2);
             }
@@ -252,8 +252,8 @@ trait RelationShip
      */
     public function eagerly(Query $query, string $relation, $field, string $joinType = '', ?Closure $closure = null, bool $first = false): bool
     {
-        $relation   = Str::camel($relation);
-        $class      = $this->$relation();
+        $relation = Str::camel($relation);
+        $class    = $this->$relation();
 
         if ($class instanceof OneToOne) {
             $class->eagerly($query, $relation, $field, $joinType, $closure, $first);
@@ -278,17 +278,17 @@ trait RelationShip
     public function eagerlyResultSet(array &$resultSet, array $relations, array $withRelationAttr = [], bool $join = false, $cache = false): void
     {
         foreach ($relations as $key => $relation) {
-            $subRelation    = [];
-            $closure        = null;
+            $subRelation = [];
+            $closure     = null;
 
             if ($relation instanceof Closure) {
-                $closure    = $relation;
-                $relation   = $key;
+                $closure  = $relation;
+                $relation = $key;
             }
 
             if (is_array($relation)) {
-                $subRelation    = $relation;
-                $relation       = $key;
+                $subRelation = $relation;
+                $relation    = $key;
             } elseif (str_contains($relation, '.')) {
                 [$relation, $subRelation] = explode('.', $relation, 2);
 
@@ -328,17 +328,17 @@ trait RelationShip
     public function eagerlyResult(array $relations, array $withRelationAttr = [], bool $join = false, $cache = false): void
     {
         foreach ($relations as $key => $relation) {
-            $subRelation    = [];
-            $closure        = null;
+            $subRelation = [];
+            $closure     = null;
 
             if ($relation instanceof Closure) {
-                $closure    = $relation;
-                $relation   = $key;
+                $closure  = $relation;
+                $relation = $key;
             }
 
             if (is_array($relation)) {
-                $subRelation    = $relation;
-                $relation       = $key;
+                $subRelation = $relation;
+                $relation    = $key;
             } elseif (str_contains($relation, '.')) {
                 [$relation, $subRelation] = explode('.', $relation, 2);
 
@@ -419,11 +419,11 @@ trait RelationShip
             $closure = $name = null;
 
             if ($relation instanceof Closure) {
-                $closure    = $relation;
-                $relation   = $key;
+                $closure  = $relation;
+                $relation = $key;
             } elseif (is_string($key)) {
-                $name       = $relation;
-                $relation   = $key;
+                $name     = $relation;
+                $relation = $key;
             }
 
             $relation = Str::camel($relation);
@@ -639,11 +639,11 @@ trait RelationShip
      */
     public function morphTo(string|array|null $morph = null, array $alias = []): MorphTo
     {
-        $trace      = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-        $relation   = Str::snake($trace[1]['function']);
+        $trace    = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+        $relation = Str::snake($trace[1]['function']);
 
         if (is_null($morph)) {
-            $morph  = $relation;
+            $morph = $relation;
         }
 
         [$morphType, $foreignKey] = $this->parseMorph($morph);
@@ -669,9 +669,9 @@ trait RelationShip
 
         [$morphType, $morphKey] = $this->parseMorph($morph);
 
-        $model      = $this->parseModel($model);
-        $name       = Str::snake(class_basename($model));
-        $localKey   = $localKey ?: $this->getForeignKey($name);
+        $model    = $this->parseModel($model);
+        $name     = Str::snake(class_basename($model));
+        $localKey = $localKey ?: $this->getForeignKey($name);
 
         return new MorphToMany($this, $model, $middle, $morphType, $morphKey, $localKey);
     }
@@ -783,10 +783,13 @@ trait RelationShip
     {
         if (
             $this->parent && !$modelRelation->isSelfRelation()
-            && get_class($this->parent) == get_class($modelRelation->getModel())
-            && ($modelRelation instanceof OneToOne || $modelRelation instanceof HasOneThrough || $modelRelation instanceof MorphTo || $modelRelation instanceof MorphOne)
+                          && get_class($this->parent) == get_class($modelRelation->getModel())
+                          && ($modelRelation instanceof OneToOne || $modelRelation instanceof HasOneThrough || $modelRelation instanceof MorphTo || $modelRelation instanceof MorphOne)
         ) {
-            if(empty($this->parent->parent)) $this->parent->parent = $this;
+            if (empty($this->parent->parent)) {
+                $this->parent->parent = $this;
+            }
+
             return $this->parent;
         }
 

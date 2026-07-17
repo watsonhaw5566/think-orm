@@ -1,0 +1,24 @@
+parameters:
+    level: 1
+    paths:
+        - src
+        - tests
+    scanDirectories:
+        - vendor-bin/phinx/vendor
+    bootstrapFiles:
+        - vendor-bin/phinx/vendor/autoload.php
+    ignoreErrors:
+        - '#^Unsafe usage of new static\(\)\.$#'
+        - '#^Call to an undefined method .*::getPk\(\)\.$#'
+        - '#^Call to an undefined method .*::getTableFields\(\)\.$#'
+        - '#^Call to an undefined method .*::fieldRaw\(\)\.$#'
+        - '#^Call to an undefined method .*::parseView\(\)\.$#'
+        - '#^Call to an undefined method .*::getBuilderClass\(\)\.$#'
+        - '#^Call to an undefined method .*::inc\(\)\.$#'
+        - '#^Call to an undefined method .*::dec\(\)\.$#'
+        - '#^Call to an undefined method .*::where\(\)\.$#'
+        - '#^Call to an undefined method .*::getLazyFieldValue\(\)\.$#'
+        - '#^Call to an undefined method .*::withNoTrashed\(\)\.$#'
+        - '#^Variable \$key in isset\(\) always exists and is not nullable\.$#'
+        - '#^Variable \$field in empty\(\) always exists and is not falsy\.$#'
+        - '#^Access to undefined constant MongoDB\\Driver\\ReadPreference::RP_PRIMARY\.$#'

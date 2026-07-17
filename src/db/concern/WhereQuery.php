@@ -9,7 +9,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare (strict_types = 1);
+declare (strict_types=1);
 
 namespace think\db\concern;
 
@@ -56,6 +56,7 @@ trait WhereQuery
                 return $query->parseWhereExp($logic, $field, $op, $condition, $param);
             });
         }
+
         return $this->parseWhereExp($logic, $field, $op, $condition, $param);
     }
 
@@ -129,6 +130,7 @@ trait WhereQuery
                 return $query->parseWhereExp($logic, $field, $op, $condition, $param);
             });
         }
+
         return $this->parseWhereExp($logic, $field, $op, $condition, $param);
     }
 
@@ -313,6 +315,7 @@ trait WhereQuery
         $value       = is_string($condition) ? '"' . $condition . '"' : $condition;
         $name        = $this->bindValue($value);
         $bind[$name] = $value;
+
         return $this->whereRaw('json_contains(' . $field . ',:' . $name . ')', $bind, $logic);
     }
 
@@ -480,6 +483,7 @@ trait WhereQuery
                 return $this->whereRaw($field, is_array($op) ? $op : [], $logic);
             } elseif (is_string($op) && strtolower($op) === 'exp' && !is_null($condition)) {
                 $bind = isset($param[2]) && is_array($param[2]) ? $param[2] : [];
+
                 return $this->whereExp($field, $condition, $bind, $logic);
             }
 
@@ -523,6 +527,7 @@ trait WhereQuery
         if (is_array($op)) {
             // 同一字段多条件查询
             array_unshift($param, $field);
+
             return $param;
         }
 
@@ -538,6 +543,7 @@ trait WhereQuery
                 // 字段相等查询
                 $where = $this->whereEq($field, $op);
             }
+
             return $where;
         }
 

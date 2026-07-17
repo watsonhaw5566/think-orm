@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace tests\stubs;
@@ -14,14 +15,14 @@ use think\Model;
 class FieldTypeModel extends Model
 {
     protected $table = 'test_field_type';
-    protected $pk = 'id';
+    protected $pk    = 'id';
 
     protected $autoWriteTimestamp = true;
-    protected $dateFormat = false;
+    protected $dateFormat         = false;
 
     protected $type = [
         't_json' => TestFieldJsonDTO::class,
-        't_php' => TestFieldPhpDTO::class,
+        't_php'  => TestFieldPhpDTO::class,
         'bigint' => 'string',
     ];
 }
