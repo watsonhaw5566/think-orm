@@ -1,6 +1,9 @@
 {
   "name": "topthink/think-orm",
   "description": "the PHP Database&ORM Framework",
+  "replace": {
+    "topthink/think-orm": "^3.0"
+  },
   "keywords": [
     "orm",
     "database"
