@@ -6,6 +6,7 @@ namespace tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use think\db\Raw;
+use Stringable;
 
 /**
  * 单元测试示例 - 测试 Raw 类
@@ -35,7 +36,7 @@ class RawTest extends TestCase
 
     public function testGetValueWithStringable(): void
     {
-        $stringable = new class implements \Stringable {
+        $stringable = new class () implements Stringable {
             public function __toString(): string
             {
                 return 'NOW()';
