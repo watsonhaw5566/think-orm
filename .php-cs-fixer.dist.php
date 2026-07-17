@@ -7,8 +7,8 @@ $finder = (new Finder())
     ->in([__DIR__ . '/src', __DIR__ . '/tests'])
     ->notPath(
         [
-            'src/db/connector/Pgsql.php',
-            'src/db/PDOConnection.php'
+            'db/connector/Pgsql.php',
+            'db/PDOConnection.php'
         ],
     );
 
