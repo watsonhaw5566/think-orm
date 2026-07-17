@@ -1,47 +1,89 @@
 <?php
+
 // +----------------------------------------------------------------------
 // | ThinkPHP [ WE CAN DO IT JUST THINK ]
 // +----------------------------------------------------------------------
-// | Copyright (c) 2006~2017 http://thinkphp.cn All rights reserved.
+// | Copyright (c) 2006~2023 http://thinkphp.cn All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
 // +----------------------------------------------------------------------
 // | Author: zhangyajun <448901948@qq.com>
 // +----------------------------------------------------------------------
+declare(strict_types=1);
 
 namespace think;
 
 use ArrayAccess;
 use ArrayIterator;
+use Closure;
 use Countable;
+use DomainException;
 use IteratorAggregate;
 use JsonSerializable;
+use think\paginator\driver\Bootstrap;
 use Traversable;
 
+/**
+ * 分页基础类.
+ *
+ * @mixin Collection
+ */
 abstract class Paginator implements ArrayAccess, Countable, IteratorAggregate, JsonSerializable
 {
-    /** @var bool 是否为简洁模式 */
+    /**
+     * 是否简洁模式.
+     *
+     * @var bool
+     */
     protected $simple = false;
 
-    /** @var Collection 数据集 */
+    /**
+     * 数据集.
+     *
+     * @var Collection
+     */
     protected $items;
 
-    /** @var integer 当前页 */
+    /**
+     * 当前页.
+     *
+     * @var int
+     */
     protected $currentPage;
 
-    /** @var  integer 最后一页 */
+    /**
+     * 最后一页.
+     *
+     * @var int
+     */
     protected $lastPage;
 
-    /** @var integer|null 数据总数 */
+    /**
+     * 数据总数.
+     *
+     * @var int|null
+     */
     protected $total;
 
-    /** @var  integer 每页的数量 */
+    /**
+     * 每页数量.
+     *
+     * @var int
+     */
     protected $listRows;
 
-    /** @var bool 是否有下一页 */
+    /**
+     * 是否有下一页.
+     *
+     * @var bool
+     */
     protected $hasMore;
 
-    /** @var array 一些配置 */
+    /**
+     * 分页配置.
+     *
+     * @var array
+     */
     protected $options = [
         'var_page' => 'page',
         'path'     => '/',
@@ -49,7 +91,26 @@ abstract class Paginator implements ArrayAccess, Countable, IteratorAggregate, J
         'fragment' => '',
     ];
 
-    public function __construct($items, $listRows, $currentPage = null, $total = null, $simple = false, $options = [])
+    /**
+     * 获取当前页码
+     *
+     * @var Closure
+     */
+    protected static $currentPageResolver;
+
+    /**
+     * 获取当前路径.
+     *
+     * @var Closure
+     */
+    protected static $currentPathResolver;
+
+    /**
+     * @var Closure
+     */
+    protected static $maker;
+
+    public function __construct($items, int $listRows, int $currentPage = 1, ?int $total = null, bool $simple = false, array $options = [])
     {
         $this->options = array_merge($this->options, $options);
 
@@ -63,33 +124,43 @@ abstract class Paginator implements ArrayAccess, Countable, IteratorAggregate, J
         }
 
         if ($simple) {
-            $this->currentPage = $this->setCurrentPage($currentPage);
-            $this->hasMore     = count($items) > ($this->listRows);
-            $items             = $items->slice(0, $this->listRows);
+            $this->currentPage  = $this->setCurrentPage($currentPage);
+            $this->hasMore      = count($items) > ($this->listRows);
+            $items              = $items->slice(0, $this->listRows);
         } else {
-            $this->total       = $total;
-            $this->lastPage    = (int) ceil($total / $listRows);
-            $this->currentPage = $this->setCurrentPage($currentPage);
-            $this->hasMore     = $this->currentPage < $this->lastPage;
+            $this->total        = $total;
+            $this->lastPage     = (int) ceil($total / $listRows);
+            $this->currentPage  = $this->setCurrentPage($currentPage);
+            $this->hasMore      = $this->currentPage < $this->lastPage;
         }
         $this->items = $items;
     }
 
     /**
-     * @param       $items
-     * @param       $listRows
-     * @param null  $currentPage
+     * @param mixed $items
+     * @param int   $listRows
+     * @param int   $currentPage
+     * @param int   $total
      * @param bool  $simple
-     * @param null  $total
      * @param array $options
+     *
      * @return Paginator
      */
-    public static function make($items, $listRows, $currentPage = null, $total = null, $simple = false, $options = [])
+    public static function make($items, int $listRows, int $currentPage = 1, ?int $total = null, bool $simple = false, array $options = [])
     {
-        return new static($items, $listRows, $currentPage, $total, $simple, $options);
+        if (isset(static::$maker)) {
+            return call_user_func(static::$maker, $items, $listRows, $currentPage, $total, $simple, $options);
+        }
+
+        return new Bootstrap($items, $listRows, $currentPage, $total, $simple, $options);
     }
 
-    protected function setCurrentPage($currentPage)
+    public static function maker(Closure $resolver)
+    {
+        static::$maker = $resolver;
+    }
+
+    protected function setCurrentPage(int $currentPage): int
     {
         if (!$this->simple && $currentPage > $this->lastPage) {
             return $this->lastPage > 0 ? $this->lastPage : 1;
@@ -99,23 +170,24 @@ abstract class Paginator implements ArrayAccess, Countable, IteratorAggregate, J
     }
 
     /**
-     * 获取页码对应的链接
+     * 获取页码对应的链接.
      *
-     * @param $page
+     * @param int $page
+     *
      * @return string
      */
-    protected function url($page)
+    protected function url(int $page): string
     {
         if ($page <= 0) {
             $page = 1;
         }
 
-        if (strpos($this->options['path'], '[PAGE]') === false) {
+        if (!str_contains($this->options['path'], '[PAGE]')) {
             $parameters = [$this->options['var_page'] => $page];
             $path       = $this->options['path'];
         } else {
             $parameters = [];
-            $path       = str_replace('[PAGE]', $page, $this->options['path']);
+            $path       = str_replace('[PAGE]', (string) $page, $this->options['path']);
         }
 
         if (count($this->options['query']) > 0) {
@@ -124,7 +196,7 @@ abstract class Paginator implements ArrayAccess, Countable, IteratorAggregate, J
 
         $url = $path;
         if (!empty($parameters)) {
-            $url .= '?' . urldecode(http_build_query($parameters, null, '&'));
+            $url .= '?' . http_build_query($parameters, '', '&');
         }
 
         return $url . $this->buildFragment();
@@ -132,85 +204,124 @@ abstract class Paginator implements ArrayAccess, Countable, IteratorAggregate, J
 
     /**
      * 自动获取当前页码
+     *
      * @param string $varPage
      * @param int    $default
+     *
      * @return int
      */
-    public static function getCurrentPage($varPage = 'page', $default = 1)
+    public static function getCurrentPage(string $varPage = 'page', int $default = 1): int
     {
-        $page = isset($_REQUEST[$varPage]) ? $_REQUEST[$varPage] : 1;
-
-        if (filter_var($page, FILTER_VALIDATE_INT) !== false && (int) $page >= 1) {
-            return $page;
+        if (isset(static::$currentPageResolver)) {
+            return call_user_func(static::$currentPageResolver, $varPage);
         }
 
         return $default;
     }
 
     /**
-     * 自动获取当前的path
-     * @return string
+     * 设置获取当前页码闭包.
+     *
+     * @param Closure $resolver
      */
-    public static function getCurrentPath()
+    public static function currentPageResolver(Closure $resolver)
     {
-        if (isset($_SERVER['HTTP_X_REWRITE_URL'])) {
-            $url = $_SERVER['HTTP_X_REWRITE_URL'];
-        } elseif (isset($_SERVER['REQUEST_URI'])) {
-            $url = $_SERVER['REQUEST_URI'];
-        } elseif (isset($_SERVER['ORIG_PATH_INFO'])) {
-            $url = $_SERVER['ORIG_PATH_INFO'] . (!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '');
-        } else {
-            $url = '';
-        }
-
-        return strpos($url, '?') ? strstr($url, '?', true) : $url;
+        static::$currentPageResolver = $resolver;
     }
 
-    public function total()
+    /**
+     * 自动获取当前的path.
+     *
+     * @param string $default
+     *
+     * @return string
+     */
+    public static function getCurrentPath($default = '/'): string
+    {
+        if (isset(static::$currentPathResolver)) {
+            return call_user_func(static::$currentPathResolver);
+        }
+
+        return $default;
+    }
+
+    /**
+     * 设置获取当前路径闭包.
+     *
+     * @param Closure $resolver
+     */
+    public static function currentPathResolver(Closure $resolver)
+    {
+        static::$currentPathResolver = $resolver;
+    }
+
+    /**
+     * 获取数据总条数.
+     *
+     * @return int
+     */
+    public function total(): int
     {
         if ($this->simple) {
-            throw new \DomainException('not support total');
+            throw new DomainException('not support total');
         }
 
         return $this->total;
     }
 
-    public function listRows()
+    /**
+     * 获取每页数量.
+     *
+     * @return int
+     */
+    public function listRows(): int
     {
         return $this->listRows;
     }
 
-    public function currentPage()
+    /**
+     * 获取当前页页码
+     *
+     * @return int
+     */
+    public function currentPage(): int
     {
         return $this->currentPage;
     }
 
-    public function lastPage()
+    /**
+     * 获取最后一页页码
+     *
+     * @return int
+     */
+    public function lastPage(): int
     {
         if ($this->simple) {
-            throw new \DomainException('not support last');
+            throw new DomainException('not support last');
         }
 
         return $this->lastPage;
     }
 
     /**
-     * 数据是否足够分页
-     * @return boolean
+     * 数据是否足够分页.
+     *
+     * @return bool
      */
-    public function hasPages()
+    public function hasPages(): bool
     {
         return !(1 == $this->currentPage && !$this->hasMore);
     }
 
     /**
-     * 创建一组分页链接
+     * 创建一组分页链接.
      *
-     * @param  int $start
-     * @param  int $end
+     * @param int $start
+     * @param int $end
+     *
      * @return array
      */
-    public function getUrlRange($start, $end)
+    public function getUrlRange(int $start, int $end): array
     {
         $urls = [];
 
@@ -222,12 +333,13 @@ abstract class Paginator implements ArrayAccess, Countable, IteratorAggregate, J
     }
 
     /**
-     * 设置URL锚点
+     * 设置URL锚点.
      *
-     * @param  string|null $fragment
+     * @param string|null $fragment
+     *
      * @return $this
      */
-    public function fragment($fragment)
+    public function fragment(?string $fragment = null)
     {
         $this->options['fragment'] = $fragment;
 
@@ -235,21 +347,15 @@ abstract class Paginator implements ArrayAccess, Countable, IteratorAggregate, J
     }
 
     /**
-     * 添加URL参数
+     * 添加URL参数.
      *
-     * @param  array|string $key
-     * @param  string|null  $value
+     * @param array $append
+     *
      * @return $this
      */
-    public function appends($key, $value = null)
+    public function appends(array $append)
     {
-        if (!is_array($key)) {
-            $queries = [$key => $value];
-        } else {
-            $queries = $key;
-        }
-
-        foreach ($queries as $k => $v) {
+        foreach ($append as $k => $v) {
             if ($k !== $this->options['var_page']) {
                 $this->options['query'][$k] = $v;
             }
@@ -259,17 +365,18 @@ abstract class Paginator implements ArrayAccess, Countable, IteratorAggregate, J
     }
 
     /**
-     * 构造锚点字符串
+     * 构造锚点字符串.
      *
      * @return string
      */
-    protected function buildFragment()
+    protected function buildFragment(): string
     {
         return $this->options['fragment'] ? '#' . $this->options['fragment'] : '';
     }
 
     /**
-     * 渲染分页html
+     * 渲染分页html.
+     *
      * @return mixed
      */
     abstract public function render();
@@ -279,20 +386,40 @@ abstract class Paginator implements ArrayAccess, Countable, IteratorAggregate, J
         return $this->items->all();
     }
 
+    /**
+     * 获取数据集.
+     *
+     * @return Collection|\think\model\Collection
+     */
     public function getCollection()
     {
         return $this->items;
     }
 
-    public function isEmpty()
+    /**
+     * 设置数据集.
+     *
+     * @param Collection $items
+     *
+     * @return $this
+     */
+    public function setCollection(Collection $items)
+    {
+        $this->items = $items;
+
+        return $this;
+    }
+
+    public function isEmpty(): bool
     {
         return $this->items->isEmpty();
     }
 
     /**
-     * 给每个元素执行个回调
+     * 给每个元素执行个回调.
      *
-     * @param  callable $callback
+     * @param callable $callback
+     *
      * @return $this
      */
     public function each(callable $callback)
@@ -311,60 +438,71 @@ abstract class Paginator implements ArrayAccess, Countable, IteratorAggregate, J
     }
 
     /**
-     * Retrieve an external iterator
+     * Retrieve an external iterator.
+     *
      * @return Traversable An instance of an object implementing <b>Iterator</b> or
-     * <b>Traversable</b>
+     *                     <b>Traversable</b>
      */
-    public function getIterator()
+    public function getIterator(): Traversable
     {
         return new ArrayIterator($this->items->all());
     }
 
     /**
-     * Whether a offset exists
+     * Whether a offset exists.
+     *
      * @param mixed $offset
+     *
      * @return bool
      */
-    public function offsetExists($offset)
+    public function offsetExists(mixed $offset): bool
     {
         return $this->items->offsetExists($offset);
     }
 
     /**
-     * Offset to retrieve
+     * Offset to retrieve.
+     *
      * @param mixed $offset
+     *
      * @return mixed
      */
-    public function offsetGet($offset)
+    public function offsetGet(mixed $offset): mixed
     {
         return $this->items->offsetGet($offset);
     }
 
     /**
-     * Offset to set
+     * Offset to set.
+     *
      * @param mixed $offset
      * @param mixed $value
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet(mixed $offset, mixed $value): void
     {
         $this->items->offsetSet($offset, $value);
     }
 
     /**
-     * Offset to unset
+     * Offset to unset.
+     *
      * @param mixed $offset
+     *
      * @return void
-     * @since 5.0.0
+     *
+     * @since  5.0.0
      */
-    public function offsetUnset($offset)
+    public function offsetUnset(mixed $offset): void
     {
         $this->items->offsetUnset($offset);
     }
 
     /**
-     * Count elements of an object
+     * 统计数据集条数.
+     *
+     * @return int
      */
-    public function count()
+    public function count(): int
     {
         return $this->items->count();
     }
@@ -374,11 +512,16 @@ abstract class Paginator implements ArrayAccess, Countable, IteratorAggregate, J
         return (string) $this->render();
     }
 
-    public function toArray()
+    /**
+     * 转换为数组.
+     *
+     * @return array
+     */
+    public function toArray(): array
     {
         try {
             $total = $this->total();
-        } catch (\DomainException $e) {
+        } catch (DomainException $e) {
             $total = null;
         }
 
@@ -388,20 +531,28 @@ abstract class Paginator implements ArrayAccess, Countable, IteratorAggregate, J
             'current_page' => $this->currentPage(),
             'last_page'    => $this->lastPage,
             'data'         => $this->items->toArray(),
+            'has_more'     => $this->hasMore,
         ];
     }
 
     /**
-     * Specify data which should be serialized to JSON
+     * Specify data which should be serialized to JSON.
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): array
     {
         return $this->toArray();
     }
 
     public function __call($name, $arguments)
     {
-        return call_user_func_array([$this->getCollection(), $name], $arguments);
-    }
+        $result = call_user_func_array([$this->items, $name], $arguments);
 
+        if ($result instanceof Collection) {
+            $this->items = $result;
+
+            return $this;
+        }
+
+        return $result;
+    }
 }
