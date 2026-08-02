@@ -1,4 +1,5 @@
 <?php
+
 // +----------------------------------------------------------------------
 // | ThinkPHP [ WE CAN DO IT JUST THINK ]
 // +----------------------------------------------------------------------
@@ -117,23 +118,19 @@ class Pgsql extends PDOConnection
         $type = strtolower($type);
 
         return match (true) {
-            str_starts_with($type, 'set') => 'set',
-            str_starts_with($type, 'enum') => 'enum',
-            str_starts_with($type, 'bigint') => 'bigint',
-            str_contains($type, 'float') ||
-            str_contains($type, 'double') ||
-            str_contains($type, 'real') => 'float',
-            str_contains($type, 'int') ||
-            str_contains($type, 'serial') ||
-            str_contains($type, 'bit') => 'int',
-            str_contains($type, 'bool') => 'bool',
-            str_starts_with($type, 'timestamp') => 'timestamp',
-            str_starts_with($type, 'datetime') => 'datetime',
-            str_starts_with($type, 'date') => 'date',
+            str_starts_with($type, 'set')                                                                => 'set',
+            str_starts_with($type, 'enum')                                                               => 'enum',
+            str_starts_with($type, 'bigint')                                                             => 'bigint',
+            str_contains($type, 'float') || str_contains($type, 'double') || str_contains($type, 'real') => 'float',
+            str_contains($type, 'int')   || str_contains($type, 'serial') || str_contains($type, 'bit')    => 'int',
+            str_contains($type, 'bool')                                                                  => 'bool',
+            str_starts_with($type, 'timestamp')                                                          => 'timestamp',
+            str_starts_with($type, 'datetime')                                                           => 'datetime',
+            str_starts_with($type, 'date')                                                               => 'date',
             // 映射到字符串备注（高精度数值支持）
             // numeric => string
             // decimal => string
-            default => 'string',
+            default                                                                                      => 'string',
         };
     }
 

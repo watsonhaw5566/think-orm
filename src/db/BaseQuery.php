@@ -9,7 +9,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare (strict_types = 1);
+declare (strict_types=1);
 
 namespace think\db;
 
@@ -21,6 +21,9 @@ use think\db\exception\DbException as Exception;
 use think\db\exception\ModelNotFoundException;
 use think\helper\Str;
 use think\Paginator;
+use DateInterval;
+use DateTime;
+use DateTimeInterface;
 
 /**
  * 数据查询基础类.
@@ -279,6 +282,7 @@ abstract class BaseQuery
             } else {
                 $id = null;
             }
+
             return $id;
         }
 
@@ -306,10 +310,11 @@ abstract class BaseQuery
     public function getTable(bool $alias = false)
     {
         if (isset($this->options['table'])) {
-            $table =  $this->options['table'];
+            $table = $this->options['table'];
             if ($alias && is_string($table) && !empty($this->options['alias'][$table])) {
                 return $this->options['alias'][$table];
             }
+
             return $table;
         }
 
@@ -395,12 +400,14 @@ abstract class BaseQuery
             if (!empty($this->options['json'])) {
                 $this->jsonModelResult($array);
             }
+
             return $this->model->newInstance($array)->getAttr($field);
         }
 
         if (!empty($this->options['json'])) {
             $this->jsonResult($array);
         }
+
         return $array[$field];
     }
 
@@ -429,6 +436,7 @@ abstract class BaseQuery
     public function column(string | array $field, string $key = '', bool $useModelAttr = false): array
     {
         $result = $this->connection->column($this, $field, $key);
+
         return array_map(function ($item) use ($field, $useModelAttr) {
             if (is_array($item)) {
                 if ($this->model && $useModelAttr) {
@@ -436,11 +444,13 @@ abstract class BaseQuery
                     if (!empty($this->options['json'])) {
                         $this->jsonModelResult($item);
                     }
+
                     return $this->model->newInstance($item)->toArray();
                 }
                 if (!empty($this->options['json'])) {
                     $this->jsonResult($item);
                 }
+
                 return $item;
             }
 
@@ -453,11 +463,13 @@ abstract class BaseQuery
                 if (!empty($this->options['json'])) {
                     $this->jsonModelResult($array);
                 }
+
                 return $this->model->newInstance($array)->getAttr($field);
             }
             if (!empty($this->options['json'])) {
                 $this->jsonResult($array);
             }
+
             return $array[$field];
         }, $result);
     }
@@ -703,6 +715,7 @@ abstract class BaseQuery
         }
 
         $this->options['table'] = $table;
+
         return $this;
     }
 
@@ -739,6 +752,7 @@ abstract class BaseQuery
                 }
             }
         }
+
         return $table;
     }
 
@@ -833,9 +847,9 @@ abstract class BaseQuery
         }
 
         $defaultConfig = [
-            'query' => [], //url额外参数
-            'fragment' => '', //url锚点
-            'var_page' => 'page', //分页变量
+            'query'     => [], //url额外参数
+            'fragment'  => '', //url锚点
+            'var_page'  => 'page', //分页变量
             'list_rows' => 15, //每页数量
         ];
 
@@ -894,9 +908,9 @@ abstract class BaseQuery
     public function paginateX(int | array | null $listRows = null, ?string $key = null, ?string $sort = null): Paginator
     {
         $defaultConfig = [
-            'query' => [], //url额外参数
-            'fragment' => '', //url锚点
-            'var_page' => 'page', //分页变量
+            'query'     => [], //url额外参数
+            'fragment'  => '', //url锚点
+            'var_page'  => 'page', //分页变量
             'list_rows' => 15, //每页数量
         ];
 
@@ -1008,7 +1022,7 @@ abstract class BaseQuery
      * 查询缓存 数据为空不缓存.
      *
      * @param mixed         $key    缓存key
-     * @param int|\DateTime $expire 缓存有效期
+     * @param int|DateTime $expire 缓存有效期
      * @param string|array  $tag    缓存标签
      *
      * @return $this
@@ -1019,12 +1033,13 @@ abstract class BaseQuery
             return $this;
         }
 
-        if ($key instanceof \DateTimeInterface  || $key instanceof \DateInterval  || (is_int($key) && is_null($expire))) {
+        if ($key instanceof DateTimeInterface || $key instanceof DateInterval || (is_int($key) && is_null($expire))) {
             $expire = $key;
             $key    = true;
         }
 
         $this->options['cache'] = [$key, $expire, $tag ?: var_export($this->getTable(), true)];
+
         return $this;
     }
 
@@ -1032,7 +1047,7 @@ abstract class BaseQuery
      * 查询缓存 允许缓存空数据.
      *
      * @param mixed         $key    缓存key
-     * @param int|\DateTime $expire 缓存有效期
+     * @param int|DateTime $expire 缓存有效期
      * @param string|array  $tag    缓存标签
      *
      * @return $this
@@ -1040,6 +1055,7 @@ abstract class BaseQuery
     public function cacheAlways($key = true, $expire = null, $tag = null)
     {
         $this->options['cache_always'] = true;
+
         return $this->cache($key, $expire, $tag);
     }
 
@@ -1047,7 +1063,7 @@ abstract class BaseQuery
      * 强制更新缓存
      *
      * @param mixed         $key    缓存key
-     * @param int|\DateTime $expire 缓存有效期
+     * @param int|DateTime $expire 缓存有效期
      * @param string|array  $tag    缓存标签
      *
      * @return $this

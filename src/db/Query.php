@@ -9,7 +9,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare (strict_types = 1);
+declare (strict_types=1);
 
 namespace think\db;
 
@@ -17,6 +17,7 @@ use Closure;
 use PDOStatement;
 use ReflectionFunction;
 use think\db\exception\DbException as Exception;
+use Generator;
 
 /**
  * PDO数据查询类.
@@ -527,6 +528,7 @@ class Query extends BaseQuery
             if (false === $step) {
                 return true;
             }
+
             return $this->inc($field, $step)->update();
         }
 
@@ -555,6 +557,7 @@ class Query extends BaseQuery
             $value = $cache->$type($guid, $step);
             $cache->delete($guid);
             $cache->delete($guid . '_time');
+
             return 0 === $value ? false : $value;
         } else {
             // 更新缓存
@@ -640,7 +643,7 @@ class Query extends BaseQuery
      *
      * @param mixed $data 数据
      *
-     * @return \Generator
+     * @return Generator
      */
     public function cursor($data = null)
     {
@@ -696,6 +699,7 @@ class Query extends BaseQuery
         if (is_array($column)) {
             $times = 1;
             $query = $this->options($options)->page($times, $count);
+            $key   = '';
         } else {
             $query = $this->options($options)->limit($count);
 

@@ -10,6 +10,7 @@ use think\db\ConnectionInterface;
 use think\db\connector\Pgsql;
 use think\facade\Db;
 use think\Model;
+use Exception;
 
 /**
  * @property string $connectName;
@@ -33,7 +34,7 @@ abstract class TestCaseBase extends TestCase
             return static::$connectName;
         }
 
-        throw new \Exception('Undefined property: ' . static::class . '::$' . $name);
+        throw new Exception('Undefined property: ' . static::class . '::$' . $name);
     }
 
     public function setUp(): void
@@ -71,5 +72,10 @@ abstract class TestCaseBase extends TestCase
         } else {
             $query->insertAll($data);
         }
+    }
+
+    protected function proxyAssertMatchesRegularExpression(string $pattern, string $string, string $message = ''): void
+    {
+        $this->assertMatchesRegularExpression($pattern, $string, $message);
     }
 }
