@@ -9,7 +9,6 @@
 * 强大灵活的模型用法
 * 支持预载入关联查询和延迟关联查询
 * 支持多数据库及动态切换
-* 支持`MongoDb`
 * 支持分布式及事务
 * 支持断点重连
 * 支持`JSON`查询
@@ -66,4 +65,4 @@ composer run db-status
 
 ### 环境问题
 
-1. 如果提示 phinx 不存在，尝试手动执行`composer bin phinx install`安装。  
+1. 如果提示 phinx 不存在，尝试手动执行`composer bin phinx install`安装。
