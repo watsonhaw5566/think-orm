@@ -1,14 +1,14 @@
 <?php
 declare(strict_types=1);
 
-namespace tests\orm;
+namespace tests\integration\orm;
 
-use tests\stubs\FieldTypeModel;
-use tests\stubs\TestFieldJsonDTO;
-use tests\stubs\TestFieldPhpDTO;
-use tests\TestCaseBase;
+use tests\integration\IntegrationTestCaseBase;
+use tests\integration\stubs\FieldTypeModel;
+use tests\integration\stubs\TestFieldJsonDTO;
+use tests\integration\stubs\TestFieldPhpDTO;
 
-class ModelFieldTypeBase extends TestCaseBase
+class ModelFieldTypeBase extends IntegrationTestCaseBase
 {
     protected function provideTestData(): array
     {

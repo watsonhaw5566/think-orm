@@ -1,16 +1,16 @@
 <?php
 declare(strict_types=1);
 
-namespace tests\orm;
+namespace tests\integration\orm;
 
-use tests\stubs\ProfileModel;
-use tests\stubs\UserModel;
-use tests\TestCaseBase;
+use tests\integration\IntegrationTestCaseBase;
+use tests\integration\stubs\ProfileModel;
+use tests\integration\stubs\UserModel;
 
 /**
  * 模型一对一关联
  */
-abstract class ModelOneToOneBase extends TestCaseBase
+abstract class ModelOneToOneBase extends IntegrationTestCaseBase
 {
     public static function setUpBeforeClass(): void
     {

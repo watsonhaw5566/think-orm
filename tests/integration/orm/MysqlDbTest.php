@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace tests\orm;
+namespace tests\integration\orm;
 
-class MysqlDbJsonFieldsTest extends DbJsonFieldsBase
+class MysqlDbTest extends DbTestBase
 {
     protected static string $connectName = 'mysql';
 }

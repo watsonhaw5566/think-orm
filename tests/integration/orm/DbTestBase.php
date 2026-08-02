@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace tests\orm;
+namespace tests\integration\orm;
 
-use tests\TestCaseBase;
+use tests\integration\IntegrationTestCaseBase;
 use think\Collection;
 use think\db\exception\DbException;
 use think\db\Raw;
@@ -17,7 +17,7 @@ use function array_values;
 use function tests\array_column_ex;
 use function tests\array_value_sort;
 
-abstract class DbTestBase extends TestCaseBase
+abstract class DbTestBase extends IntegrationTestCaseBase
 {
     protected function provideTestData(): array
     {

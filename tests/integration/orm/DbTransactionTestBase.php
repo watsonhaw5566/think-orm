@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace tests\orm;
+namespace tests\integration\orm;
 
 use Exception;
-use tests\TestCaseBase;
+use tests\integration\IntegrationTestCaseBase;
 use think\db\ConnectionInterface;
 use think\db\connector\Pgsql;
 use think\facade\Db;
@@ -13,7 +13,7 @@ use Throwable;
 use function tests\kill_connection;
 use function tests\query_connection_id;
 
-abstract class DbTransactionTestBase extends TestCaseBase
+abstract class DbTransactionTestBase extends IntegrationTestCaseBase
 {
     protected ConnectionInterface $db;
 

@@ -116,8 +116,8 @@ function pg_install_func(string $name = 'pgsql'): void
     $rawVersion = pg_server_version($name, true);
     $version = pg_server_version($name);
     $file_path = version_compare($version, '12.0', '>=')
-        ? __DIR__ . '/../src/db/connector/pgsql12.sql'
-        : __DIR__ . '/../src/db/connector/pgsql.sql';
+        ? dirname(__DIR__) . '/src/db/connector/pgsql12.sql'
+        : dirname(__DIR__) . '/src/db/connector/pgsql.sql';
 
     echo PHP_EOL, "> Installing PostgreSQL({$rawVersion}) functions from {$file_path}", PHP_EOL;
 

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace tests\stubs;
+namespace tests\integration\stubs;
 
 use think\Model;
 use think\model\relation\HasOne;

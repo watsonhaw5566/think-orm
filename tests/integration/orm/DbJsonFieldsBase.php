@@ -1,10 +1,10 @@
 <?php
 
-namespace tests\orm;
+namespace tests\integration\orm;
 
-use tests\TestCaseBase;
+use tests\integration\IntegrationTestCaseBase;
 
-abstract class DbJsonFieldsBase extends TestCaseBase
+abstract class DbJsonFieldsBase extends IntegrationTestCaseBase
 {
     protected function provideTestData(): array
     {

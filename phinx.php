@@ -2,8 +2,8 @@
 
 return [
     'paths' => [
-        'migrations' => '%%PHINX_CONFIG_DIR%%/tests/db/migrations',
-        'seeds' => '%%PHINX_CONFIG_DIR%%/tests/db/seeds'
+        'migrations' => '%%PHINX_CONFIG_DIR%%/tests/integration/db/migrations',
+        'seeds' => '%%PHINX_CONFIG_DIR%%/tests/integration/db/seeds'
     ],
     'environments' => [
         'default_migration_table' => 'phinxlog',

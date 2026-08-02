@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace tests\orm;
+namespace tests\integration\orm;
 
-class PgsqlDbJsonFieldsTest extends DbJsonFieldsBase
+class PgsqlModelOneToOneTest extends ModelOneToOneBase
 {
     protected static string $connectName = 'pgsql';
 }
