@@ -9,12 +9,13 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare (strict_types = 1);
+declare (strict_types=1);
 
 namespace think\model\concern;
 
 use think\db\BaseQuery as Query;
 use think\Model;
+use Closure;
 
 /**
  * 数据软删除
@@ -144,7 +145,7 @@ trait SoftDelete
         if (is_array($data) && key($data) !== 0) {
             $query->where($data);
             $data = [];
-        } elseif ($data instanceof \Closure) {
+        } elseif ($data instanceof Closure) {
             call_user_func_array($data, [ &$query]);
             $data = [];
         }

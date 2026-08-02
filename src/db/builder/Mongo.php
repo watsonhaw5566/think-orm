@@ -1,4 +1,5 @@
 <?php
+
 // +----------------------------------------------------------------------
 // | ThinkPHP [ WE CAN DO IT JUST THINK ]
 // +----------------------------------------------------------------------
@@ -20,6 +21,8 @@ use MongoDB\Driver\Query as MongoQuery;
 use think\db\connector\Mongo as Connection;
 use think\db\exception\DbException as Exception;
 use think\db\Mongo as Query;
+use Closure;
+use stdClass;
 
 class Mongo
 {
@@ -175,11 +178,11 @@ class Mongo
                         throw new Exception('where express error:'.var_export($value, true));
                     }
                     $field = array_shift($value);
-                } elseif (!($value instanceof \Closure)) {
+                } elseif (!($value instanceof Closure)) {
                     throw new Exception('where express error:'.var_export($value, true));
                 }
 
-                if ($value instanceof \Closure) {
+                if ($value instanceof Closure) {
                     // 使用闭包查询
                     $query = new Query($this->connection);
                     call_user_func_array($value, [&$query]);
@@ -199,7 +202,7 @@ class Mongo
                         }
                     } else {
                         // 对字段使用表达式查询
-                        $field = is_string($field) ? $field : '';
+                        $field            = is_string($field) ? $field : '';
                         $filter[$logic][] = $this->parseWhereItem($query, $field, $value);
                     }
                 }
@@ -210,7 +213,7 @@ class Mongo
         if (!empty($options['soft_delete'])) {
             // 附加软删除条件
             [$field, $condition] = $options['soft_delete'];
-            $filter['$and'][] = $this->parseWhereItem($query, $field, $condition);
+            $filter['$and'][]    = $this->parseWhereItem($query, $field, $condition);
         }
 
         return $filter;
@@ -230,7 +233,7 @@ class Mongo
         if (is_array($exp)) {
             $data = [];
             foreach ($val as $value) {
-                $exp = $value[0];
+                $exp   = $value[0];
                 $value = $value[1];
                 if (!in_array($exp, $this->exp)) {
                     $exp = strtolower($exp);
@@ -238,7 +241,7 @@ class Mongo
                         $exp = $this->exp[$exp];
                     }
                 }
-                $k = '$'.$exp;
+                $k        = '$'.$exp;
                 $data[$k] = $value;
             }
             $result[$key] = $data;
@@ -259,7 +262,7 @@ class Mongo
             $result[$key] = $this->parseValue($query, $value, $key);
         } elseif (in_array($exp, ['neq', 'ne', 'gt', 'egt', 'gte', 'lt', 'lte', 'elt', 'mod'])) {
             // 比较运算
-            $k = '$'.$exp;
+            $k            = '$'.$exp;
             $result[$key] = [$k => $this->parseValue($query, $value, $key)];
         } elseif ('null' == $exp) {
             // NULL 查询
@@ -271,11 +274,11 @@ class Mongo
             $result[$key] = ['$all', $this->parseValue($query, $value, $key)];
         } elseif ('between' == $exp) {
             // 区间查询
-            $value = is_array($value) ? $value : explode(',', $value);
+            $value        = is_array($value) ? $value : explode(',', $value);
             $result[$key] = ['$gte' => $this->parseValue($query, $value[0], $key), '$lte' => $this->parseValue($query, $value[1], $key)];
         } elseif ('not between' == $exp) {
             // 范围查询
-            $value = is_array($value) ? $value : explode(',', $value);
+            $value        = is_array($value) ? $value : explode(',', $value);
             $result[$key] = ['$lt' => $this->parseValue($query, $value[0], $key), '$gt' => $this->parseValue($query, $value[1], $key)];
         } elseif ('exists' == $exp) {
             // 字段是否存在
@@ -304,11 +307,11 @@ class Mongo
             $result[$key] = ['$gt' => $this->parseDateTime($query, $value, $field)];
         } elseif ('between time' == $exp) {
             // 区间查询
-            $value = is_array($value) ? $value : explode(',', $value);
+            $value        = is_array($value) ? $value : explode(',', $value);
             $result[$key] = ['$gte' => $this->parseDateTime($query, $value[0], $field), '$lte' => $this->parseDateTime($query, $value[1], $field)];
         } elseif ('not between time' == $exp) {
             // 范围查询
-            $value = is_array($value) ? $value : explode(',', $value);
+            $value        = is_array($value) ? $value : explode(',', $value);
             $result[$key] = ['$lt' => $this->parseDateTime($query, $value[0], $field), '$gt' => $this->parseDateTime($query, $value[1], $field)];
         } elseif ('near' == $exp) {
             // 经纬度查询
@@ -402,7 +405,7 @@ class Mongo
      */
     public function insertAll(Query $query, array $dataSet): BulkWrite
     {
-        $bulk = new BulkWrite();
+        $bulk    = new BulkWrite();
         $options = $query->getOptions();
 
         $this->insertId = [];
@@ -430,7 +433,7 @@ class Mongo
     {
         $options = $query->getOptions();
 
-        $data = $this->parseSet($query, $options['data']);
+        $data  = $this->parseSet($query, $options['data']);
         $where = $this->parseWhere($query, $options['where']);
 
         if (1 == $options['limit']) {
@@ -458,7 +461,7 @@ class Mongo
     public function delete(Query $query): BulkWrite
     {
         $options = $query->getOptions();
-        $where = $this->parseWhere($query, $options['where']);
+        $where   = $this->parseWhere($query, $options['where']);
 
         $bulk = new BulkWrite();
 
@@ -536,7 +539,7 @@ class Mongo
      */
     public function aggregate(Query $query, array $extra): Command
     {
-        $options = $query->getOptions();
+        $options       = $query->getOptions();
         [$fun, $field] = $extra;
 
         if ('id' == $field && $this->connection->getConfig('pk_convert_id')) {
@@ -554,7 +557,7 @@ class Mongo
             'aggregate'    => $options['table'],
             'allowDiskUse' => true,
             'pipeline'     => $pipeline,
-            'cursor'       => new \stdClass(),
+            'cursor'       => new stdClass(),
         ];
 
         foreach (['explain', 'collation', 'bypassDocumentValidation', 'readConcern'] as $option) {
@@ -603,7 +606,7 @@ class Mongo
             'aggregate'    => $options['table'],
             'allowDiskUse' => true,
             'pipeline'     => $pipeline,
-            'cursor'       => new \stdClass(),
+            'cursor'       => new stdClass(),
         ];
 
         foreach (['explain', 'collation', 'bypassDocumentValidation', 'readConcern'] as $option) {
@@ -657,7 +660,7 @@ class Mongo
      */
     public function listcollections(): Command
     {
-        $cmd = ['listCollections' => 1];
+        $cmd     = ['listCollections' => 1];
         $command = new Command($cmd);
 
         $this->log('cmd', 'listCollections', $cmd);
@@ -676,7 +679,7 @@ class Mongo
     {
         $options = $query->getOptions();
 
-        $cmd = ['collStats' => $options['table']];
+        $cmd     = ['collStats' => $options['table']];
         $command = new Command($cmd);
 
         $this->log('cmd', 'collStats', $cmd);

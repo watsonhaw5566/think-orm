@@ -7,7 +7,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare (strict_types = 1);
+declare (strict_types=1);
 
 namespace think\db\connector;
 
@@ -31,6 +31,7 @@ use think\db\Connection;
 use think\db\exception\DbEventException;
 use think\db\exception\DbException as Exception;
 use think\db\Mongo as Query;
+use Throwable;
 
 /**
  * Mongo数据库驱动.
@@ -199,13 +200,15 @@ class Mongo extends Connection
      *
      * @return string
      */
-    public function db(?string $db = null)
+    public function db(?string $db = null): ?string
     {
         if (is_null($db)) {
             return $this->dbName;
         } else {
             $this->dbName = $db;
         }
+
+        return null;
     }
 
     /**
@@ -416,7 +419,7 @@ class Mongo extends Connection
             $key       = $cacheItem->getKey();
             $tag       = $cacheItem->getTag();
 
-            if (isset($key) && $this->cache->has($key)) {
+            if ($key !== null && $this->cache->has($key)) {
                 $this->cache->delete($key);
             } elseif (!empty($tag) && method_exists($this->cache, 'tag')) {
                 $this->cache->tag($tag)->clear();
@@ -589,13 +592,15 @@ class Mongo extends Connection
     /**
      * 关闭数据库.
      */
-    public function close()
+    public function close(): static
     {
         $this->mongo     = null;
         $this->cursor    = null;
         $this->linkRead  = null;
         $this->linkWrite = null;
         $this->links     = [];
+
+        return $this;
     }
 
     /**
@@ -691,8 +696,7 @@ class Mongo extends Connection
 
         $manager = new Manager($this->buildUrl(), $this->config['params']);
 
-        // 记录数据库连接信息
-        if (!empty($config['trigger_sql'])) {
+        if (!empty($this->config['trigger_sql'])) {
             $this->trigger('CONNECT:ReplicaSet[ UseTime:' . number_format(microtime(true) - $startTime, 6) . 's ] ' . $this->config['dsn']);
         }
 
@@ -1106,7 +1110,7 @@ class Mongo extends Connection
      *
      * @throws PDOException
      * @throws \Exception
-     * @throws \Throwable
+     * @throws Throwable
      *
      * @return mixed
      */
@@ -1122,7 +1126,7 @@ class Mongo extends Connection
             $this->commit();
 
             return $result;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->rollback();
 
             throw $e;

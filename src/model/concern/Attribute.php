@@ -9,7 +9,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare (strict_types = 1);
+declare (strict_types=1);
 
 namespace think\model\concern;
 
@@ -23,6 +23,8 @@ use think\Model;
 use think\model\contract\EnumTransform;
 use think\model\contract\FieldTypeTransform;
 use think\model\Relation;
+use Exception;
+use stdClass;
 
 /**
  * 模型数据处理.
@@ -508,17 +510,17 @@ trait Attribute
         };
 
         return match ($type) {
-            'string' => (string) $value,
-            'integer' => (int) $value,
-            'float' => empty($param) ? (float) $value : (float) number_format($value, (int) $param, '.', ''),
-            'boolean' => (bool) $value,
+            'string'    => (string) $value,
+            'integer'   => (int) $value,
+            'float'     => empty($param) ? (float) $value : (float) number_format($value, (int) $param, '.', ''),
+            'boolean'   => (bool) $value,
             'timestamp' => !is_numeric($value) ? strtotime($value) : $value,
-            'datetime' => $this->formatDateTime('Y-m-d H:i:s.u', $value, true),
-            'object' => is_object($value) ? json_encode($value, JSON_FORCE_OBJECT) : $value,
-            'array' => json_encode((array) $value, !empty($param) ? (int) $param : JSON_UNESCAPED_UNICODE),
-            'json' => json_encode($value, !empty($param) ? (int) $param : JSON_UNESCAPED_UNICODE),
+            'datetime'  => $this->formatDateTime('Y-m-d H:i:s.u', $value, true),
+            'object'    => is_object($value) ? json_encode($value, JSON_FORCE_OBJECT) : $value,
+            'array'     => json_encode((array) $value, !empty($param) ? (int) $param : JSON_UNESCAPED_UNICODE),
+            'json'      => json_encode($value, !empty($param) ? (int) $param : JSON_UNESCAPED_UNICODE),
             'serialize' => serialize($value),
-            default => $typeTransform($type, $value, $this),
+            default     => $typeTransform($type, $value, $this),
         };
     }
 
@@ -538,7 +540,7 @@ trait Attribute
             if ($this->mapping) {
                 $name = array_search($name, $this->mapping) ?: $name;
             }
-            $value    = $this->getData($name);
+            $value = $this->getData($name);
         } catch (InvalidArgumentException $e) {
             $relation = $this->isRelationAttr($name);
             $value    = null;
@@ -577,7 +579,7 @@ trait Attribute
                 $value = $this->getJsonValue($fieldName, $value);
             } else {
                 $closure = $this->withAttr[$fieldName];
-                if ($closure instanceof \Closure) {
+                if ($closure instanceof Closure) {
                     $value = $closure($value, $this->data, $this);
                 }
             }
@@ -665,9 +667,10 @@ trait Attribute
         $call = function ($value) {
             try {
                 $value = unserialize($value);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $value = null;
             }
+
             return $value;
         };
 
@@ -693,17 +696,17 @@ trait Attribute
         };
 
         return match ($type) {
-            'string' => (string) $value,
-            'integer' => (int) $value,
-            'float' => empty($param) ? (float) $value : (float) number_format($value, (int) $param, '.', ''),
-            'boolean' => (bool) $value,
+            'string'    => (string) $value,
+            'integer'   => (int) $value,
+            'float'     => empty($param) ? (float) $value : (float) number_format($value, (int) $param, '.', ''),
+            'boolean'   => (bool) $value,
             'timestamp' => !is_null($value) ? $this->formatDateTime(!empty($param) ? $param : $this->dateFormat, $value, true) : null,
-            'datetime' => !is_null($value) ? $this->formatDateTime(!empty($param) ? $param : $this->dateFormat, $value) : null,
-            'json' => json_decode($value, true),
-            'array' => empty($value) ? [] : json_decode($value, true),
-            'object' => empty($value) ? new \stdClass() : json_decode($value),
+            'datetime'  => !is_null($value) ? $this->formatDateTime(!empty($param) ? $param : $this->dateFormat, $value) : null,
+            'json'      => json_decode($value, true),
+            'array'     => empty($value) ? [] : json_decode($value, true),
+            'object'    => empty($value) ? new stdClass() : json_decode($value),
             'serialize' => $call($value),
-            default => $typeTransform($type, $value, $this),
+            default     => $typeTransform($type, $value, $this),
         };
     }
 
