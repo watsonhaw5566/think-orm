@@ -1,57 +1,34 @@
 <?php
+
 // +----------------------------------------------------------------------
 // | ThinkPHP [ WE CAN DO IT JUST THINK ]
 // +----------------------------------------------------------------------
-// | Copyright (c) 2006~2017 http://thinkphp.cn All rights reserved.
+// | Copyright (c) 2006~2023 http://thinkphp.cn All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
+declare(strict_types=1);
 
 namespace think\db\connector;
 
 use PDO;
-use think\db\Connection;
-use think\db\Query;
+use think\db\PDOConnection;
 
 /**
- * mysql数据库驱动
+ * mysql数据库驱动.
  */
-class Mysql extends Connection
+class Mysql extends PDOConnection
 {
-
-    protected $builder = '\\think\\db\\builder\\Mysql';
-
     /**
-     * 初始化
-     * @access protected
-     * @return void
-     */
-    protected function initialize()
-    {
-        // Point类型支持
-        Query::extend('point', function ($query, $field, $value = null, $fun = 'GeomFromText', $type = 'POINT') {
-            if (!is_null($value)) {
-                $query->data($field, ['point', $value, $fun, $type]);
-            } else {
-                if (is_string($field)) {
-                    $field = explode(',', $field);
-                }
-                $query->setOption('point', $field);
-            }
-
-            return $query;
-        });
-    }
-
-    /**
-     * 解析pdo连接的dsn信息
-     * @access protected
+     * 解析pdo连接的dsn信息.
+     *
      * @param array $config 连接信息
+     *
      * @return string
      */
-    protected function parseDsn($config)
+    protected function parseDsn(array $config): string
     {
         if (!empty($config['socket'])) {
             $dsn = 'mysql:unix_socket=' . $config['socket'];
@@ -70,30 +47,32 @@ class Mysql extends Connection
     }
 
     /**
-     * 取得数据表的字段信息
-     * @access public
+     * 取得数据表的字段信息.
+     *
      * @param string $tableName
+     *
      * @return array
      */
-    public function getFields($tableName)
+    public function getFields(string $tableName): array
     {
-        list($tableName) = explode(' ', $tableName);
+        [$tableName] = explode(' ', $tableName);
 
-        if (false === strpos($tableName, '`')) {
-            if (strpos($tableName, '.')) {
+        if (!str_contains($tableName, '`')) {
+            if (str_contains($tableName, '.')) {
                 $tableName = str_replace('.', '`.`', $tableName);
             }
             $tableName = '`' . $tableName . '`';
         }
 
-        $sql    = 'SHOW COLUMNS FROM ' . $tableName;
-        $pdo    = $this->query($sql, [], false, true);
+        $sql    = 'SHOW FULL COLUMNS FROM ' . $tableName;
+        $pdo    = $this->getPDOStatement($sql);
         $result = $pdo->fetchAll(PDO::FETCH_ASSOC);
         $info   = [];
 
-        if ($result) {
+        if (!empty($result)) {
             foreach ($result as $key => $val) {
-                $val                 = array_change_key_case($val);
+                $val = array_change_key_case($val);
+
                 $info[$val['field']] = [
                     'name'    => $val['field'],
                     'type'    => $val['type'],
@@ -101,6 +80,7 @@ class Mysql extends Connection
                     'default' => $val['default'],
                     'primary' => strtolower($val['key']) == 'pri',
                     'autoinc' => strtolower($val['extra']) == 'auto_increment',
+                    'comment' => $val['comment'],
                 ];
             }
         }
@@ -109,15 +89,16 @@ class Mysql extends Connection
     }
 
     /**
-     * 取得数据库的表信息
-     * @access public
+     * 取得数据库的表信息.
+     *
      * @param string $dbName
+     *
      * @return array
      */
-    public function getTables($dbName = '')
+    public function getTables(string $dbName = ''): array
     {
         $sql    = !empty($dbName) ? 'SHOW TABLES FROM ' . $dbName : 'SHOW TABLES ';
-        $pdo    = $this->query($sql, [], false, true);
+        $pdo    = $this->getPDOStatement($sql);
         $result = $pdo->fetchAll(PDO::FETCH_ASSOC);
         $info   = [];
 
@@ -128,82 +109,61 @@ class Mysql extends Connection
         return $info;
     }
 
-    /**
-     * SQL性能分析
-     * @access protected
-     * @param string $sql
-     * @return array
-     */
-    protected function getExplain($sql)
-    {
-        $pdo    = $this->linkID->query("EXPLAIN " . $sql);
-        $result = $pdo->fetch(PDO::FETCH_ASSOC);
-        $result = array_change_key_case($result);
-
-        if (isset($result['extra'])) {
-            if (strpos($result['extra'], 'filesort') || strpos($result['extra'], 'temporary')) {
-                $this->log('SQL:' . $this->queryStr . '[' . $result['extra'] . ']', 'warn');
-            }
-        }
-
-        return $result;
-    }
-
-    protected function supportSavepoint()
+    protected function supportSavepoint(): bool
     {
         return true;
     }
 
     /**
      * 启动XA事务
-     * @access public
-     * @param  string $xid XA事务id
+     *
+     * @param string $xid XA事务id
+     *
      * @return void
      */
-    public function startTransXa($xid)
+    public function startTransXa(string $xid): void
     {
         $this->initConnect(true);
-        if (!$this->linkID) {
-            return false;
-        }
-
-        $this->execute("XA START '$xid'");
+        $this->linkID->exec("XA START '$xid'");
     }
 
     /**
      * 预编译XA事务
-     * @access public
-     * @param  string $xid XA事务id
+     *
+     * @param string $xid XA事务id
+     *
      * @return void
      */
-    public function prepareXa($xid)
+    public function prepareXa(string $xid): void
     {
         $this->initConnect(true);
-        $this->execute("XA END '$xid'");
-        $this->execute("XA PREPARE '$xid'");
+        $this->linkID->exec("XA END '$xid'");
+        $this->linkID->exec("XA PREPARE '$xid'");
     }
 
     /**
      * 提交XA事务
-     * @access public
-     * @param  string $xid XA事务id
+     *
+     * @param string $xid XA事务id
+     *
      * @return void
      */
-    public function commitXa($xid)
+    public function commitXa(string $xid): void
     {
         $this->initConnect(true);
-        $this->execute("XA COMMIT '$xid'");
+        $this->linkID->exec("XA COMMIT '$xid'");
     }
 
     /**
      * 回滚XA事务
-     * @access public
-     * @param  string $xid XA事务id
+     *
+     * @param string $xid XA事务id
+     *
      * @return void
      */
-    public function rollbackXa($xid)
+    public function rollbackXa(string $xid): void
     {
         $this->initConnect(true);
-        $this->execute("XA ROLLBACK '$xid'");
+        $this->linkID->exec("XA ROLLBACK '$xid'");
     }
 }

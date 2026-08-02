@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         backupGlobals="false"
+         backupStaticAttributes="false"
+         beStrictAboutTestsThatDoNotTestAnything="false"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         convertDeprecationsToExceptions="false"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         failOnWarning="false"
+         processIsolation="false"
+         stopOnError="false"
+         stopOnFailure="false"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.6/phpunit.xsd"
+>
+  <coverage processUncoveredFiles="true">
+    <include>
+      <directory suffix=".php">src</directory>
+    </include>
+  </coverage>
+  <testsuites>
+    <testsuite name="ThinkPHP Test Suite">
+      <directory suffix="Test.php">tests</directory>
+    </testsuite>
+  </testsuites>
+  <php>
+    <env name="TESTS_DB_MYSQL_HOSTNAME" value="127.0.0.1"/>
+    <env name="TESTS_DB_MYSQL_HOSTPORT" value="3306"/>
+    <env name="TESTS_DB_MYSQL_DATABASE" value="testing"/>
+    <env name="TESTS_DB_MYSQL_USERNAME" value="root"/>
+    <env name="TESTS_DB_MYSQL_PASSWORD" value="password"/>
+    <env name="TESTS_DB_PGSQL_HOSTNAME" value="127.0.0.1"/>
+    <env name="TESTS_DB_PGSQL_HOSTPORT" value="5432"/>
+    <env name="TESTS_DB_PGSQL_DATABASE" value="testing"/>
+    <env name="TESTS_DB_PGSQL_USERNAME" value="root"/>
+    <env name="TESTS_DB_PGSQL_PASSWORD" value="password"/>
+  </php>
+</phpunit>

@@ -1,4 +1,5 @@
 <?php
+
 // +----------------------------------------------------------------------
 // | ThinkPHP [ WE CAN DO IT JUST THINK IT ]
 // +----------------------------------------------------------------------
@@ -12,14 +13,18 @@
 namespace think\db\connector;
 
 use PDO;
-use think\db\Connection;
+use think\db\PDOConnection;
 
 /**
- * Sqlsrv数据库驱动
+ * Sqlsrv数据库驱动.
  */
-class Sqlsrv extends Connection
+class Sqlsrv extends PDOConnection
 {
-    // PDO连接参数
+    /**
+     * 默认PDO连接参数.
+     *
+     * @var array
+     */
     protected $params = [
         PDO::ATTR_CASE              => PDO::CASE_NATURAL,
         PDO::ATTR_ERRMODE           => PDO::ERRMODE_EXCEPTION,
@@ -27,15 +32,14 @@ class Sqlsrv extends Connection
         PDO::ATTR_STRINGIFY_FETCHES => false,
     ];
 
-    protected $builder = '\\think\\db\\builder\\Sqlsrv';
-
     /**
-     * 解析pdo连接的dsn信息
-     * @access protected
+     * 解析pdo连接的dsn信息.
+     *
      * @param array $config 连接信息
+     *
      * @return string
      */
-    protected function parseDsn($config)
+    protected function parseDsn(array $config): string
     {
         $dsn = 'sqlsrv:Database=' . $config['database'] . ';Server=' . $config['hostname'];
 
@@ -43,36 +47,40 @@ class Sqlsrv extends Connection
             $dsn .= ',' . $config['hostport'];
         }
 
+        if (!empty($config['trust_server_certificate'])) {
+            $dsn .= ';TrustServerCertificate=' . $config['trust_server_certificate'];
+        }
+
         return $dsn;
     }
 
     /**
-     * 取得数据表的字段信息
-     * @access public
+     * 取得数据表的字段信息.
+     *
      * @param string $tableName
+     *
      * @return array
      */
-    public function getFields($tableName)
+    public function getFields(string $tableName): array
     {
-        list($tableName) = explode(' ', $tableName);
-        $tableNames      = explode('.', $tableName);
-        $tableName       = isset($tableNames[1]) ? $tableNames[1] : $tableNames[0];
+        [$tableName] = explode(' ', $tableName);
+        str_contains($tableName, '.') && $tableName = substr($tableName, strpos($tableName, '.') + 1);
 
-        $sql = "SELECT   column_name,   data_type,   column_default,   is_nullable
-        FROM    information_schema.tables AS t
-        JOIN    information_schema.columns AS c
-        ON  t.table_catalog = c.table_catalog
-        AND t.table_schema  = c.table_schema
-        AND t.table_name    = c.table_name
-        WHERE   t.table_name = '$tableName'";
-
-        $pdo    = $this->query($sql, [], false, true);
+        $sql    = "SELECT   column_name,   data_type,   column_default,   is_nullable
+            FROM    information_schema.tables AS t
+            JOIN    information_schema.columns AS c
+            ON  t.table_catalog = c.table_catalog
+            AND t.table_schema  = c.table_schema
+            AND t.table_name    = c.table_name
+            WHERE   t.table_name = '$tableName'";
+        $pdo    = $this->getPDOStatement($sql);
         $result = $pdo->fetchAll(PDO::FETCH_ASSOC);
         $info   = [];
 
-        if ($result) {
+        if (!empty($result)) {
             foreach ($result as $key => $val) {
-                $val                       = array_change_key_case($val);
+                $val = array_change_key_case($val);
+
                 $info[$val['column_name']] = [
                     'name'    => $val['column_name'],
                     'type'    => $val['data_type'],
@@ -84,16 +92,8 @@ class Sqlsrv extends Connection
             }
         }
 
-        $sql = "SELECT column_name FROM information_schema.key_column_usage WHERE table_name='$tableName'";
-
-        // 调试开始
-        $this->debug(true);
-
-        $pdo = $this->linkID->query($sql);
-
-        // 调试结束
-        $this->debug(false, $sql);
-
+        $sql    = "SELECT column_name FROM information_schema.key_column_usage WHERE table_name='$tableName'";
+        $pdo    = $this->linkID->query($sql);
         $result = $pdo->fetch(PDO::FETCH_ASSOC);
 
         if ($result) {
@@ -104,19 +104,20 @@ class Sqlsrv extends Connection
     }
 
     /**
-     * 取得数据表的字段信息
-     * @access public
+     * 取得数据表的字段信息.
+     *
      * @param string $dbName
+     *
      * @return array
      */
-    public function getTables($dbName = '')
+    public function getTables(string $dbName = ''): array
     {
         $sql = "SELECT TABLE_NAME
             FROM INFORMATION_SCHEMA.TABLES
             WHERE TABLE_TYPE = 'BASE TABLE'
             ";
 
-        $pdo    = $this->query($sql, [], false, true);
+        $pdo    = $this->getPDOStatement($sql);
         $result = $pdo->fetchAll(PDO::FETCH_ASSOC);
         $info   = [];
 
@@ -125,16 +126,5 @@ class Sqlsrv extends Connection
         }
 
         return $info;
-    }
-
-    /**
-     * SQL性能分析
-     * @access protected
-     * @param string $sql
-     * @return array
-     */
-    protected function getExplain($sql)
-    {
-        return [];
     }
 }

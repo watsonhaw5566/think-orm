@@ -1,4 +1,5 @@
 <?php
+
 // +----------------------------------------------------------------------
 // | ThinkPHP [ WE CAN DO IT JUST THINK ]
 // +----------------------------------------------------------------------
@@ -6,189 +7,125 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
+declare(strict_types=1);
 
 namespace think\db;
 
-use Exception;
-use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Cursor;
 use MongoDB\Driver\Exception\AuthenticationException;
-use MongoDB\Driver\Exception\BulkWriteException;
 use MongoDB\Driver\Exception\ConnectionException;
 use MongoDB\Driver\Exception\InvalidArgumentException;
 use MongoDB\Driver\Exception\RuntimeException;
-use MongoDB\Driver\Query as MongoQuery;
 use MongoDB\Driver\ReadPreference;
 use MongoDB\Driver\WriteConcern;
-use think\db\connector\Mongo as MongoConnection;
-use think\db\Query;
+use think\db\exception\DbException as Exception;
+use think\Paginator;
 
-class Mongo extends Query
+class Mongo extends BaseQuery
 {
-
     /**
-     * 架构函数
-     * @access public
+     * 当前数据库连接对象
+     *
+     * @var \think\db\connector\Mongo
      */
-    public function __construct(MongoConnection $connection = null)
-    {
-        if (is_null($connection)) {
-            $this->connection = MongoConnection::instance();
-        } else {
-            $this->connection = $connection;
-        }
-
-        $this->prefix = $this->connection->getConfig('prefix');
-    }
+    protected $connection;
 
     /**
-     * 去除某个查询条件
-     * @access public
-     * @param string $field 查询字段
-     * @param string $logic 查询逻辑 and or xor
-     * @return $this
-     */
-    public function removeWhereField($field, $logic = 'and')
-    {
-        $logic = '$' . strtoupper($logic);
-
-        if (isset($this->options['where'][$logic])) {
-            foreach ($this->options['where'][$logic] as $key => $val) {
-                if (is_array($val) && $val[0] == $field) {
-                    unset($this->options['where'][$logic][$key]);
-                }
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * 执行查询 返回数据集
-     * @access public
-     * @param string $namespace
-     * @param MongoQuery        $query 查询对象
-     * @param ReadPreference    $readPreference readPreference
-     * @param bool|string       $class 指定返回的数据集对象
-     * @param string|array      $typeMap 指定返回的typeMap
+     * 执行指令 返回数据集.
+     *
+     * @param Command        $command        指令
+     * @param string         $dbName
+     * @param ReadPreference $readPreference readPreference
+     * @param string|array   $typeMap        指定返回的typeMap
+     *
+     * @throws AuthenticationException
+     * @throws InvalidArgumentException
+     * @throws ConnectionException
+     * @throws RuntimeException
+     *
      * @return mixed
-     * @throws AuthenticationException
-     * @throws InvalidArgumentException
-     * @throws ConnectionException
-     * @throws RuntimeException
      */
-    public function mongoQuery($namespace, MongoQuery $query, ReadPreference $readPreference = null, $class = false, $typeMap = null)
+    public function command(Command $command, string $dbName = '', ?ReadPreference $readPreference = null, $typeMap = null)
     {
-        return $this->connection->query($namespace, $query, $readPreference, $class, $typeMap);
+        return $this->connection->command($command, $dbName, $readPreference, $typeMap);
     }
 
     /**
-     * 执行指令 返回数据集
-     * @access public
-     * @param Command           $command 指令
-     * @param string            $dbName
-     * @param ReadPreference    $readPreference readPreference
-     * @param bool|string       $class 指定返回的数据集对象
-     * @param string|array      $typeMap 指定返回的typeMap
-     * @return mixed
-     * @throws AuthenticationException
-     * @throws InvalidArgumentException
-     * @throws ConnectionException
-     * @throws RuntimeException
-     */
-    public function command(Command $command, $dbName = '', ReadPreference $readPreference = null, $class = false, $typeMap = null)
-    {
-        return $this->connection->command($command, $dbName, $readPreference, $class, $typeMap);
-    }
-
-    /**
-     * 执行语句
-     * @access public
-     * @param string        $namespace
-     * @param BulkWrite     $bulk
-     * @param WriteConcern  $writeConcern
-     * @return int
-     * @throws AuthenticationException
-     * @throws InvalidArgumentException
-     * @throws ConnectionException
-     * @throws RuntimeException
-     * @throws BulkWriteException
-     */
-    public function mongoExecute($namespace, BulkWrite $bulk, WriteConcern $writeConcern = null)
-    {
-        return $this->connection->execute($namespace, $bulk, $writeConcern);
-    }
-
-    /**
-     * 执行command
-     * @access public
-     * @param string|array|object   $command 指令
-     * @param mixed                 $extra 额外参数
-     * @param string                $db 数据库名
+     * 执行command.
+     *
+     * @param string|array|object $command 指令
+     * @param mixed               $extra   额外参数
+     * @param string              $db      数据库名
+     *
      * @return array
      */
-    public function cmd($command, $extra = null, $db = null)
+    public function cmd($command, $extra = null, string $db = ''): array
     {
+        $this->parseOptions();
+
         return $this->connection->cmd($this, $command, $extra, $db);
     }
 
     /**
-     * 指定distinct查询
-     * @access public
+     * 指定distinct查询.
+     *
      * @param string $field 字段名
+     *
      * @return array
      */
-    public function distinct($field)
+    public function getDistinct(string $field)
     {
         $result = $this->cmd('distinct', $field);
+
         return $result[0]['values'];
     }
 
     /**
-     * 获取数据库的所有collection
-     * @access public
-     * @param string  $db 数据库名称 留空为当前数据库
+     * 获取数据库的所有collection.
+     *
+     * @param string $db 数据库名称 留空为当前数据库
+     *
      * @throws Exception
      */
-    public function listCollections($db = '')
+    public function listCollections(string $db = '')
     {
         $cursor = $this->cmd('listCollections', null, $db);
         $result = [];
         foreach ($cursor as $collection) {
             $result[] = $collection['name'];
         }
+
         return $result;
     }
 
     /**
-     * COUNT查询
-     * @access public
-     * @return integer
+     * COUNT查询.
+     *
+     * @param string $field 字段名
+     *
+     * @return int
      */
-    public function count($field = null)
+    public function count(?string $field = null): int
     {
-        $this->parseOptions();
-
         $result = $this->cmd('count');
 
         return $result[0]['n'];
     }
 
     /**
-     * 聚合查询
-     * @access public
+     * 聚合查询.
+     *
      * @param string $aggregate 聚合指令
      * @param string $field     字段名
      * @param bool   $force     强制转为数字类型
+     *
      * @return mixed
      */
-    public function aggregate($aggregate, $field, $force = false)
+    public function aggregate(string $aggregate, $field, bool $force = false, bool $one = false)
     {
-        $this->parseOptions();
-
         $result = $this->cmd('aggregate', [strtolower($aggregate), $field]);
-        $value  = isset($result[0]['aggregate']) ? $result[0]['aggregate'] : 0;
+        $value = $result[0]['aggregate'] ?? 0;
 
         if ($force) {
             $value += 0;
@@ -198,16 +135,15 @@ class Mongo extends Query
     }
 
     /**
-     * 多聚合操作
+     * 多聚合操作.
      *
      * @param array $aggregate 聚合指令, 可以聚合多个参数, 如 ['sum' => 'field1', 'avg' => 'field2']
-     * @param array $groupBy 类似mysql里面的group字段, 可以传入多个字段, 如 ['field_a', 'field_b', 'field_c']
+     * @param array $groupBy   类似mysql里面的group字段, 可以传入多个字段, 如 ['field_a', 'field_b', 'field_c']
+     *
      * @return array 查询结果
      */
-    public function multiAggregate($aggregate, $groupBy)
+    public function multiAggregate(array $aggregate, array $groupBy): array
     {
-        $this->parseOptions();
-
         $result = $this->cmd('multiAggregate', [$aggregate, $groupBy]);
 
         foreach ($result as &$row) {
@@ -223,226 +159,232 @@ class Mongo extends Query
     }
 
     /**
-     * 字段值(延迟)增长
-     * @access public
-     * @param string    $field 字段名
-     * @param integer   $step 增长值
-     * @return integer|true
-     * @throws Exception
-     */
-    public function setInc($field, $step = 1)
-    {
-        return $this->setField($field, ['$inc', $step]);
-    }
-
-    /**
-     * 字段值（延迟）减少
-     * @access public
-     * @param string    $field 字段名
-     * @param integer   $step 减少值
-     * @return integer|true
-     * @throws Exception
-     */
-    public function setDec($field, $step = 1)
-    {
-        return $this->setField($field, ['$inc', -1 * $step]);
-    }
-
-    /**
      * 字段值增长
-     * @access public
-     * @param string|array $field 字段名
-     * @param integer      $step  增长值
+     *
+     * @param string $field 字段名
+     * @param float  $step  增长值
+     *
      * @return $this
      */
-    public function inc($field, $step = 1, $op = 'inc')
+    public function inc(string $field, float $step = 1)
     {
-        return parent::inc($field, $step, strtolower('$' . $op));
+        $this->options['data'][$field] = ['$inc', $step];
+
+        return $this;
     }
 
     /**
-     * 字段值减少
-     * @access public
-     * @param string|array $field 字段名
-     * @param integer      $step  减少值
+     * 字段值减少.
+     *
+     * @param string $field 字段名
+     * @param float  $step  减少值
+     *
      * @return $this
      */
-    public function dec($field, $step = 1)
+    public function dec(string $field, float $step = 1)
     {
         return $this->inc($field, -1 * $step);
     }
 
     /**
-     * 指定当前操作的collection
-     * @access public
-     * @param string $collection
+     * 指定当前操作的Collection.
+     *
+     * @param string $table 表名
+     *
      * @return $this
      */
-    public function collection($collection)
+    public function table($table)
+    {
+        $this->options['table'] = $table;
+
+        return $this;
+    }
+
+    /**
+     * table方法的别名.
+     *
+     * @param string $collection
+     *
+     * @return $this
+     */
+    public function collection(string $collection)
     {
         return $this->table($collection);
     }
 
     /**
-     * 不主动获取数据集
-     * @access public
-     * @param bool $cursor 是否返回 Cursor 对象
-     * @return $this
-     */
-    public function fetchCursor($cursor = true)
-    {
-        $this->options['fetch_cursor'] = $cursor;
-        return $this;
-    }
-
-    /**
-     * 设置typeMap
-     * @access public
+     * 设置typeMap.
+     *
      * @param string|array $typeMap
+     *
      * @return $this
      */
     public function typeMap($typeMap)
     {
         $this->options['typeMap'] = $typeMap;
+
         return $this;
     }
 
     /**
-     * awaitData
-     * @access public
+     * awaitData.
+     *
      * @param bool $awaitData
+     *
      * @return $this
      */
-    public function awaitData($awaitData)
+    public function awaitData(bool $awaitData)
     {
         $this->options['awaitData'] = $awaitData;
+
         return $this;
     }
 
     /**
-     * batchSize
-     * @access public
-     * @param integer $batchSize
+     * batchSize.
+     *
+     * @param int $batchSize
+     *
      * @return $this
      */
-    public function batchSize($batchSize)
+    public function batchSize(int $batchSize)
     {
         $this->options['batchSize'] = $batchSize;
+
         return $this;
     }
 
     /**
-     * exhaust
-     * @access public
+     * exhaust.
+     *
      * @param bool $exhaust
+     *
      * @return $this
      */
-    public function exhaust($exhaust)
+    public function exhaust(bool $exhaust)
     {
         $this->options['exhaust'] = $exhaust;
+
         return $this;
     }
 
     /**
-     * 设置modifiers
-     * @access public
+     * 设置modifiers.
+     *
      * @param array $modifiers
+     *
      * @return $this
      */
-    public function modifiers($modifiers)
+    public function modifiers(array $modifiers)
     {
         $this->options['modifiers'] = $modifiers;
+
         return $this;
     }
 
     /**
-     * 设置noCursorTimeout
-     * @access public
+     * 设置noCursorTimeout.
+     *
      * @param bool $noCursorTimeout
+     *
      * @return $this
      */
-    public function noCursorTimeout($noCursorTimeout)
+    public function noCursorTimeout(bool $noCursorTimeout)
     {
         $this->options['noCursorTimeout'] = $noCursorTimeout;
+
         return $this;
     }
 
     /**
-     * 设置oplogReplay
-     * @access public
+     * 设置oplogReplay.
+     *
      * @param bool $oplogReplay
+     *
      * @return $this
      */
-    public function oplogReplay($oplogReplay)
+    public function oplogReplay(bool $oplogReplay)
     {
         $this->options['oplogReplay'] = $oplogReplay;
+
         return $this;
     }
 
     /**
-     * 设置partial
-     * @access public
+     * 设置partial.
+     *
      * @param bool $partial
+     *
      * @return $this
      */
-    public function partial($partial)
+    public function partial(bool $partial)
     {
         $this->options['partial'] = $partial;
+
         return $this;
     }
 
     /**
-     * maxTimeMS
-     * @access public
+     * maxTimeMS.
+     *
      * @param string $maxTimeMS
+     *
      * @return $this
      */
-    public function maxTimeMS($maxTimeMS)
+    public function maxTimeMS(string $maxTimeMS)
     {
         $this->options['maxTimeMS'] = $maxTimeMS;
+
         return $this;
     }
 
     /**
-     * collation
-     * @access public
+     * collation.
+     *
      * @param array $collation
+     *
      * @return $this
      */
-    public function collation($collation)
+    public function collation(array $collation)
     {
         $this->options['collation'] = $collation;
+
         return $this;
     }
 
     /**
-     * 设置返回字段
-     * @access public
-     * @param array     $field
-     * @param boolean   $except 是否排除
+     * 设置是否REPLACE.
+     *
+     * @param bool $replace 是否使用REPLACE写入数据
+     *
      * @return $this
      */
-    public function field($field, $except = false, $tableName = '', $prefix = '', $alias = '')
+    public function replace(bool $replace = true)
     {
-        if (empty($field)) {
-            return $this;
-        } elseif ($field instanceof Expression) {
-            $this->options['field'][] = $field;
+        return $this;
+    }
+
+    /**
+     * 设置返回字段.
+     *
+     * @param mixed $field 字段信息
+     *
+     * @return $this
+     */
+    public function field($field)
+    {
+        if (empty($field) || '*' == $field) {
             return $this;
         }
 
         if (is_string($field)) {
-            if (preg_match('/[\<\'\"\(]/', $field)) {
-                return $this->fieldRaw($field);
-            }
-
             $field = array_map('trim', explode(',', $field));
         }
 
         $projection = [];
         foreach ($field as $key => $val) {
             if (is_numeric($key)) {
-                $projection[$val] = $except ? 0 : 1;
+                $projection[$val] = 1;
             } else {
                 $projection[$key] = $val;
             }
@@ -454,142 +396,150 @@ class Mongo extends Query
     }
 
     /**
-     * 设置skip
-     * @access public
-     * @param integer $skip
+     * 指定要排除的查询字段.
+     *
+     * @param array|string $field 要排除的字段
+     *
      * @return $this
      */
-    public function skip($skip)
+    public function withoutField($field)
     {
-        $this->options['skip'] = intval($skip);
-        return $this;
-    }
+        if (empty($field) || '*' == $field) {
+            return $this;
+        }
 
-    /**
-     * 设置slaveOk
-     * @access public
-     * @param bool $slaveOk
-     * @return $this
-     */
-    public function slaveOk($slaveOk)
-    {
-        $this->options['slaveOk'] = $slaveOk;
-        return $this;
-    }
+        if (is_string($field)) {
+            $field = array_map('trim', explode(',', $field));
+        }
 
-    /**
-     * 指定查询数量
-     * @access public
-     * @param mixed $offset 起始位置
-     * @param mixed $length 查询数量
-     * @return $this
-     */
-    public function limit($offset, $length = null)
-    {
-        if (is_null($length)) {
-            if (is_numeric($offset)) {
-                $length = $offset;
-                $offset = 0;
+        $projection = [];
+        foreach ($field as $key => $val) {
+            if (is_numeric($key)) {
+                $projection[$val] = 0;
             } else {
-                list($offset, $length) = explode(',', $offset);
+                $projection[$key] = $val;
             }
         }
-        $this->options['skip']  = intval($offset);
-        $this->options['limit'] = intval($length);
+
+        $this->options['projection'] = $projection;
 
         return $this;
     }
 
     /**
-     * 设置sort
-     * @access public
-     * @param array|string|object   $field
-     * @param string                $order
+     * 设置skip.
+     *
+     * @param int $skip
+     *
      * @return $this
      */
-    public function order($field, $order = '')
+    public function skip(int $skip)
+    {
+        $this->options['skip'] = $skip;
+
+        return $this;
+    }
+
+    /**
+     * 设置slaveOk.
+     *
+     * @param bool $slaveOk
+     *
+     * @return $this
+     */
+    public function slaveOk(bool $slaveOk)
+    {
+        $this->options['slaveOk'] = $slaveOk;
+
+        return $this;
+    }
+
+    /**
+     * 指定查询数量.
+     *
+     * @param int $offset 起始位置
+     * @param int $length 查询数量
+     *
+     * @return $this
+     */
+    public function limit(int $offset, ?int $length = null)
+    {
+        if (is_null($length)) {
+            $length = $offset;
+            $offset = 0;
+        }
+
+        $this->options['skip'] = $offset;
+        $this->options['limit'] = $length;
+
+        return $this;
+    }
+
+    /**
+     * 设置sort.
+     *
+     * @param array|string $field
+     * @param string       $order
+     *
+     * @return $this
+     */
+    public function order($field, string $order = '')
     {
         if (is_array($field)) {
-            $this->options['sort'] = $field;
+            $this->options['sort'] = array_map(function ($val) {
+                return 'asc' == strtolower($val) ? 1 : -1;
+            }, $field);
         } else {
             $this->options['sort'][$field] = 'asc' == strtolower($order) ? 1 : -1;
         }
+
         return $this;
     }
 
     /**
-     * 设置tailable
-     * @access public
+     * 设置tailable.
+     *
      * @param bool $tailable
+     *
      * @return $this
      */
-    public function tailable($tailable)
+    public function tailable(bool $tailable)
     {
         $this->options['tailable'] = $tailable;
+
         return $this;
     }
 
     /**
      * 设置writeConcern对象
-     * @access public
+     *
      * @param WriteConcern $writeConcern
+     *
      * @return $this
      */
-    public function writeConcern($writeConcern)
+    public function writeConcern(WriteConcern $writeConcern)
     {
         $this->options['writeConcern'] = $writeConcern;
+
         return $this;
     }
 
     /**
-     * 把主键值转换为查询条件 支持复合主键
-     * @access public
-     * @param array|string  $data 主键数据
-     * @param mixed         $options 表达式参数
-     * @return void
-     * @throws Exception
-     */
-    public function parsePkWhere($data)
-    {
-        $pk = $this->getPk();
-
-        if (is_string($pk)) {
-            // 根据主键查询
-            if (is_array($data)) {
-                $where[$pk] = isset($data[$pk]) ? [$pk, '=', $data[$pk]] : [$pk, 'in', $data];
-            } else {
-                $where[$pk] = strpos($data, ',') ? [$pk, 'IN', $data] : [$pk, '=', $data];
-            }
-        }
-
-        if (!empty($where)) {
-            if (isset($this->options['where']['$and'])) {
-                $this->options['where']['$and'] = array_merge($this->options['where']['$and'], $where);
-            } else {
-                $this->options['where']['$and'] = $where;
-            }
-        }
-
-        return;
-    }
-
-    /**
-     * 获取当前数据表的主键
-     * @access public
-     * @param string|array $options 数据表名或者查询参数
+     * 获取当前数据表的主键.
+     *
      * @return string|array
      */
-    public function getPk($options = '')
+    public function getPk()
     {
         return $this->pk ?: $this->connection->getConfig('pk');
     }
 
     /**
      * 执行查询但只返回Cursor对象
-     * @access public
+     *
      * @return Cursor
      */
-    public function getCursor()
+    public function getCursor(): Cursor
     {
         $this->parseOptions();
 
@@ -597,21 +547,140 @@ class Mongo extends Query
     }
 
     /**
-     * 获取模型的更新条件
-     * @access protected
-     * @param  array $options 查询参数
+     * 获取当前的查询标识.
+     *
+     * @param mixed $data 要序列化的数据
+     *
+     * @return string
      */
-    protected function getModelUpdateCondition(array $options)
+    public function getQueryGuid($data = null): string
     {
-        return isset($options['where']['$and']) ? $options['where']['$and'] : null;
+        return md5($this->getConfig('database') . serialize(var_export($data ?: $this->options, true)));
     }
 
     /**
-     * 分析表达式（可用于查询或者写入操作）
-     * @access protected
+     * 分页查询.
+     *
+     * @param int|array $listRows 每页数量 数组表示配置参数
+     * @param int|bool  $simple   是否简洁模式或者总记录数
+     *
+     * @throws Exception
+     *
+     * @return Paginator
+     */
+    public function paginate($listRows = null, $simple = false): Paginator
+    {
+        if (is_int($simple)) {
+            $total = $simple;
+            $simple = false;
+        }
+
+        $defaultConfig = [
+            'query'     => [], //url额外参数
+            'fragment'  => '', //url锚点
+            'var_page'  => 'page', //分页变量
+            'list_rows' => 15, //每页数量
+        ];
+
+        if (is_array($listRows)) {
+            $config = array_merge($defaultConfig, $listRows);
+            $listRows = intval($config['list_rows']);
+        } else {
+            $config = $defaultConfig;
+            $listRows = intval($listRows ?: $config['list_rows']);
+        }
+
+        $page = isset($config['page']) ? (int) $config['page'] : Paginator::getCurrentPage($config['var_page']);
+
+        $page = max($page, 1);
+
+        $config['path'] = $config['path'] ?? Paginator::getCurrentPath();
+
+        if (!isset($total) && !$simple) {
+            $options = $this->getOptions();
+
+            unset($this->options['order'], $this->options['limit'], $this->options['page'], $this->options['field']);
+
+            $total = $this->count();
+            $results = $this->options($options)->page($page, $listRows)->select();
+        } elseif ($simple) {
+            $results = $this->limit(($page - 1) * $listRows, $listRows + 1)->select();
+            $total = null;
+        } else {
+            $results = $this->page($page, $listRows)->select();
+        }
+
+        $this->removeOption('limit');
+        $this->removeOption('page');
+
+        return Paginator::make($results, $listRows, $page, $total, $simple, $config);
+    }
+
+    /**
+     * 分批数据返回处理.
+     *
+     * @param int          $count    每次处理的数据数量
+     * @param callable     $callback 处理回调方法
+     * @param string|array $column   分批处理的字段名
+     * @param string       $order    字段排序
+     *
+     * @throws Exception
+     *
+     * @return bool
+     */
+    public function chunk(int $count, callable $callback, $column = null, string $order = 'asc'): bool
+    {
+        $options = $this->getOptions();
+        $column = $column ?: $this->getPk();
+
+        if (isset($options['order'])) {
+            unset($options['order']);
+        }
+
+        if (is_array($column)) {
+            $times = 1;
+            $query = $this->options($options)->page($times, $count);
+        } else {
+            $query = $this->options($options)->limit($count);
+
+            if (str_contains($column, '.')) {
+                [$alias, $key] = explode('.', $column);
+            } else {
+                $key = $column;
+            }
+        }
+
+        $resultSet = $query->order($column, $order)->select();
+
+        while (count($resultSet) > 0) {
+            if (false === call_user_func($callback, $resultSet)) {
+                return false;
+            }
+
+            if (isset($times)) {
+                $times++;
+                $query = $this->options($options)->page($times, $count);
+            } else {
+                $end = $resultSet->pop();
+                $lastId = is_array($end) ? $end[$key] : $end->getData($key);
+
+                $query = $this->options($options)
+                    ->limit($count)
+                    ->where($column, 'asc' == strtolower($order) ? '>' : '<', $lastId);
+            }
+
+            $resultSet = $query->order($column, $order)->select();
+        }
+
+        return true;
+    }
+
+    /**
+     * 分析表达式（可用于查询或者写入操作）.
+     *
      * @return array
      */
-    protected function parseOptions()
+    public function parseOptions(): array
     {
         $options = $this->options;
 
@@ -620,7 +689,7 @@ class Mongo extends Query
             $options['table'] = $this->getTable();
         }
 
-        foreach (['where', 'data'] as $name) {
+        foreach (['where', 'data', 'projection', 'filter', 'json', 'with_attr', 'with_relation_attr'] as $name) {
             if (!isset($options[$name])) {
                 $options[$name] = [];
             }
@@ -639,10 +708,6 @@ class Mongo extends Query
             $options['modifiers'] = $modifiers;
         }
 
-        if (!isset($options['projection']) || '*' == $options['projection']) {
-            $options['projection'] = [];
-        }
-
         if (!isset($options['typeMap'])) {
             $options['typeMap'] = $this->getConfig('type_map');
         }
@@ -651,7 +716,7 @@ class Mongo extends Query
             $options['limit'] = 0;
         }
 
-        foreach (['master', 'fetch_cursor'] as $name) {
+        foreach (['master', 'fetch_sql', 'fetch_cursor'] as $name) {
             if (!isset($options[$name])) {
                 $options[$name] = false;
             }
@@ -659,12 +724,13 @@ class Mongo extends Query
 
         if (isset($options['page'])) {
             // 根据页数计算limit
-            list($page, $listRows) = $options['page'];
-            $page                  = $page > 0 ? $page : 1;
-            $listRows              = $listRows > 0 ? $listRows : (is_numeric($options['limit']) ? $options['limit'] : 20);
-            $offset                = $listRows * ($page - 1);
-            $options['skip']       = intval($offset);
-            $options['limit']      = intval($listRows);
+            [$page, $listRows] = $options['page'];
+
+            $page = $page > 0 ? $page : 1;
+            $listRows = $listRows > 0 ? $listRows : (is_numeric($options['limit']) ? $options['limit'] : 20);
+            $offset = $listRows * ($page - 1);
+            $options['skip'] = intval($offset);
+            $options['limit'] = intval($listRows);
         }
 
         $this->options = $options;
@@ -672,4 +738,31 @@ class Mongo extends Query
         return $options;
     }
 
+    /**
+     * 获取字段类型信息.
+     *
+     * @return array
+     */
+    public function getFieldsType(): array
+    {
+        if (!empty($this->options['field_type'])) {
+            return $this->options['field_type'];
+        }
+
+        return [];
+    }
+
+    /**
+     * 获取字段类型信息.
+     *
+     * @param string $field 字段名
+     *
+     * @return string|null
+     */
+    public function getFieldType(string $field)
+    {
+        $fieldType = $this->getFieldsType();
+
+        return $fieldType[$field] ?? null;
+    }
 }

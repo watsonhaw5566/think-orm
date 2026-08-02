@@ -1,207 +1,69 @@
-# think-orm
+# ThinkORM
 
-基于PHP5.6+ 的ORM实现，主要特性：
+基于PHP8.0+ 和PDO实现的ORM，支持多数据库，3.0版本主要特性包括：
 
-- 基于ThinkPHP5.1的ORM独立封装
-- 支持Mysql、Pgsql、Sqlite、SqlServer、Oracle和Mongodb
-- 支持Db类和查询构造器
-- 支持事务
-- 支持模型和关联
+* 基于PDO和PHP强类型实现
+* 支持原生查询和查询构造器
+* 自动参数绑定和预查询
+* 简洁易用的查询功能
+* 强大灵活的模型用法
+* 支持预载入关联查询和延迟关联查询
+* 支持多数据库及动态切换
+* 支持`MongoDb`
+* 支持分布式及事务
+* 支持断点重连
+* 支持`JSON`查询
+* 支持数据库日志
+* 支持`PSR-16`缓存及`PSR-3`日志规范
 
-适用于不使用ThinkPHP框架的开发者。
 
-安装
+## 安装
 ~~~
 composer require topthink/think-orm
 ~~~
 
-Db类用法：
-~~~php
-use think\Db;
-// 数据库配置信息设置（全局有效）
-Db::setConfig(['数据库配置参数（数组）']);
-// 进行CURD操作
-Db::table('user')
-	->data(['name'=>'thinkphp','email'=>'thinkphp@qq.com'])
-	->insert();	
-Db::table('user')->find();
-Db::table('user')
-	->where('id','>',10)
-	->order('id','desc')
-	->limit(10)
-	->select();
-Db::table('user')
-	->where('id',10)
-	->update(['name'=>'test']);	
-Db::table('user')
-	->where('id',10)
-	->delete();
-~~~
+## 文档
 
-Db类增加的（静态）方法包括：
-- `setConfig` 设置全局配置信息
-- `getConfig` 获取数据库配置信息
-- `setQuery`  设置数据库Query类名称
-- `setCacheHandler` 设置缓存对象Handler（必须支持get、set及rm方法）
-- `getSqlLog` 用于获取当前请求的SQL日志信息（包含连接信息）
+详细参考 [ThinkORM开发指南](https://doc.thinkphp.cn/@think-orm)
 
-其它操作参考TP5.1的完全开发手册[数据库](https://www.kancloud.cn/manual/thinkphp5_1/353998)章节
+## 参与开发
 
-定义模型：
-~~~php
-namespace app\index\model;
-use think\Model;
-class User extends Model
-{
-}
-~~~
+### 单元测试编写
 
-代码调用：
+创建创建一个名为 UserInfo 的迁移文件（以测试单元为单位来创建迁移）  
 
-~~~php
-use app\index\model\User;
+```bash
+./vendor/bin/phinx create UserInfo
+```
 
-$user = User::get(1);
-$user->name = 'thinkphp';
-$user->save();
-~~~
+### 迁移命令
 
-## Db类和模型对比使用
-####   :white_check_mark:   创建Create
-* Db用法
+下面相关命令都是 mysql 与 pgsql 同时执行，如果环境不完整可以通过 phinx 手动执行独立的迁移命令。  
 
-    ```php
-    Db::table('user')
-        ->insert([
-            'name'  => 'thinkphp',
-            'email' => 'thinkphp@qq.com',
-        ]);
-    ```
-* 模型用法
+#### 执行迁移（mysql、pgsql）
 
-    ```php
-   $user        = new User;
-   $user->name  = 'thinkphp';
-   $user->email = 'thinkphp@qq.com';
-   $user->save();
-    ```
-* 或者批量设置
+```bash
+composer run db-migrate
+```
 
-    ```php
-    $user = new User;
-    $user->save([
-        'name'  => 'thinkphp',
-        'email' => 'thinkphp@qq.com',
-    ]);
-    ```
-####  :white_check_mark:  读取Read
-* Db用法
+#### 重建，先回滚在迁移（mysql、pgsql）
 
-    ```php
-    $user = Db::table('user')
-        ->where('id', 1)
-        ->find();
-    //  或者
-    $user = Db::table('user')
-        ->find(1);
-    echo $user['id'];
-    echo $user['name'];
-    ```
-* 模型用法
+```bash
+composer run db-rebuild
+```
 
-    ```php
-    $user = User::get(1);
-    echo $user->id;
-    echo $user->name;
-    ```
-* 模型实现读取多个记录
+#### 回滚迁移（mysql、pgsql）
 
-    ```php
-    // 查询用户数据集
-    $users = User::where('id', '>', 1)
-        ->limit(5)
-        ->select();
-    
-    // 遍历读取用户数据
-    foreach ($users as $user) {
-        echo $user->id;
-        echo $user->name;
-    }
-    ```
-####  :white_check_mark:  更新Update
-* Db用法
+```bash
+composer run db-rollback
+```
 
-    ```php
-    Db::table('user')
-        ->where('id', 1)
-        ->update([
-            'name'  => 'topthink',
-            'email' => 'topthink@qq.com',
-        ]);
-    ```
-* 模型用法
+#### 迁移状态（mysql、pgsql）
 
-    ```php
-    $user        = User::get(1);
-    $user->name  = 'topthink';
-    $user->email = 'topthink@qq.com';
-    $user->save();
-    ```
-* 或者使用
+```bash
+composer run db-status
+```
 
-    ```php
-    $user = User::get(1);
-    $user->save([
-        'name'  => 'topthink',
-        'email' => 'topthink@qq.com',
-    ]);
-    ```
-* 静态调用
+### 环境问题
 
-    ```php
-    User::update([
-        'name'  => 'topthink',
-        'email' => 'topthink@qq.com',
-    ], ['id' => 1]);
-    ```
-####  :white_check_mark:  删除Delete
-* Db用法
-
-    ```php
-    Db::table('user')->delete(1);
-    ```
-* 模型用法
-
-    ```php
-    $user = User::get(1);
-    $user->delete();
-    ```
-* 或者静态实现
-
-    ```php
-   User::destroy(1);
-    ```
-* 静态调用
-
-    ```php
-    User::update([
-        'name'  => 'topthink',
-        'email' => 'topthink@qq.com',
-    ], ['id' => 1]);
-    ```
-* destroy方法支持删除指定主键或者查询条件的数据
-
-    ```php
-    // 根据主键删除多个数据
-    User::destroy([1, 2, 3]);
-    // 指定条件删除数据
-    User::destroy([
-        'status' => 0,
-    ]);
-    // 使用闭包条件
-    User::destroy(function ($query) {
-        $query->where('id', '>', 0)
-            ->where('status', 0);
-    });
-    ```
-更多模型用法可以参考5.1完全开发手册的[模型](https://www.kancloud.cn/manual/thinkphp5_1/354041)章节
+1. 如果提示 phinx 不存在，尝试手动执行`composer bin phinx install`安装。  

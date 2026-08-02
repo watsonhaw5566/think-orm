@@ -1,4 +1,5 @@
 <?php
+
 // +----------------------------------------------------------------------
 // | ThinkPHP [ WE CAN DO IT JUST THINK IT ]
 // +----------------------------------------------------------------------
@@ -12,29 +13,65 @@
 namespace think\db\builder;
 
 use think\db\Builder;
-use think\db\Query;
-use think\Exception;
+use think\db\exception\DbException as Exception;
+use think\db\BaseQuery as Query;
+use think\db\Raw;
 
 /**
- * Sqlsrv数据库驱动
+ * Sqlsrv数据库驱动.
  */
 class Sqlsrv extends Builder
 {
-    protected $selectSql       = 'SELECT T1.* FROM (SELECT thinkphp.*, ROW_NUMBER() OVER (%ORDER%) AS ROW_NUMBER FROM (SELECT %DISTINCT% %FIELD% FROM %TABLE%%JOIN%%WHERE%%GROUP%%HAVING%) AS thinkphp) AS T1 %LIMIT%%COMMENT%';
+    /**
+     * SELECT SQL表达式.
+     *
+     * @var string
+     */
+    protected $selectSql = 'SELECT T1.* FROM (SELECT thinkphp.*, ROW_NUMBER() OVER (%ORDER%) AS ROW_NUMBER FROM (SELECT %DISTINCT% %FIELD% FROM %TABLE%%JOIN%%WHERE%%GROUP%%HAVING%) AS thinkphp) AS T1 %LIMIT%%COMMENT%';
+    /**
+     * SELECT INSERT SQL表达式.
+     *
+     * @var string
+     */
     protected $selectInsertSql = 'SELECT %DISTINCT% %FIELD% FROM %TABLE%%JOIN%%WHERE%%GROUP%%HAVING%';
-    protected $updateSql       = 'UPDATE %TABLE% SET %SET% FROM %TABLE% %JOIN% %WHERE% %LIMIT% %LOCK%%COMMENT%';
-    protected $deleteSql       = 'DELETE FROM %TABLE% %USING% FROM %TABLE% %JOIN% %WHERE% %LIMIT% %LOCK%%COMMENT%';
-    protected $insertSql       = 'INSERT INTO %TABLE% (%FIELD%) VALUES (%DATA%) %COMMENT%';
-    protected $insertAllSql    = 'INSERT INTO %TABLE% (%FIELD%) %DATA% %COMMENT%';
 
     /**
-     * order分析
-     * @access protected
-     * @param Query     $query        查询对象
-     * @param mixed     $order
+     * UPDATE SQL表达式.
+     *
+     * @var string
+     */
+    protected $updateSql = 'UPDATE %TABLE% SET %SET% FROM %TABLE% %JOIN% %WHERE% %LIMIT% %LOCK%%COMMENT%';
+
+    /**
+     * DELETE SQL表达式.
+     *
+     * @var string
+     */
+    protected $deleteSql = 'DELETE FROM %TABLE% %USING% FROM %TABLE% %JOIN% %WHERE% %LIMIT% %LOCK%%COMMENT%';
+
+    /**
+     * INSERT SQL表达式.
+     *
+     * @var string
+     */
+    protected $insertSql = 'INSERT INTO %TABLE% (%FIELD%) VALUES (%DATA%) %COMMENT%';
+
+    /**
+     * INSERT ALL SQL表达式.
+     *
+     * @var string
+     */
+    protected $insertAllSql = 'INSERT INTO %TABLE% (%FIELD%) %DATA% %COMMENT%';
+
+    /**
+     * order分析.
+     *
+     * @param Query $query 查询对象
+     * @param mixed $order
+     *
      * @return string
      */
-    protected function parseOrder(Query $query, $order)
+    protected function parseOrder(Query $query, array $order): string
     {
         if (empty($order)) {
             return ' ORDER BY rand()';
@@ -43,18 +80,18 @@ class Sqlsrv extends Builder
         $array = [];
 
         foreach ($order as $key => $val) {
-            if ($val instanceof Expression) {
-                $array[] = $val->getValue();
+            if ($val instanceof Raw) {
+                $array[] = $this->parseRaw($query, $val);
             } elseif ('[rand]' == $val) {
                 $array[] = $this->parseRand($query);
             } else {
                 if (is_numeric($key)) {
-                    list($key, $sort) = explode(' ', strpos($val, ' ') ? $val : $val . ' ');
+                    [$key, $sort] = explode(' ', str_contains($val, ' ') ? $val : $val . ' ');
                 } else {
                     $sort = $val;
                 }
 
-                $sort    = in_array(strtolower($sort), ['asc', 'desc'], true) ? ' ' . $sort : '';
+                $sort = in_array(strtolower($sort), ['asc', 'desc'], true) ? ' ' . $sort : '';
                 $array[] = $this->parseKey($query, $key, true) . $sort;
             }
         }
@@ -63,36 +100,38 @@ class Sqlsrv extends Builder
     }
 
     /**
-     * 随机排序
-     * @access protected
-     * @param Query     $query        查询对象
+     * 随机排序.
+     *
+     * @param Query $query 查询对象
+     *
      * @return string
      */
-    protected function parseRand(Query $query)
+    protected function parseRand(Query $query): string
     {
         return 'rand()';
     }
 
     /**
-     * 字段和表名处理
-     * @access public
-     * @param  Query     $query     查询对象
-     * @param  mixed     $key       字段名
-     * @param  bool      $strict   严格检测
+     * 字段和表名处理.
+     *
+     * @param Query $query  查询对象
+     * @param string|int|Raw $key    字段名
+     * @param bool  $strict 严格检测
+     *
      * @return string
      */
-    public function parseKey(Query $query, $key, $strict = false)
+    public function parseKey(Query $query, string|int|Raw $key, bool $strict = false): string
     {
-        if (is_numeric($key)) {
-            return $key;
-        } elseif ($key instanceof Expression) {
-            return $key->getValue();
+        if (is_int($key)) {
+            return (string) $key;
+        } elseif ($key instanceof Raw) {
+            return $this->parseRaw($query, $key);
         }
 
         $key = trim($key);
 
-        if (strpos($key, '.') && !preg_match('/[,\'\"\(\)\[\s]/', $key)) {
-            list($table, $key) = explode('.', $key, 2);
+        if (str_contains($key, '.') && !preg_match('/[,\'\"\(\)\[\s]/', $key)) {
+            [$table, $key] = explode('.', $key, 2);
 
             $alias = $query->getOptions('alias');
 
@@ -110,7 +149,7 @@ class Sqlsrv extends Builder
             throw new Exception('not support data:' . $key);
         }
 
-        if ('*' != $key && ($strict || !preg_match('/[,\'\"\*\(\)\[.\s]/', $key))) {
+        if ('*' != $key && !preg_match('/[,\'\"\*\(\)\[.\s]/', $key)) {
             $key = '[' . $key . ']';
         }
 
@@ -122,13 +161,14 @@ class Sqlsrv extends Builder
     }
 
     /**
-     * limit
-     * @access protected
-     * @param Query     $query        查询对象
-     * @param mixed     $limit
+     * limit.
+     *
+     * @param Query $query 查询对象
+     * @param mixed $limit
+     *
      * @return string
      */
-    protected function parseLimit(Query $query, $limit)
+    protected function parseLimit(Query $query, string $limit): string
     {
         if (empty($limit)) {
             return '';
@@ -139,17 +179,16 @@ class Sqlsrv extends Builder
         if (count($limit) > 1) {
             $limitStr = '(T1.ROW_NUMBER BETWEEN ' . $limit[0] . ' + 1 AND ' . $limit[0] . ' + ' . $limit[1] . ')';
         } else {
-            $limitStr = '(T1.ROW_NUMBER BETWEEN 1 AND ' . $limit[0] . ")";
+            $limitStr = '(T1.ROW_NUMBER BETWEEN 1 AND ' . $limit[0] . ')';
         }
 
         return 'WHERE ' . $limitStr;
     }
 
-    public function selectInsert(Query $query, $fields, $table)
+    public function selectInsert(Query $query, array $fields, string $table): string
     {
         $this->selectSql = $this->selectInsertSql;
 
         return parent::selectInsert($query, $fields, $table);
     }
-
 }
