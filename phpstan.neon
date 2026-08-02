@@ -12,4 +12,3 @@ parameters:
         - '#^Call to an undefined method think\\db\\Connection::getBuilderClass\(\)#'
         - '#^Call to an undefined method think\\db\\Fetch::(inc|dec|where)\(\)#'
         - '#^Call to an undefined method \$this\(think\\Model\)::withNoTrashed\(\)#'
-        - '#^Access to undefined constant MongoDB\\Driver\\ReadPreference::RP_PRIMARY\.#'

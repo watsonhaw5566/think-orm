@@ -43,9 +43,6 @@
       "tests\\": "tests"
     }
   },
-  "suggest": {
-    "ext-mongodb": "provide mongodb support"
-  },
   "config": {
     "sort-packages": true,
     "allow-plugins": {
