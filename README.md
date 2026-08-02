@@ -18,7 +18,7 @@
 
 ## 安装
 ~~~
-composer require topthink/think-orm
+composer require watsonhaw/think-orm
 ~~~
 
 ## 文档
