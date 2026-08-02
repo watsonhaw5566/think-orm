@@ -24,6 +24,24 @@ use think\Paginator;
 
 /**
  * 数据查询基础类.
+ *
+ * 动态方法调用说明（通过 __call 魔术方法实现）:
+ * ---------------------------------------------------------------------
+ * 按字段获取单条记录：
+ * @method mixed getBy(mixed ...$args)          getBy<FieldName>(mixed $value)      根据字段值查找单条记录，如 getById(1)、getByName('admin')
+ *
+ * 按字段获取某列值：
+ * @method mixed getFieldBy(mixed ...$args)     getFieldBy<FieldName>(mixed $value, string $field)  根据字段值获取另一列值，如 getFieldByName('admin', 'id')
+ *
+ * 动态WHERE条件（AND）：
+ * @method $this where(mixed ...$args)          where<FieldName>(mixed $op, mixed $condition = null)   动态字段条件，如 whereStatus(1)、whereId('>', 10)
+ *
+ * 动态WHERE条件（OR）：
+ * @method $this whereOr(mixed ...$args)        whereOr<FieldName>(mixed $op, mixed $condition = null) 动态OR字段条件，如 whereOrStatus(1)
+ *
+ * 模型命名范围（需在模型定义 scope<MethodName> 方法）：
+ * @method $this scope(mixed ...$args)          <scopeName>(mixed ...$args)   调用模型定义的命名范围，如 hot()、recent()
+ * ---------------------------------------------------------------------
  */
 abstract class BaseQuery
 {
