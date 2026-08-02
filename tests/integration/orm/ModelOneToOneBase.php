@@ -1,16 +1,17 @@
 <?php
+
 declare(strict_types=1);
 
-namespace tests\orm;
+namespace tests\integration\orm;
 
-use tests\stubs\ProfileModel;
-use tests\stubs\UserModel;
-use tests\TestCaseBase;
+use tests\integration\IntegrationTestCaseBase;
+use tests\integration\stubs\ProfileModel;
+use tests\integration\stubs\UserModel;
 
 /**
  * 模型一对一关联
  */
-abstract class ModelOneToOneBase extends TestCaseBase
+abstract class ModelOneToOneBase extends IntegrationTestCaseBase
 {
     public static function setUpBeforeClass(): void
     {
@@ -33,12 +34,12 @@ abstract class ModelOneToOneBase extends TestCaseBase
      */
     public function testBindAttr()
     {
-        $email = mt_rand(10000, 99999) . '@thinkphp.cn';
+        $email    = mt_rand(10000, 99999) . '@thinkphp.cn';
         $nickname = 'u' . mt_rand(10000, 99999);
 
-        $user = new UserModel();
+        $user          = new UserModel();
         $user->account = 'thinkphp';
-        $profile = new ProfileModel(['email' => $email, 'nickname' => $nickname]);
+        $profile       = new ProfileModel(['email' => $email, 'nickname' => $nickname]);
         $user->profile = $profile;
         $user->together(['profile'])->save();
 
@@ -55,7 +56,7 @@ abstract class ModelOneToOneBase extends TestCaseBase
         $user = UserModel::find($userID)
             ->bindAttr(
                 'profile',
-                ['email', 'nick_name' => 'nickname', 'true_name' => fn ($model) =>$model?->getAttr('nickname')]
+                ['email', 'nick_name' => 'nickname', 'true_name' => fn ($model) => $model?->getAttr('nickname')]
             );
         $this->assertEquals(
             [$userID, $email, $nickname, $nickname],

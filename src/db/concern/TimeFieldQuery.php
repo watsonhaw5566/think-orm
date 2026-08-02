@@ -62,7 +62,7 @@ trait TimeFieldQuery
     {
         if (is_null($range)) {
             $range = $this->timeRule[$op] ?? $op;
-            $op = is_array($range) ? 'between' : '>=';
+            $op    = is_array($range) ? 'between' : '>=';
         }
 
         return $this->parseWhereExp($logic, $field, strtolower($op) . ' time', $range, [], true);
@@ -82,7 +82,7 @@ trait TimeFieldQuery
     public function whereTimeInterval(string $field, string $start, string $interval = 'day', int $step = 1, string $logic = 'AND')
     {
         $startTime = strtotime($start);
-        $endTime = strtotime(($step > 0 ? '+' : '-') . abs($step) . ' ' . $interval . (abs($step) > 1 ? 's' : ''), $startTime);
+        $endTime   = strtotime(($step > 0 ? '+' : '-') . abs($step) . ' ' . $interval . (abs($step) > 1 ? 's' : ''), $startTime);
 
         return $this->whereTime($field, 'between', $step > 0 ? [$startTime, $endTime - 1] : [$endTime, $startTime - 1], $logic);
     }
@@ -100,7 +100,7 @@ trait TimeFieldQuery
     public function whereMonth(string $field, string $month = 'this month', int $step = 1, string $logic = 'AND')
     {
         if (in_array($month, ['this month', 'last month'])) {
-            if($month === 'last month') {
+            if ($month === 'last month') {
                 $month = $this->timeRule['last month'][0];
             }
 

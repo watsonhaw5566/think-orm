@@ -91,7 +91,7 @@ class Sqlsrv extends Builder
                     $sort = $val;
                 }
 
-                $sort = in_array(strtolower($sort), ['asc', 'desc'], true) ? ' ' . $sort : '';
+                $sort    = in_array(strtolower($sort), ['asc', 'desc'], true) ? ' ' . $sort : '';
                 $array[] = $this->parseKey($query, $key, true) . $sort;
             }
         }

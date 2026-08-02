@@ -9,7 +9,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare (strict_types = 1);
+declare (strict_types=1);
 
 namespace think\db;
 
@@ -17,9 +17,90 @@ use Closure;
 use PDOStatement;
 use ReflectionFunction;
 use think\db\exception\DbException as Exception;
+use Generator;
 
 /**
  * PDO数据查询类.
+ *
+ * 常用链式调用速查：
+ * ---------------------------------------------------------------------
+ * 查询构造：
+ * @method $this field(string|array|Raw $field, mixed ...$args)       指定查询字段
+ * @method $this table(mixed $table, mixed ...$args)                  指定数据表（含前缀）
+ * @method $this name(string $name)                                    指定数据表名（不含前缀）
+ * @method $this alias(string|array $alias)                            指定当前数据表别名
+ * @method $this where(mixed $field, mixed $op = null, mixed $condition = null)  指定AND查询条件
+ * @method $this whereOr(mixed $field, mixed $op = null, mixed $condition = null)  指定OR查询条件
+ * @method $this whereNull(string $field, string $logic = 'AND')       查询字段为Null
+ * @method $this whereNotNull(string $field, string $logic = 'AND')    查询字段不为Null
+ * @method $this whereIn(string $field, mixed $condition, string $logic = 'AND')  查询字段在某个范围
+ * @method $this whereNotIn(string $field, mixed $condition, string $logic = 'AND')  查询字段不在某个范围
+ * @method $this whereBetween(string $field, mixed $condition, string $logic = 'AND') 查询字段在区间
+ * @method $this whereNotBetween(string $field, mixed $condition, string $logic = 'AND') 不在区间
+ * @method $this whereLike(string $field, mixed $condition, string $logic = 'AND') 模糊查询
+ * @method $this whereNotLike(string $field, mixed $condition, string $logic = 'AND') 不模糊查询
+ * @method $this whereExists(mixed $condition, string $logic = 'AND')  EXISTS查询
+ * @method $this whereNotExists(mixed $condition, string $logic = 'AND') NOT EXISTS查询
+ * @method $this whereColumn(string $field1, string $op = null, string $field2 = null, string $logic = 'AND') 比较两个字段
+ * @method $this whereFindInSet(string $field, mixed $condition, string $logic = 'AND') FIND_IN_SET查询
+ * @method $this whereTime(string $field, string $op = null, mixed $range = null, string $logic = 'AND')   时间查询
+ * @method $this whereBetweenTime(string $field, mixed $startTime, mixed $endTime, string $logic = 'AND') 时间区间查询
+ *
+ * 连接查询：
+ * @method $this join(mixed $join, mixed $condition = null, string $type = 'INNER', array $bind = []) JOIN查询
+ * @method $this leftJoin(mixed $join, mixed $condition = null, array $bind = [])  LEFT JOIN
+ * @method $this rightJoin(mixed $join, mixed $condition = null, array $bind = []) RIGHT JOIN
+ * @method $this fullJoin(mixed $join, mixed $condition = null, array $bind = [])  FULL JOIN
+ * @method $this view(mixed $join, mixed $field = null, mixed $on = null, string $type = 'INNER') 视图查询
+ *
+ * 排序/分组/分页/限制：
+ * @method $this order(mixed $field, string $order = '')               结果排序
+ * @method $this limit(int $offset, int $length = null)                查询限制
+ * @method $this page(int $page, int $listRows = null)                 指定分页
+ *
+ * 结果获取：
+ * @method array|Model|null find(mixed $data = null, ?Closure $closure = null)       查询单条记录
+ * @method Collection select(array $data = [])                         查询数据集
+ * @method mixed value(string $field, mixed $default = null, bool $useModelAttr = false) 获取某个字段值
+ * @method array column(string|array $field, string $key = '', bool $useModelAttr = false) 获取某一列值
+ * @method Paginator paginate(int|array|null $listRows = null, int|bool $simple = false) 分页查询
+ *
+ * 写入操作：
+ * @method int insert(array $data = [], bool $getLastInsID = false, string $sequence = null)  插入单条
+ * @method int insertGetId(array $data = [], string $sequence = null)  插入并返回自增ID
+ * @method int insertAll(array $dataSet = [], int $limit = 0, bool $replace = false)  批量插入
+ * @method int update(array $data = [], bool $force = false)           更新记录
+ * @method int delete(mixed $data = true)                              删除记录
+ * @method bool save(array $data = [])                                 保存当前记录（自动判断insert/update）
+ *
+ * 聚合查询：
+ * @method int count(string $field = '*')                              COUNT查询
+ * @method float sum(string|Raw $field)                                SUM查询
+ * @method mixed min(string|Raw $field, bool $force = true)            MIN查询
+ * @method mixed max(string|Raw $field, bool $force = true)            MAX查询
+ * @method float avg(string|Raw $field)                                AVG查询
+ *
+ * 模型专用：
+ * @method $this with(array|string $relation, ...$args)               关联预载入
+ * @method $this withCount(mixed $relation, ...$args)                  关联统计COUNT
+ * @method $this withSum(mixed $relation, string $field)               关联统计SUM
+ * @method $this withMax(mixed $relation, string $field)               关联统计MAX
+ * @method $this withMin(mixed $relation, string $field)               关联统计MIN
+ * @method $this withAvg(mixed $relation, string $field)               关联统计AVG
+ * @method $this has(string $relation, mixed $operator = '>=', mixed $count = 1, string $logic = 'AND', mixed $callback = null) 关联存在性查询
+ * @method $this hasWhere(string $relation, mixed $where = [], mixed $fields = '*', string $logic = 'AND') 关联条件查询
+ * @method $this withAttr(array $withAttr)                             动态获取器
+ * @method $this hidden(array $hidden, bool $merge = false)            设置隐藏属性
+ * @method $this visible(array $visible, bool $merge = false)          设置输出属性
+ * @method $this append(array $append, bool $merge = false)            附加输出属性
+ *
+ * 缓存/事务：
+ * @method $this cache(mixed $key = true, int|\DateInterval|\DateTimeInterface $expire = null, string|CacheInterface $tag = null) 设置查询缓存
+ * @method $this transaction(Closure $callback)                        执行数据库事务
+ * @method $this startTrans()                                          启动事务
+ * @method void commit()                                               提交事务
+ * @method void rollback()                                             回滚事务
+ * ---------------------------------------------------------------------
  */
 class Query extends BaseQuery
 {
@@ -447,6 +528,7 @@ class Query extends BaseQuery
             if (false === $step) {
                 return true;
             }
+
             return $this->inc($field, $step)->update();
         }
 
@@ -475,6 +557,7 @@ class Query extends BaseQuery
             $value = $cache->$type($guid, $step);
             $cache->delete($guid);
             $cache->delete($guid . '_time');
+
             return 0 === $value ? false : $value;
         } else {
             // 更新缓存
@@ -560,7 +643,7 @@ class Query extends BaseQuery
      *
      * @param mixed $data 数据
      *
-     * @return \Generator
+     * @return Generator
      */
     public function cursor($data = null)
     {
@@ -616,6 +699,7 @@ class Query extends BaseQuery
         if (is_array($column)) {
             $times = 1;
             $query = $this->options($options)->page($times, $count);
+            $key   = '';
         } else {
             $query = $this->options($options)->limit($count);
 

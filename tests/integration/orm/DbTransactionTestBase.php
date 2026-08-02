@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-namespace tests\orm;
+namespace tests\integration\orm;
 
 use Exception;
-use tests\TestCaseBase;
+use tests\integration\IntegrationTestCaseBase;
 use think\db\ConnectionInterface;
 use think\db\connector\Pgsql;
 use think\facade\Db;
 use Throwable;
+
 use function tests\kill_connection;
 use function tests\query_connection_id;
 
-abstract class DbTransactionTestBase extends TestCaseBase
+abstract class DbTransactionTestBase extends IntegrationTestCaseBase
 {
     protected ConnectionInterface $db;
 
@@ -65,7 +66,7 @@ abstract class DbTransactionTestBase extends TestCaseBase
         $this->db->table('test_tran_a')->startTrans();
         self::insertAll($this->db, 'test_tran_a', $this->provideTestData());
         $this->db->table('test_tran_a')->commit();
-        $this->assertEquals($this->provideTestData(),  $this->db->table('test_tran_a')->column('*'));
+        $this->assertEquals($this->provideTestData(), $this->db->table('test_tran_a')->column('*'));
         $this->db->table('test_tran_a')->startTrans();
         $this->db->table('test_tran_a')->where('id', '=', 2)->update([
             'username' => '2-8-b',
@@ -80,8 +81,8 @@ abstract class DbTransactionTestBase extends TestCaseBase
     public function testBreakReconnect()
     {
         // 初始化配置
-        $oldConfig = Db::getConfig();
-        $config = $oldConfig;
+        $oldConfig                                                    = Db::getConfig();
+        $config                                                       = $oldConfig;
         $config['connections'][$this->connectName]['break_reconnect'] = true;
         $config['connections'][$this->connectName]['break_match_str'] = [
             'query execution was interrupted',
@@ -90,6 +91,7 @@ abstract class DbTransactionTestBase extends TestCaseBase
         Db::setConfig($config);
 
         $this->reconnect();
+
         try {
             // 初始化数据
             self::insertAll($this->db, 'test_tran_a', $this->provideTestData());
@@ -204,8 +206,8 @@ abstract class DbTransactionTestBase extends TestCaseBase
     public function testTransactionSavepointBreakReconnect()
     {
         // 初始化配置
-        $oldConfig = Db::getConfig();
-        $config = $oldConfig;
+        $oldConfig                                                    = Db::getConfig();
+        $config                                                       = $oldConfig;
         $config['connections'][$this->connectName]['break_reconnect'] = true;
         $config['connections'][$this->connectName]['break_match_str'] = [
             'query execution was interrupted',

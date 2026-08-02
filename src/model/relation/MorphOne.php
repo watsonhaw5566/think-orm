@@ -62,12 +62,12 @@ class MorphOne extends Relation
      */
     public function __construct(Model $parent, string $model, string $morphKey, string $morphType, string $type)
     {
-        $this->parent       = $parent;
-        $this->model        = $model;
-        $this->type         = $type;
-        $this->morphKey     = $morphKey;
-        $this->morphType    = $morphType;
-        $this->query        = (new $model())->db();
+        $this->parent    = $parent;
+        $this->model     = $model;
+        $this->type      = $type;
+        $this->morphKey  = $morphKey;
+        $this->morphType = $morphType;
+        $this->query     = (new $model())->db();
     }
 
     /**
@@ -96,7 +96,7 @@ class MorphOne extends Relation
 
             $relationModel->setParent(clone $this->parent);
         } else {
-            $default = $this->query->getOptions('default_model');
+            $default       = $this->query->getOptions('default_model');
             $relationModel = $this->getDefaultModel($default);
         }
 
@@ -147,10 +147,10 @@ class MorphOne extends Relation
      */
     public function eagerlyResultSet(array &$resultSet, string $relation, array $subRelation, ?Closure $closure = null, array $cache = []): void
     {
-        $morphType  = $this->morphType;
-        $morphKey   = $this->morphKey;
-        $type       = $this->type;
-        $range      = [];
+        $morphType = $this->morphType;
+        $morphKey  = $this->morphKey;
+        $type      = $this->type;
+        $range     = [];
 
         foreach ($resultSet as $result) {
             $pk = $result->getPk();
@@ -166,7 +166,7 @@ class MorphOne extends Relation
                 [$morphType, '=', $type],
             ], $subRelation, $closure, $cache);
 
-            $default = $this->query->getOptions('default_model');
+            $default      = $this->query->getOptions('default_model');
             $defaultModel = $this->getDefaultModel($default);
 
             // 关联数据封装
@@ -206,7 +206,7 @@ class MorphOne extends Relation
         $pk = $result->getPk();
 
         if (isset($result->$pk)) {
-            $pk = $result->$pk;
+            $pk   = $result->$pk;
             $data = $this->eagerlyMorphToOne([
                 [$this->morphKey, '=', $pk],
                 [$this->morphType, '=', $this->type],
@@ -217,7 +217,7 @@ class MorphOne extends Relation
                 $relationModel->setParent(clone $result);
                 $relationModel->exists(true);
             } else {
-                $default = $this->query->getOptions('default_model');
+                $default       = $this->query->getOptions('default_model');
                 $relationModel = $this->getDefaultModel($default);
             }
 
@@ -358,7 +358,7 @@ class MorphOne extends Relation
     protected function bindAttr(Model $result, ?Model $model = null): void
     {
         foreach ($this->bindAttr as $key => $attr) {
-            $key = is_numeric($key) ? $attr : $key;
+            $key   = is_numeric($key) ? $attr : $key;
             $value = $result->getOrigin($key);
 
             if (!is_null($value)) {

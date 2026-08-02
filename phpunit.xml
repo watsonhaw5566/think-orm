@@ -1,28 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         backupGlobals="false"
-         backupStaticAttributes="false"
-         beStrictAboutTestsThatDoNotTestAnything="false"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.0/phpunit.xsd"
          bootstrap="tests/bootstrap.php"
          colors="true"
-         convertDeprecationsToExceptions="false"
-         convertErrorsToExceptions="true"
-         convertNoticesToExceptions="true"
-         convertWarningsToExceptions="true"
-         failOnWarning="false"
-         processIsolation="false"
-         stopOnError="false"
-         stopOnFailure="false"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.6/phpunit.xsd"
+         displayDetailsOnTestsThatTriggerDeprecations="true"
 >
-  <coverage processUncoveredFiles="true">
+  <source>
     <include>
       <directory suffix=".php">src</directory>
     </include>
-  </coverage>
+  </source>
   <testsuites>
-    <testsuite name="ThinkPHP Test Suite">
-      <directory suffix="Test.php">tests</directory>
+    <testsuite name="Unit">
+      <directory suffix="Test.php">tests/unit</directory>
+    </testsuite>
+    <testsuite name="Integration">
+      <directory suffix="Test.php">tests/integration</directory>
     </testsuite>
   </testsuites>
   <php>

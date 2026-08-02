@@ -91,9 +91,9 @@ abstract class OneToOne extends Relation
         }
 
         // 预载入封装
-        $joinTable  = $this->query->getTable();
-        $joinAlias  = Str::snake($relation);
-        $joinType   = $joinType ?: $this->joinType;
+        $joinTable = $this->query->getTable();
+        $joinAlias = Str::snake($relation);
+        $joinType  = $joinType ?: $this->joinType;
 
         $query->via($joinAlias);
 
@@ -140,7 +140,7 @@ abstract class OneToOne extends Relation
      *
      * @return mixed
      */
-    abstract protected function eagerlySet(array &$resultSet, string $relation, array $subRelation = [], ?Closure $closure = null);
+    abstract protected function eagerlySet(array &$resultSet, string $relation, array $subRelation = [], ?Closure $closure = null, array $cache = []);
 
     /**
      * 预载入关联查询（数据）.
@@ -152,7 +152,7 @@ abstract class OneToOne extends Relation
      *
      * @return mixed
      */
-    abstract protected function eagerlyOne(Model $result, string $relation, array $subRelation = [], ?Closure $closure = null);
+    abstract protected function eagerlyOne(Model $result, string $relation, array $subRelation = [], ?Closure $closure = null, array $cache = []);
 
     /**
      * 预载入关联查询（数据集）.

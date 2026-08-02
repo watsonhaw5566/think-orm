@@ -1,0 +1,15 @@
+parameters:
+    level: 1
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - tests/integration/db/migrations/*
+        - src/db/connector/pgsql*.sql
+    ignoreErrors:
+        - '#^Unsafe usage of new static\(\)\.#'
+        - '#^Call to an undefined method think\\db\\BaseQuery::#'
+        - '#^Call to an undefined method think\\db\\Connection::getBuilderClass\(\)#'
+        - '#^Call to an undefined method think\\db\\Fetch::(inc|dec|where)\(\)#'
+        - '#^Call to an undefined method \$this\(think\\Model\)::withNoTrashed\(\)#'
+        - '#^Access to undefined constant MongoDB\\Driver\\ReadPreference::RP_PRIMARY\.#'

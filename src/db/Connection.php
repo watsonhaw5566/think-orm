@@ -9,7 +9,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare (strict_types = 1);
+declare (strict_types=1);
 
 namespace think\db;
 
@@ -21,10 +21,10 @@ use think\DbManager;
  */
 abstract class Connection implements ConnectionInterface
 {
-    const PARAM_INT   = 1;
-    const PARAM_STR   = 2;
-    const PARAM_BOOL  = 5;
-    const PARAM_FLOAT = 21;
+    public const PARAM_INT   = 1;
+    public const PARAM_STR   = 2;
+    public const PARAM_BOOL  = 5;
+    public const PARAM_FLOAT = 21;
 
     /**
      * 当前SQL指令.
@@ -395,7 +395,8 @@ abstract class Connection implements ConnectionInterface
                 str_replace(
                     [':' . $key . ' ', ':' . $key . ',', ':' . $key . ')'],
                     [$value . ' ', $value . ',', $value . ')'],
-                    $sql);
+                    $sql
+                );
         }
 
         return rtrim($sql);

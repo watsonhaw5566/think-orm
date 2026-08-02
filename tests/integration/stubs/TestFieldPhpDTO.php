@@ -1,7 +1,8 @@
 <?php
+
 declare(strict_types=1);
 
-namespace tests\stubs;
+namespace tests\integration\stubs;
 
 use think\Model;
 use think\model\contract\FieldTypeTransform;
@@ -13,8 +14,7 @@ class TestFieldPhpDTO implements FieldTypeTransform
     public function __construct(
         public int $num1,
         public string $str1
-    )
-    {
+    ) {
     }
 
     public function getId(): ?int
@@ -56,6 +56,7 @@ class TestFieldPhpDTO implements FieldTypeTransform
             return null;
         }
         $d->id = $model->getData('id');
+
         return $d;
     }
 

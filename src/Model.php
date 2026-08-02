@@ -9,7 +9,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare (strict_types = 1);
+declare (strict_types=1);
 
 namespace think;
 
@@ -19,12 +19,14 @@ use JsonSerializable;
 use think\contract\Arrayable;
 use think\contract\Jsonable;
 use think\db\BaseQuery as Query;
+use Exception;
 
 /**
  * Class Model.
  *
  * @mixin \think\db\Query
  *
+ * 模型事件定义（静态方法）：
  * @method static void  onAfterRead(Model $model)     after_read事件定义
  * @method static mixed onBeforeInsert(Model $model)  before_insert事件定义
  * @method static void  onAfterInsert(Model $model)   after_insert事件定义
@@ -32,10 +34,62 @@ use think\db\BaseQuery as Query;
  * @method static void  onAfterUpdate(Model $model)   after_update事件定义
  * @method static mixed onBeforeWrite(Model $model)   before_write事件定义
  * @method static void  onAfterWrite(Model $model)    after_write事件定义
- * @method static mixed onBeforeDelete(Model $model)  before_write事件定义
+ * @method static mixed onBeforeDelete(Model $model)  before_delete事件定义
  * @method static void  onAfterDelete(Model $model)   after_delete事件定义
  * @method static void  onBeforeRestore(Model $model) before_restore事件定义
  * @method static void  onAfterRestore(Model $model)  after_restore事件定义
+ *
+ * 动态方法调用说明（通过 __call / __callStatic 魔术方法转发至 Query）:
+ * ---------------------------------------------------------------------
+ * 按字段获取单条记录：
+ * @method static mixed getBy(mixed ...$args)          getBy<FieldName>(mixed $value)      静态根据字段值查找单条记录，如 UserModel::getById(1)
+ * @method        mixed getBy(mixed ...$args)          getBy<FieldName>(mixed $value)      实例根据字段值查找单条记录
+ *
+ * 按字段获取某列值：
+ * @method static mixed getFieldBy(mixed ...$args)     getFieldBy<FieldName>(mixed $value, string $field)  静态根据字段值获取另一列值
+ * @method        mixed getFieldBy(mixed ...$args)     getFieldBy<FieldName>(mixed $value, string $field)  实例根据字段值获取另一列值
+ *
+ * 动态WHERE条件（AND）：
+ * @method static $this where(mixed ...$args)          where<FieldName>(mixed $op, mixed $condition = null)   静态动态字段条件，如 UserModel::whereStatus(1)
+ * @method        $this where(mixed ...$args)          where<FieldName>(mixed $op, mixed $condition = null)   实例动态字段条件
+ *
+ * 动态WHERE条件（OR）：
+ * @method static $this whereOr(mixed ...$args)        whereOr<FieldName>(mixed $op, mixed $condition = null) 静态OR字段条件
+ * @method        $this whereOr(mixed ...$args)        whereOr<FieldName>(mixed $op, mixed $condition = null) 实例OR字段条件
+ *
+ * 模型命名范围（需在模型定义 scope<MethodName> 方法）：
+ * @method static $this scope(mixed ...$args)          <scopeName>(mixed ...$args)   调用命名范围，如 UserModel::hot()、UserModel::recent()
+ * @method        $this scope(mixed ...$args)          <scopeName>(mixed ...$args)   调用命名范围
+ *
+ * 常用静态查询（转发至 Query）：
+ * @method static Model|null find(mixed $data = null, ?\Closure $closure = null)      静态查找单条记录，如 UserModel::find(1)
+ * @method static \think\model\Collection select(array $data = [])   静态查询数据集，如 UserModel::select([1,2,3])
+ * @method static int count(string $field = '*')                      统计数量
+ * @method static float sum(string|\think\db\Raw $field)              求和
+ * @method static mixed min(string|\think\db\Raw $field, bool $force = true)  最小值
+ * @method static mixed max(string|\think\db\Raw $field, bool $force = true)  最大值
+ * @method static float avg(string|\think\db\Raw $field)              平均值
+ * @method static \think\db\Query with(array|string $relation, ...$args)         静态关联预载入
+ * @method static \think\db\Query order(mixed $field, string $order = '')        静态排序
+ * @method static \think\Paginator paginate(int|array|null $listRows = null, int|bool $simple = false) 静态分页
+ *
+ * 实例常用操作：
+ * @method mixed getKey()                                           获取模型主键值
+ * @method array getData(string $name = null)                       获取模型原始数据
+ * @method array getOrigin(string $name = null)                     获取模型原始数据库数据
+ * @method array getChangedData()                                   获取被修改的字段
+ * @method bool hasChanged(string $field = null)                    检测字段值是否变化
+ * @method $this data(array|object $data, bool $set = false)        设置数据
+ * @method $this allowField(array|bool $field = true)               过滤非数据表字段
+ * @method $this only(array $fields)                                只允许写入指定字段
+ * @method $this readonly(array $fields = [])                       设置只读字段
+ * @method $this isAutoWriteTimestamp(bool $auto)                   是否自动写入时间戳
+ *
+ * 关联查询（动态属性）：
+ * 建议在子类通过 @property-read 声明关联对象，例如：
+ *   @property-read ProfileModel|null $profile  (对应 profile() 定义的 HasOne 关联)
+ *   @property-read \think\model\Collection|PostModel[] $posts  (对应 posts() 定义的 HasMany 关联)
+ * ---------------------------------------------------------------------
  */
 abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonable
 {
@@ -173,6 +227,35 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     protected static $macro = [];
 
     /**
+     * 架构函数.
+     *
+     * @param array|object $data 数据
+     */
+    public function __construct(array | object $data = [])
+    {
+        // 设置数据
+        $this->data($data);
+
+        // 记录原始数据
+        $this->origin = $this->data;
+
+        if (empty($this->name)) {
+            // 当前模型名
+            $name       = str_replace('\\', '/', static::class);
+            $this->name = basename($name);
+        }
+
+        if (!empty(static::$maker)) {
+            foreach (static::$maker as $maker) {
+                call_user_func($maker, $this);
+            }
+        }
+
+        // 执行初始化操作
+        $this->initialize();
+    }
+
+    /**
      * 设置服务注入.
      *
      * @param Closure $maker
@@ -246,35 +329,6 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         }
 
         return call_user_func_array($method, $vars);
-    }
-
-    /**
-     * 架构函数.
-     *
-     * @param array|object $data 数据
-     */
-    public function __construct(array | object $data = [])
-    {
-        // 设置数据
-        $this->data($data);
-
-        // 记录原始数据
-        $this->origin = $this->data;
-
-        if (empty($this->name)) {
-            // 当前模型名
-            $name       = str_replace('\\', '/', static::class);
-            $this->name = basename($name);
-        }
-
-        if (!empty(static::$maker)) {
-            foreach (static::$maker as $maker) {
-                call_user_func($maker, $this);
-            }
-        }
-
-        // 执行初始化操作
-        $this->initialize();
     }
 
     /**
@@ -577,6 +631,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     {
         $this->setAttr($field, ['INC', $step]);
         $this->change[$field] = $this->origin[$field] + $step;
+
         return $this;
     }
 
@@ -592,6 +647,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
     {
         $this->setAttr($field, ['DEC', $step]);
         $this->change[$field] = $this->origin[$field] - $step;
+
         return $this;
     }
 
@@ -869,7 +925,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      * @param iterable $dataSet 数据
      * @param bool     $replace 是否自动识别更新和写入
      *
-     * @throws \Exception
+     * @throws Exception
      *
      * @return Collection
      */
@@ -1016,7 +1072,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         if (is_array($data) && key($data) !== 0) {
             $query->where($data);
             $data = [];
-        } elseif ($data instanceof \Closure) {
+        } elseif ($data instanceof Closure) {
             $data($query);
             $data = [];
         }
@@ -1174,7 +1230,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
         if ($this->exists && strtolower($method) == 'withattr') {
             return call_user_func_array([$this, 'withFieldAttr'], $args);
         }
-        
+
         return call_user_func_array([$this->db(), $method], $args);
     }
 
