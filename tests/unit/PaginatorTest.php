@@ -16,6 +16,8 @@ use tests\TestCaseBase;
 use think\Collection;
 use think\paginator\driver\Bootstrap;
 use think\Paginator;
+use ReflectionClass;
+use Traversable;
 
 #[Group('unit')]
 #[AllowMockObjectsWithoutExpectations]
@@ -24,7 +26,7 @@ class PaginatorTest extends TestCaseBase
     public function setUp(): void
     {
         parent::setUp();
-        $reflection = new \ReflectionClass(Paginator::class);
+        $reflection = new ReflectionClass(Paginator::class);
 
         $currentPageResolver = $reflection->getProperty('currentPageResolver');
         $currentPageResolver->setValue(null, null);
@@ -49,7 +51,7 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function constructNormalMode(): void
     {
-        $items = array_fill(0, 5, 'item');
+        $items     = array_fill(0, 5, 'item');
         $paginator = new Bootstrap($items, 10, 1, 100);
 
         $this->assertSame(1, $paginator->currentPage());
@@ -63,7 +65,7 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function constructSimpleMode(): void
     {
-        $items = array_fill(0, 15, 'item');
+        $items     = array_fill(0, 15, 'item');
         $paginator = new Bootstrap($items, 10, 1, null, true);
 
         $this->assertSame(1, $paginator->currentPage());
@@ -75,7 +77,7 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function constructSimpleModeNoMorePages(): void
     {
-        $items = array_fill(0, 5, 'item');
+        $items     = array_fill(0, 5, 'item');
         $paginator = new Bootstrap($items, 10, 1, null, true);
         $this->assertFalse($this->getHasMore($paginator));
     }
@@ -99,7 +101,7 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function currentPageClampedToLastPage(): void
     {
-        $items = array_fill(0, 5, 'item');
+        $items     = array_fill(0, 5, 'item');
         $paginator = new Bootstrap($items, 10, 50, 100);
         $this->assertSame(10, $paginator->currentPage());
     }
@@ -128,11 +130,11 @@ class PaginatorTest extends TestCaseBase
     public function hasPagesSimpleMode(): void
     {
         $items = array_fill(0, 5, 'item');
-        $p1 = new Bootstrap($items, 10, 1, null, true);
+        $p1    = new Bootstrap($items, 10, 1, null, true);
         $this->assertFalse($p1->hasPages());
 
         $itemsMore = array_fill(0, 15, 'item');
-        $p2 = new Bootstrap($itemsMore, 10, 1, null, true);
+        $p2        = new Bootstrap($itemsMore, 10, 1, null, true);
         $this->assertTrue($p2->hasPages());
     }
 
@@ -140,7 +142,7 @@ class PaginatorTest extends TestCaseBase
     public function getUrlRange(): void
     {
         $paginator = new Bootstrap([1], 10, 1, 100);
-        $urls = $paginator->getUrlRange(1, 3);
+        $urls      = $paginator->getUrlRange(1, 3);
 
         $this->assertCount(3, $urls);
         $this->assertSame('/?page=1', $urls[1]);
@@ -151,9 +153,9 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function urlWithPageNumber(): void
     {
-        $paginator = new Bootstrap([1], 10, 1, 100);
-        $reflection = new \ReflectionClass($paginator);
-        $method = $reflection->getMethod('url');
+        $paginator  = new Bootstrap([1], 10, 1, 100);
+        $reflection = new ReflectionClass($paginator);
+        $method     = $reflection->getMethod('url');
 
         $this->assertSame('/?page=1', $method->invoke($paginator, 1));
         $this->assertSame('/?page=5', $method->invoke($paginator, 5));
@@ -162,9 +164,9 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function urlPageLessThanOrEqualToZeroBecomesOne(): void
     {
-        $paginator = new Bootstrap([1], 10, 1, 100);
-        $reflection = new \ReflectionClass($paginator);
-        $method = $reflection->getMethod('url');
+        $paginator  = new Bootstrap([1], 10, 1, 100);
+        $reflection = new ReflectionClass($paginator);
+        $method     = $reflection->getMethod('url');
 
         $this->assertSame('/?page=1', $method->invoke($paginator, 0));
         $this->assertSame('/?page=1', $method->invoke($paginator, -5));
@@ -173,9 +175,9 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function urlWithCustomPath(): void
     {
-        $paginator = new Bootstrap([1], 10, 1, 100, false, ['path' => '/custom/path/']);
-        $reflection = new \ReflectionClass($paginator);
-        $method = $reflection->getMethod('url');
+        $paginator  = new Bootstrap([1], 10, 1, 100, false, ['path' => '/custom/path/']);
+        $reflection = new ReflectionClass($paginator);
+        $method     = $reflection->getMethod('url');
 
         $this->assertSame('/custom/path?page=1', $method->invoke($paginator, 1));
     }
@@ -183,9 +185,9 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function urlWithPagePlaceholder(): void
     {
-        $paginator = new Bootstrap([1], 10, 1, 100, false, ['path' => '/list/[PAGE]']);
-        $reflection = new \ReflectionClass($paginator);
-        $method = $reflection->getMethod('url');
+        $paginator  = new Bootstrap([1], 10, 1, 100, false, ['path' => '/list/[PAGE]']);
+        $reflection = new ReflectionClass($paginator);
+        $method     = $reflection->getMethod('url');
 
         $this->assertSame('/list/1', $method->invoke($paginator, 1));
         $this->assertSame('/list/5', $method->invoke($paginator, 5));
@@ -198,8 +200,8 @@ class PaginatorTest extends TestCaseBase
             'path'  => '/',
             'query' => ['sort' => 'name', 'order' => 'asc'],
         ]);
-        $reflection = new \ReflectionClass($paginator);
-        $method = $reflection->getMethod('url');
+        $reflection = new ReflectionClass($paginator);
+        $method     = $reflection->getMethod('url');
 
         $result = $method->invoke($paginator, 2);
         $this->assertStringContainsString('sort=name', $result);
@@ -211,11 +213,11 @@ class PaginatorTest extends TestCaseBase
     public function fragment(): void
     {
         $paginator = new Bootstrap([1], 10, 1, 100);
-        $result = $paginator->fragment('section');
+        $result    = $paginator->fragment('section');
         $this->assertSame($paginator, $result);
 
-        $reflection = new \ReflectionClass($paginator);
-        $urlMethod = $reflection->getMethod('url');
+        $reflection = new ReflectionClass($paginator);
+        $urlMethod  = $reflection->getMethod('url');
 
         $this->assertStringContainsString('#section', $urlMethod->invoke($paginator, 1));
     }
@@ -224,11 +226,11 @@ class PaginatorTest extends TestCaseBase
     public function appends(): void
     {
         $paginator = new Bootstrap([1], 10, 1, 100);
-        $result = $paginator->appends(['keyword' => 'test', 'page' => 999]);
+        $result    = $paginator->appends(['keyword' => 'test', 'page' => 999]);
         $this->assertSame($paginator, $result);
 
-        $reflection = new \ReflectionClass($paginator);
-        $urlMethod = $reflection->getMethod('url');
+        $reflection = new ReflectionClass($paginator);
+        $urlMethod  = $reflection->getMethod('url');
 
         $url = $urlMethod->invoke($paginator, 2);
         $this->assertStringContainsString('keyword=test', $url);
@@ -239,7 +241,7 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function items(): void
     {
-        $data = ['a', 'b', 'c'];
+        $data      = ['a', 'b', 'c'];
         $paginator = new Bootstrap($data, 10, 1, 100);
         $this->assertSame($data, $paginator->items());
     }
@@ -247,7 +249,7 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function countItems(): void
     {
-        $data = ['a', 'b', 'c', 'd', 'e'];
+        $data      = ['a', 'b', 'c', 'd', 'e'];
         $paginator = new Bootstrap($data, 10, 1, 100);
         $this->assertSame(5, $paginator->count());
     }
@@ -265,9 +267,9 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function each(): void
     {
-        $data = [1, 2, 3];
+        $data      = [1, 2, 3];
         $paginator = new Bootstrap($data, 10, 1, 10);
-        $sum = 0;
+        $sum       = 0;
 
         $result = $paginator->each(function ($item) use (&$sum) {
             $sum += $item;
@@ -280,9 +282,9 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function eachCanBreakEarly(): void
     {
-        $data = [1, 2, 3, 4, 5];
+        $data      = [1, 2, 3, 4, 5];
         $paginator = new Bootstrap($data, 10, 1, 10);
-        $count = 0;
+        $count     = 0;
 
         $paginator->each(function () use (&$count) {
             $count++;
@@ -297,10 +299,10 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function getIterator(): void
     {
-        $data = [1, 2, 3];
+        $data      = [1, 2, 3];
         $paginator = new Bootstrap($data, 10, 1, 10);
-        $iterator = $paginator->getIterator();
-        $this->assertInstanceOf(\Traversable::class, $iterator);
+        $iterator  = $paginator->getIterator();
+        $this->assertInstanceOf(Traversable::class, $iterator);
 
         $collected = [];
         foreach ($iterator as $item) {
@@ -382,9 +384,9 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function toArrayNormalMode(): void
     {
-        $items = ['x', 'y', 'z'];
+        $items     = ['x', 'y', 'z'];
         $paginator = new Bootstrap($items, 10, 2, 50);
-        $array = $paginator->toArray();
+        $array     = $paginator->toArray();
 
         $this->assertSame(50, $array['total']);
         $this->assertSame(10, $array['per_page']);
@@ -397,9 +399,9 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function toArraySimpleMode(): void
     {
-        $items = ['a', 'b'];
+        $items     = ['a', 'b'];
         $paginator = new Bootstrap($items, 10, 1, null, true);
-        $array = $paginator->toArray();
+        $array     = $paginator->toArray();
 
         $this->assertNull($array['total']);
         $this->assertSame(10, $array['per_page']);
@@ -418,8 +420,8 @@ class PaginatorTest extends TestCaseBase
     public function setAndGetCollection(): void
     {
         $paginator = new Bootstrap(['a'], 10, 1, 10);
-        $newItems = new Collection(['x', 'y', 'z']);
-        $result = $paginator->setCollection($newItems);
+        $newItems  = new Collection(['x', 'y', 'z']);
+        $result    = $paginator->setCollection($newItems);
 
         $this->assertSame($paginator, $result);
         $this->assertSame($newItems, $paginator->getCollection());
@@ -429,9 +431,9 @@ class PaginatorTest extends TestCaseBase
     #[Test]
     public function buildFragment(): void
     {
-        $paginator = new Bootstrap([1], 10, 1, 100);
-        $reflection = new \ReflectionClass($paginator);
-        $method = $reflection->getMethod('buildFragment');
+        $paginator  = new Bootstrap([1], 10, 1, 100);
+        $reflection = new ReflectionClass($paginator);
+        $method     = $reflection->getMethod('buildFragment');
 
         $this->assertSame('', $method->invoke($paginator));
 
@@ -448,17 +450,18 @@ class PaginatorTest extends TestCaseBase
 
     private function getHasMore(Paginator $paginator): bool
     {
-        $reflection = new \ReflectionClass($paginator);
-        $prop = $reflection->getProperty('hasMore');
+        $reflection = new ReflectionClass($paginator);
+        $prop       = $reflection->getProperty('hasMore');
+
         return $prop->getValue($paginator);
     }
 
     #[Test]
     public function toStringCallsRender(): void
     {
-        $items = array_fill(0, 5, 'item');
+        $items     = array_fill(0, 5, 'item');
         $paginator = new Bootstrap($items, 2, 1, 20);
-        $string = (string) $paginator;
+        $string    = (string) $paginator;
         $this->assertStringContainsString('pagination', $string);
         $this->assertStringContainsString('<li>', $string);
     }

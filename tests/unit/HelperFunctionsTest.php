@@ -93,7 +93,7 @@ class HelperFunctionsTest extends TestCaseBase
         $result = array_column_ex($input, [
             'id',
             'full_name' => fn ($row) => $row['first'] . ' ' . $row['last'],
-            'last' => 'family_name',
+            'last'      => 'family_name',
         ]);
 
         $this->assertCount(1, $result);

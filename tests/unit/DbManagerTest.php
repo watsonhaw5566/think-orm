@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace tests\unit;
 
-use Closure;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,6 +12,7 @@ use Psr\SimpleCache\CacheInterface;
 use tests\TestCaseBase;
 use think\db\Raw;
 use think\DbManager;
+use InvalidArgumentException;
 
 #[Group('unit')]
 #[AllowMockObjectsWithoutExpectations]
@@ -133,8 +133,10 @@ class DbManagerTest extends TestCaseBase
     #[Test]
     public function listenAndGetListen(): void
     {
-        $callback1 = function () {};
-        $callback2 = function () {};
+        $callback1 = function () {
+        };
+        $callback2 = function () {
+        };
 
         $this->dbManager->listen($callback1);
         $this->dbManager->listen($callback2);
@@ -179,7 +181,7 @@ class DbManagerTest extends TestCaseBase
     #[Test]
     public function eventAndTrigger(): void
     {
-        $triggered  = false;
+        $triggered     = false;
         $receivedParam = null;
 
         $this->dbManager->event('before_insert', function ($param) use (&$triggered, &$receivedParam) {
@@ -239,7 +241,7 @@ class DbManagerTest extends TestCaseBase
     #[Test]
     public function connectWithUndefinedConfigThrowsException(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $this->dbManager->connect('undefined_connection');
     }
 

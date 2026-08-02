@@ -31,7 +31,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function constructWithWhereArray(): void
     {
-        $where = new Where(['id' => 1, 'name' => 'test']);
+        $where  = new Where(['id' => 1, 'name' => 'test']);
         $parsed = $where->parse();
         $this->assertCount(2, $parsed);
         $this->assertSame(['id', '=', 1], $parsed[0]);
@@ -41,7 +41,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function constructWithEnclose(): void
     {
-        $where = new Where(['id' => 1, 'status' => 2], true);
+        $where  = new Where(['id' => 1, 'status' => 2], true);
         $parsed = $where->parse();
         $this->assertCount(1, $parsed);
         $this->assertIsArray($parsed[0]);
@@ -51,7 +51,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function encloseMethodReturnsSelf(): void
     {
-        $where = new Where();
+        $where  = new Where();
         $result = $where->enclose(true);
         $this->assertSame($where, $result);
     }
@@ -75,7 +75,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function parseWithNullValue(): void
     {
-        $where = new Where(['deleted_at' => null]);
+        $where  = new Where(['deleted_at' => null]);
         $parsed = $where->parse();
         $this->assertSame(['deleted_at', 'NULL', ''], $parsed[0]);
     }
@@ -83,8 +83,8 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function parseWithRawValue(): void
     {
-        $raw = new Raw('status = 1');
-        $where = new Where(['field' => $raw]);
+        $raw    = new Raw('status = 1');
+        $where  = new Where(['field' => $raw]);
         $parsed = $where->parse();
         $this->assertSame(['field', 'exp', $raw], $parsed[0]);
     }
@@ -92,7 +92,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function parseWithArrayOperator(): void
     {
-        $where = new Where(['id' => ['>', 10]]);
+        $where  = new Where(['id' => ['>', 10]]);
         $parsed = $where->parse();
         $this->assertSame(['id', '>', 10], $parsed[0]);
     }
@@ -100,7 +100,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function parseWithInCondition(): void
     {
-        $where = new Where(['id' => ['IN', [1, 2, 3]]]);
+        $where  = new Where(['id' => ['IN', [1, 2, 3]]]);
         $parsed = $where->parse();
         $this->assertSame(['id', 'IN', [1, 2, 3]], $parsed[0]);
     }
@@ -108,7 +108,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function parseWithBetweenCondition(): void
     {
-        $where = new Where(['age' => ['BETWEEN', [18, 60]]]);
+        $where  = new Where(['age' => ['BETWEEN', [18, 60]]]);
         $parsed = $where->parse();
         $this->assertSame(['age', 'BETWEEN', [18, 60]], $parsed[0]);
     }
@@ -116,7 +116,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function parseWithLikeCondition(): void
     {
-        $where = new Where(['name' => ['LIKE', '%test%']]);
+        $where  = new Where(['name' => ['LIKE', '%test%']]);
         $parsed = $where->parse();
         $this->assertSame(['name', 'LIKE', '%test%'], $parsed[0]);
     }
@@ -124,7 +124,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function parseItemNullString(): void
     {
-        $where = new Where(['deleted_at' => ['NULL']]);
+        $where  = new Where(['deleted_at' => ['NULL']]);
         $parsed = $where->parse();
         $this->assertSame(['deleted_at', 'NULL', ''], $parsed[0]);
     }
@@ -132,7 +132,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function parseItemNotNullString(): void
     {
-        $where = new Where(['deleted_at' => ['NOTNULL']]);
+        $where  = new Where(['deleted_at' => ['NOTNULL']]);
         $parsed = $where->parse();
         $this->assertSame(['deleted_at', 'NOTNULL', ''], $parsed[0]);
     }
@@ -140,7 +140,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function parseItemNotNullWithSpaceString(): void
     {
-        $where = new Where(['deleted_at' => ['NOT NULL']]);
+        $where  = new Where(['deleted_at' => ['NOT NULL']]);
         $parsed = $where->parse();
         $this->assertSame(['deleted_at', 'NOT NULL', ''], $parsed[0]);
     }
@@ -148,7 +148,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function parseItemNullEqualOperator(): void
     {
-        $where = new Where(['field' => ['=']]);
+        $where  = new Where(['field' => ['=']]);
         $parsed = $where->parse();
         $this->assertSame(['field', 'NULL', ''], $parsed[0]);
     }
@@ -156,7 +156,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function parseItemNullOperator(): void
     {
-        $where = new Where(['field' => [null]]);
+        $where  = new Where(['field' => [null]]);
         $parsed = $where->parse();
         $this->assertSame(['field', 'NULL', ''], $parsed[0]);
     }
@@ -164,7 +164,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function parseItemNotEqualOperator(): void
     {
-        $where = new Where(['field' => ['<>']]);
+        $where  = new Where(['field' => ['<>']]);
         $parsed = $where->parse();
         $this->assertSame(['field', 'NOTNULL', ''], $parsed[0]);
     }
@@ -172,7 +172,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function parseItemSingleValueAsEqual(): void
     {
-        $where = new Where(['status' => [1]]);
+        $where  = new Where(['status' => [1]]);
         $parsed = $where->parse();
         $this->assertSame(['status', '=', 1], $parsed[0]);
     }
@@ -180,7 +180,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function magicMethodsSetGet(): void
     {
-        $where = new Where();
+        $where     = new Where();
         $where->id = 5;
         $this->assertSame(5, $where->id);
     }
@@ -204,7 +204,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function magicMethodUnset(): void
     {
-        $where = new Where();
+        $where     = new Where();
         $where->id = 1;
         $this->assertTrue(isset($where->id));
         unset($where->id);
@@ -214,7 +214,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function arrayAccessOffsetSet(): void
     {
-        $where = new Where();
+        $where       = new Where();
         $where['id'] = 10;
         $this->assertSame(10, $where['id']);
     }
@@ -231,7 +231,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function arrayAccessOffsetUnset(): void
     {
-        $where = new Where();
+        $where       = new Where();
         $where['id'] = 10;
         $this->assertTrue(isset($where['id']));
         unset($where['id']);
@@ -249,9 +249,9 @@ class WhereTest extends TestCaseBase
     public function parseMultipleConditions(): void
     {
         $where = new Where([
-            'id' => ['>=', 10],
-            'status' => 1,
-            'name' => ['LIKE', '%john%'],
+            'id'         => ['>=', 10],
+            'status'     => 1,
+            'name'       => ['LIKE', '%john%'],
             'deleted_at' => null,
         ]);
         $parsed = $where->parse();
@@ -275,7 +275,7 @@ class WhereTest extends TestCaseBase
     #[Test]
     public function encloseWithEmptyWhere(): void
     {
-        $where = new Where([], true);
+        $where  = new Where([], true);
         $parsed = $where->parse();
         $this->assertSame([[]], $parsed);
     }
@@ -294,7 +294,7 @@ class WhereTest extends TestCaseBase
         ];
 
         foreach ($operators as [$op, $val]) {
-            $where = new Where(['field' => [$op, $val]]);
+            $where  = new Where(['field' => [$op, $val]]);
             $parsed = $where->parse();
             $this->assertSame(['field', $op, $val], $parsed[0]);
         }

@@ -12,6 +12,7 @@ use PHPUnit\Framework\Attributes\Test;
 use tests\TestCaseBase;
 use think\db\CacheItem;
 use think\db\exception\InvalidArgumentException;
+use stdClass;
 
 #[Group('unit')]
 class CacheItemTest extends TestCaseBase
@@ -33,7 +34,7 @@ class CacheItemTest extends TestCaseBase
     #[Test]
     public function setKeyReturnsSelf(): void
     {
-        $item = new CacheItem();
+        $item   = new CacheItem();
         $result = $item->setKey('new_key');
         $this->assertSame($item, $result);
         $this->assertSame('new_key', $item->getKey());
@@ -64,7 +65,7 @@ class CacheItemTest extends TestCaseBase
     #[Test]
     public function setValueAndIsHit(): void
     {
-        $item = new CacheItem('key');
+        $item   = new CacheItem('key');
         $result = $item->set('cached_value');
         $this->assertSame($item, $result);
         $this->assertSame('cached_value', $item->get());
@@ -83,8 +84,8 @@ class CacheItemTest extends TestCaseBase
         $item->set(['a' => 1, 'b' => 2]);
         $this->assertSame(['a' => 1, 'b' => 2], $item->get());
 
-        $item->set(new \stdClass());
-        $this->assertInstanceOf(\stdClass::class, $item->get());
+        $item->set(new stdClass());
+        $this->assertInstanceOf(stdClass::class, $item->get());
 
         $item->set(null);
         $this->assertNull($item->get());
@@ -94,7 +95,7 @@ class CacheItemTest extends TestCaseBase
     #[Test]
     public function tagReturnsSelf(): void
     {
-        $item = new CacheItem('key');
+        $item   = new CacheItem('key');
         $result = $item->tag('my_tag');
         $this->assertSame($item, $result);
         $this->assertSame('my_tag', $item->getTag());
@@ -120,7 +121,7 @@ class CacheItemTest extends TestCaseBase
     #[Test]
     public function expireWithNull(): void
     {
-        $item = new CacheItem('key');
+        $item   = new CacheItem('key');
         $result = $item->expire(null);
         $this->assertSame($item, $result);
         $this->assertNull($item->getExpire());
@@ -141,9 +142,9 @@ class CacheItemTest extends TestCaseBase
     #[Test]
     public function expireWithDateInterval(): void
     {
-        $item = new CacheItem('key');
+        $item     = new CacheItem('key');
         $interval = new DateInterval('PT1H');
-        $result = $item->expire($interval);
+        $result   = $item->expire($interval);
         $this->assertSame($item, $result);
         $expire = $item->getExpire();
         $this->assertNotNull($expire);
@@ -153,7 +154,7 @@ class CacheItemTest extends TestCaseBase
     #[Test]
     public function expireWithDateTimeInterface(): void
     {
-        $item = new CacheItem('key');
+        $item   = new CacheItem('key');
         $future = new DateTime('+1 hour');
         $result = $item->expire($future);
         $this->assertSame($item, $result);
@@ -171,8 +172,8 @@ class CacheItemTest extends TestCaseBase
     #[Test]
     public function expiresAtWithDateTimeInterface(): void
     {
-        $item = new CacheItem('key');
-        $date = new DateTimeImmutable('+2 hours');
+        $item   = new CacheItem('key');
+        $date   = new DateTimeImmutable('+2 hours');
         $result = $item->expiresAt($date);
         $this->assertSame($item, $result);
         $this->assertSame($date, $item->getExpire());
@@ -181,7 +182,7 @@ class CacheItemTest extends TestCaseBase
     #[Test]
     public function expiresAfterWithNumeric(): void
     {
-        $item = new CacheItem('key');
+        $item   = new CacheItem('key');
         $result = $item->expiresAfter(1800);
         $this->assertSame($item, $result);
         $expire = $item->getExpire();
@@ -193,9 +194,9 @@ class CacheItemTest extends TestCaseBase
     #[Test]
     public function expiresAfterWithDateInterval(): void
     {
-        $item = new CacheItem('key');
+        $item     = new CacheItem('key');
         $interval = new DateInterval('PT30M');
-        $result = $item->expiresAfter($interval);
+        $result   = $item->expiresAfter($interval);
         $this->assertSame($item, $result);
         $expire = $item->getExpire();
         $this->assertNotNull($expire);
@@ -213,11 +214,11 @@ class CacheItemTest extends TestCaseBase
     #[Test]
     public function setAndGetComplexValue(): void
     {
-        $item = new CacheItem('complex');
+        $item        = new CacheItem('complex');
         $complexData = [
-            'user' => ['id' => 1, 'name' => 'test'],
-            'roles' => ['admin', 'user'],
-            'settings' => new \stdClass(),
+            'user'     => ['id' => 1, 'name' => 'test'],
+            'roles'    => ['admin', 'user'],
+            'settings' => new stdClass(),
         ];
         $item->set($complexData);
         $this->assertSame($complexData, $item->get());

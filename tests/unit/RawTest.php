@@ -9,6 +9,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Stringable;
 use tests\TestCaseBase;
 use think\db\Raw;
+use ReflectionClass;
 
 #[Group('unit')]
 class RawTest extends TestCaseBase
@@ -33,16 +34,16 @@ class RawTest extends TestCaseBase
     #[Test]
     public function constructWithStringableValue(): void
     {
-        $stringable = new class implements Stringable {
+        $stringable = new class () implements Stringable {
             public function __toString(): string
             {
                 return 'NOW()';
             }
         };
 
-        $raw = new Raw($stringable);
-        $reflection = new \ReflectionClass($raw);
-        $valueProp = $reflection->getProperty('value');
+        $raw         = new Raw($stringable);
+        $reflection  = new ReflectionClass($raw);
+        $valueProp   = $reflection->getProperty('value');
         $storedValue = $valueProp->getValue($raw);
         $this->assertSame('NOW()', (string) $storedValue);
         $this->assertSame([], $raw->getBind());

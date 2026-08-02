@@ -95,7 +95,7 @@ class ExceptionTest extends TestCaseBase
     public function dbExceptionWithEmptyConfigAndSql(): void
     {
         $exception = new DbException('simple error');
-        $data = $exception->getData();
+        $data      = $exception->getData();
         $this->assertSame('', $data['Database Status']['Error SQL']);
         $this->assertSame([], $data['Database Config']);
     }
@@ -135,9 +135,9 @@ class ExceptionTest extends TestCaseBase
     #[Test]
     public function bindParamExceptionStoresBindData(): void
     {
-        $config = ['type' => 'mysql'];
-        $sql    = 'INSERT INTO users VALUES (?, ?, ?)';
-        $bind   = ['id' => 1, 'name' => 'test', 'email' => 'test@example.com'];
+        $config    = ['type' => 'mysql'];
+        $sql       = 'INSERT INTO users VALUES (?, ?, ?)';
+        $bind      = ['id' => 1, 'name' => 'test', 'email' => 'test@example.com'];
         $exception = new BindParamException('bind error', $config, $sql, $bind, 10502);
 
         $this->assertSame(10502, $exception->getCode());
@@ -166,7 +166,7 @@ class ExceptionTest extends TestCaseBase
     #[Test]
     public function pdoExceptionWrapsNativePdoException(): void
     {
-        $nativePdoException = new \PDOException('SQLSTATE[42S02]: Base table or view not found');
+        $nativePdoException            = new \PDOException('SQLSTATE[42S02]: Base table or view not found');
         $nativePdoException->errorInfo = ['42S02', 1146, "Table 'test.nonexistent' doesn't exist"];
 
         $config    = ['type' => 'mysql', 'database' => 'test'];
@@ -187,7 +187,7 @@ class ExceptionTest extends TestCaseBase
     public function pdoExceptionWithEmptyErrorInfo(): void
     {
         $nativePdoException = new \PDOException('simple pdo error');
-        $exception = new PDOException($nativePdoException);
+        $exception          = new PDOException($nativePdoException);
         $this->assertSame('simple pdo error', $exception->getMessage());
         $this->assertNotEmpty($exception->getData());
     }

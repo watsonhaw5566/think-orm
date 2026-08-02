@@ -31,6 +31,7 @@ class ModelCollectionTest extends TestCaseBase
                 if (is_null($name)) {
                     return $fullData;
                 }
+
                 return $fullData[$name] ?? null;
             }
         );
@@ -68,8 +69,8 @@ class ModelCollectionTest extends TestCaseBase
     #[Test]
     public function constructFromArray(): void
     {
-        $model1 = $this->createMockModel(1);
-        $model2 = $this->createMockModel(2);
+        $model1     = $this->createMockModel(1);
+        $model2     = $this->createMockModel(2);
         $collection = new ModelCollection([$model1, $model2]);
 
         $this->assertCount(2, $collection);
@@ -80,7 +81,7 @@ class ModelCollectionTest extends TestCaseBase
     #[Test]
     public function makeStaticMethod(): void
     {
-        $model = $this->createMockModel(1);
+        $model      = $this->createMockModel(1);
         $collection = ModelCollection::make([$model]);
         $this->assertInstanceOf(ModelCollection::class, $collection);
         $this->assertCount(1, $collection);
@@ -100,7 +101,7 @@ class ModelCollectionTest extends TestCaseBase
     public function loadWithEmptyCollectionDoesNothing(): void
     {
         $collection = new ModelCollection([]);
-        $result = $collection->load(['relation1', 'relation2']);
+        $result     = $collection->load(['relation1', 'relation2']);
         $this->assertSame($collection, $result);
     }
 
@@ -114,7 +115,7 @@ class ModelCollectionTest extends TestCaseBase
         $model2->expects($this->once())->method('delete');
 
         $collection = new ModelCollection([$model1, $model2]);
-        $result = $collection->delete();
+        $result     = $collection->delete();
         $this->assertTrue($result);
     }
 
@@ -137,7 +138,7 @@ class ModelCollectionTest extends TestCaseBase
         $model2->expects($this->once())->method('save')->with($data);
 
         $collection = new ModelCollection([$model1, $model2]);
-        $result = $collection->update($data);
+        $result     = $collection->update($data);
         $this->assertTrue($result);
     }
 
@@ -166,7 +167,7 @@ class ModelCollectionTest extends TestCaseBase
         $model2->expects($this->once())->method('hidden')->with($fields, false);
 
         $collection = new ModelCollection([$model1, $model2]);
-        $result = $collection->hidden($fields);
+        $result     = $collection->hidden($fields);
         $this->assertSame($collection, $result);
     }
 
@@ -174,7 +175,7 @@ class ModelCollectionTest extends TestCaseBase
     public function hiddenWithMerge(): void
     {
         $fields = ['password'];
-        $model = $this->createMockModel(1);
+        $model  = $this->createMockModel(1);
         $model->expects($this->once())->method('hidden')->with($fields, true);
 
         $collection = new ModelCollection([$model]);
@@ -189,7 +190,7 @@ class ModelCollectionTest extends TestCaseBase
         $model1->expects($this->once())->method('visible')->with($fields, false);
 
         $collection = new ModelCollection([$model1]);
-        $result = $collection->visible($fields);
+        $result     = $collection->visible($fields);
         $this->assertSame($collection, $result);
     }
 
@@ -197,7 +198,7 @@ class ModelCollectionTest extends TestCaseBase
     public function visibleWithMerge(): void
     {
         $fields = ['email'];
-        $model = $this->createMockModel(1);
+        $model  = $this->createMockModel(1);
         $model->expects($this->once())->method('visible')->with($fields, true);
 
         $collection = new ModelCollection([$model]);
@@ -208,11 +209,11 @@ class ModelCollectionTest extends TestCaseBase
     public function append(): void
     {
         $fields = ['full_name', 'age'];
-        $model = $this->createMockModel(1);
+        $model  = $this->createMockModel(1);
         $model->expects($this->once())->method('append')->with($fields, false);
 
         $collection = new ModelCollection([$model]);
-        $result = $collection->append($fields);
+        $result     = $collection->append($fields);
         $this->assertSame($collection, $result);
     }
 
@@ -220,7 +221,7 @@ class ModelCollectionTest extends TestCaseBase
     public function appendWithMerge(): void
     {
         $fields = ['is_active'];
-        $model = $this->createMockModel(1);
+        $model  = $this->createMockModel(1);
         $model->expects($this->once())->method('append')->with($fields, true);
 
         $collection = new ModelCollection([$model]);
@@ -230,12 +231,12 @@ class ModelCollectionTest extends TestCaseBase
     #[Test]
     public function mapping(): void
     {
-        $map = ['user_name' => 'name', 'user_email' => 'email'];
+        $map   = ['user_name' => 'name', 'user_email' => 'email'];
         $model = $this->createMockModel(1);
         $model->expects($this->once())->method('mapping')->with($map);
 
         $collection = new ModelCollection([$model]);
-        $result = $collection->mapping($map);
+        $result     = $collection->mapping($map);
         $this->assertSame($collection, $result);
     }
 
@@ -243,11 +244,11 @@ class ModelCollectionTest extends TestCaseBase
     public function scene(): void
     {
         $sceneName = 'public';
-        $model = $this->createMockModel(1);
+        $model     = $this->createMockModel(1);
         $model->expects($this->once())->method('scene')->with($sceneName);
 
         $collection = new ModelCollection([$model]);
-        $result = $collection->scene($sceneName);
+        $result     = $collection->scene($sceneName);
         $this->assertSame($collection, $result);
     }
 
@@ -255,11 +256,11 @@ class ModelCollectionTest extends TestCaseBase
     public function setParent(): void
     {
         $parent = $this->createMockModel(99);
-        $model = $this->createMockModel(1);
+        $model  = $this->createMockModel(1);
         $model->expects($this->once())->method('setParent')->with($parent);
 
         $collection = new ModelCollection([$model]);
-        $result = $collection->setParent($parent);
+        $result     = $collection->setParent($parent);
         $this->assertSame($collection, $result);
     }
 
@@ -267,11 +268,11 @@ class ModelCollectionTest extends TestCaseBase
     public function withAttr(): void
     {
         $callback = fn ($value) => strtoupper((string) $value);
-        $model = $this->createMockModel(1);
+        $model    = $this->createMockModel(1);
         $model->expects($this->once())->method('withFieldAttr')->with('name', $callback);
 
         $collection = new ModelCollection([$model]);
-        $result = $collection->withAttr('name', $callback);
+        $result     = $collection->withAttr('name', $callback);
         $this->assertSame($collection, $result);
     }
 
@@ -279,7 +280,7 @@ class ModelCollectionTest extends TestCaseBase
     public function withAttrArray(): void
     {
         $callbacks = ['name' => fn ($v) => $v, 'email' => fn ($v) => $v];
-        $model = $this->createMockModel(1);
+        $model     = $this->createMockModel(1);
         $model->expects($this->once())->method('withFieldAttr')->with($callbacks, null);
 
         $collection = new ModelCollection([$model]);
@@ -294,15 +295,15 @@ class ModelCollectionTest extends TestCaseBase
         $model->expects($this->once())->method('bindAttr')->with('profile', $attrs);
 
         $collection = new ModelCollection([$model]);
-        $result = $collection->bindAttr('profile', $attrs);
+        $result     = $collection->bindAttr('profile', $attrs);
         $this->assertSame($collection, $result);
     }
 
     #[Test]
     public function dictionaryWithNoArgsUsesPrimaryKey(): void
     {
-        $model1 = $this->createMockModel(1);
-        $model2 = $this->createMockModel(2);
+        $model1     = $this->createMockModel(1);
+        $model2     = $this->createMockModel(2);
         $collection = new ModelCollection([$model1, $model2]);
 
         $result = $collection->dictionary();
@@ -315,12 +316,12 @@ class ModelCollectionTest extends TestCaseBase
     #[Test]
     public function dictionaryWithCustomIndexKey(): void
     {
-        $model1 = $this->createMockModel(1, ['uuid' => 'abc-123']);
-        $model2 = $this->createMockModel(2, ['uuid' => 'def-456']);
+        $model1     = $this->createMockModel(1, ['uuid' => 'abc-123']);
+        $model2     = $this->createMockModel(2, ['uuid' => 'def-456']);
         $collection = new ModelCollection([$model1, $model2]);
 
         $indexKey = 'uuid';
-        $result = $collection->dictionary(null, $indexKey);
+        $result   = $collection->dictionary(null, $indexKey);
         $this->assertArrayHasKey('abc-123', $result);
         $this->assertArrayHasKey('def-456', $result);
     }
@@ -330,10 +331,10 @@ class ModelCollectionTest extends TestCaseBase
     {
         $model1 = $this->createMockModel(10);
         $model2 = $this->createMockModel(20);
-        $items = [$model1, $model2];
+        $items  = [$model1, $model2];
 
         $collection = new ModelCollection([]);
-        $result = $collection->dictionary($items);
+        $result     = $collection->dictionary($items);
 
         $this->assertArrayHasKey(10, $result);
         $this->assertArrayHasKey(20, $result);
@@ -347,9 +348,9 @@ class ModelCollectionTest extends TestCaseBase
 
         $paginator = new \think\paginator\driver\Bootstrap([$model1, $model2], 10, 1, 100);
 
-        $col = new ModelCollection([]);
+        $col      = new ModelCollection([]);
         $indexKey = null;
-        $result = $col->dictionary($paginator, $indexKey);
+        $result   = $col->dictionary($paginator, $indexKey);
 
         $this->assertArrayHasKey(5, $result);
         $this->assertArrayHasKey(6, $result);
@@ -359,14 +360,14 @@ class ModelCollectionTest extends TestCaseBase
     public function dictionaryEmptyCollectionReturnsEmpty(): void
     {
         $collection = new ModelCollection([]);
-        $result = $collection->dictionary();
+        $result     = $collection->dictionary();
         $this->assertSame([], $result);
     }
 
     #[Test]
     public function diffEmptyOriginalReturnsGivenItems(): void
     {
-        $empty = new ModelCollection([]);
+        $empty  = new ModelCollection([]);
         $model1 = $this->createMockModel(1);
         $model2 = $this->createMockModel(2);
         $result = $empty->diff([$model1, $model2]);
@@ -397,7 +398,7 @@ class ModelCollectionTest extends TestCaseBase
         $model2 = $this->createMockModel(2);
 
         $original = new ModelCollection([$model1, $model2]);
-        $result = $original->diff([$model1]);
+        $result   = $original->diff([$model1]);
 
         $this->assertCount(1, $result);
         $this->assertSame($model2, $result[0]);
@@ -406,8 +407,8 @@ class ModelCollectionTest extends TestCaseBase
     #[Test]
     public function intersectEmptyOriginalReturnsEmptyCollection(): void
     {
-        $empty = new ModelCollection([]);
-        $model = $this->createMockModel(1);
+        $empty  = new ModelCollection([]);
+        $model  = $this->createMockModel(1);
         $result = $empty->intersect([$model]);
 
         $this->assertInstanceOf(ModelCollection::class, $result);
@@ -431,10 +432,10 @@ class ModelCollectionTest extends TestCaseBase
     #[Test]
     public function intersectWithoutIndexKeyAutoDetectsPkAndIntersects(): void
     {
-        $model1 = $this->createMockModel(1);
-        $model2 = $this->createMockModel(2);
+        $model1   = $this->createMockModel(1);
+        $model2   = $this->createMockModel(2);
         $original = new ModelCollection([$model1, $model2]);
-        $result = $original->intersect([$model1]);
+        $result   = $original->intersect([$model1]);
 
         $this->assertCount(1, $result);
         $this->assertSame($model1, $result[0]);
@@ -449,8 +450,8 @@ class ModelCollectionTest extends TestCaseBase
     #[Test]
     public function toArrayAllItems(): void
     {
-        $model1 = $this->createMockModel(1, ['name' => 'a']);
-        $model2 = $this->createMockModel(2, ['name' => 'b']);
+        $model1     = $this->createMockModel(1, ['name' => 'a']);
+        $model2     = $this->createMockModel(2, ['name' => 'b']);
         $collection = new ModelCollection([$model1, $model2]);
 
         $arr = $collection->toArray();
@@ -462,8 +463,8 @@ class ModelCollectionTest extends TestCaseBase
     #[Test]
     public function allMethod(): void
     {
-        $model1 = $this->createMockModel(1);
-        $model2 = $this->createMockModel(2);
+        $model1     = $this->createMockModel(1);
+        $model2     = $this->createMockModel(2);
         $collection = new ModelCollection([$model1, $model2]);
 
         $all = $collection->all();
