@@ -24,7 +24,7 @@ use Exception;
 /**
  * Class Model.
  *
- * @mixin \think\db\Query
+ * @mixin db\Query
  *
  * 模型事件定义（静态方法）：
  * @method static void  onAfterRead(Model $model)     after_read事件定义
@@ -50,16 +50,16 @@ use Exception;
  * @method        mixed getFieldBy(mixed ...$args)     getFieldBy<FieldName>(mixed $value, string $field)  实例根据字段值获取另一列值
  *
  * 动态WHERE条件（AND）：
- * @method static $this where(mixed ...$args)          where<FieldName>(mixed $op, mixed $condition = null)   静态动态字段条件，如 UserModel::whereStatus(1)
- * @method        $this where(mixed ...$args)          where<FieldName>(mixed $op, mixed $condition = null)   实例动态字段条件
+ * @method static db\Query where(mixed ...$args)          where<FieldName>(mixed $op, mixed $condition = null)   静态动态字段条件，如 UserModel::whereStatus(1)
+ * @method        db\Query where(mixed ...$args)          where<FieldName>(mixed $op, mixed $condition = null)   实例动态字段条件
  *
  * 动态WHERE条件（OR）：
- * @method static $this whereOr(mixed ...$args)        whereOr<FieldName>(mixed $op, mixed $condition = null) 静态OR字段条件
- * @method        $this whereOr(mixed ...$args)        whereOr<FieldName>(mixed $op, mixed $condition = null) 实例OR字段条件
+ * @method static db\Query whereOr(mixed ...$args)        whereOr<FieldName>(mixed $op, mixed $condition = null) 静态OR字段条件
+ * @method        db\Query whereOr(mixed ...$args)        whereOr<FieldName>(mixed $op, mixed $condition = null) 实例OR字段条件
  *
  * 模型命名范围（需在模型定义 scope<MethodName> 方法）：
- * @method static $this scope(mixed ...$args)          <scopeName>(mixed ...$args)   调用命名范围，如 UserModel::hot()、UserModel::recent()
- * @method        $this scope(mixed ...$args)          <scopeName>(mixed ...$args)   调用命名范围
+ * @method static db\Query scope(mixed ...$args)          <scopeName>(mixed ...$args)   调用命名范围，如 UserModel::hot()、UserModel::recent()
+ * @method        db\Query scope(mixed ...$args)          <scopeName>(mixed ...$args)   调用命名范围
  *
  * 常用静态查询（转发至 Query）：
  * @method static Model|null find(mixed $data = null, ?\Closure $closure = null)      静态查找单条记录，如 UserModel::find(1)
@@ -69,8 +69,8 @@ use Exception;
  * @method static mixed min(string|\think\db\Raw $field, bool $force = true)  最小值
  * @method static mixed max(string|\think\db\Raw $field, bool $force = true)  最大值
  * @method static float avg(string|\think\db\Raw $field)              平均值
- * @method static \think\db\Query with(array|string $relation, ...$args)         静态关联预载入
- * @method static \think\db\Query order(mixed $field, string $order = '')        静态排序
+ * @method static db\Query with(array|string $relation, ...$args)         静态关联预载入
+ * @method static db\Query order(mixed $field, string $order = '')        静态排序
  * @method static \think\Paginator paginate(int|array|null $listRows = null, int|bool $simple = false) 静态分页
  *
  * 实例常用操作：
@@ -84,11 +84,6 @@ use Exception;
  * @method $this only(array $fields)                                只允许写入指定字段
  * @method $this readonly(array $fields = [])                       设置只读字段
  * @method $this isAutoWriteTimestamp(bool $auto)                   是否自动写入时间戳
- *
- * 关联查询（动态属性）：
- * 建议在子类通过 @property-read 声明关联对象，例如：
- *   @property-read ProfileModel|null $profile  (对应 profile() 定义的 HasOne 关联)
- *   @property-read \think\model\Collection|PostModel[] $posts  (对应 posts() 定义的 HasMany 关联)
  * ---------------------------------------------------------------------
  */
 abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonable
