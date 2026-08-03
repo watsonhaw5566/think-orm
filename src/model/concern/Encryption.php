@@ -13,12 +13,12 @@ declare (strict_types=1);
 
 namespace think\model\concern;
 
-use think\db\Raw;
+use think\Model;
 
 /**
  * 字段加密
  *
- * @mixin \think\Model
+ * @mixin Model
  *
  * @property array  $encryptedFields 【模型中可定义】需要加密的字段列表
  * @property string $encryptKey      【模型中可定义】加密密钥
@@ -42,7 +42,7 @@ trait Encryption
      * @param array $fields
      * @return $this
      */
-    public function setEncryptedFields(array $fields)
+    public function setEncryptedFields(array $fields): static
     {
         $this->encryptedFields = $fields;
 
@@ -67,7 +67,7 @@ trait Encryption
      * @param string $key
      * @return $this
      */
-    public function setEncryptKey(string $key)
+    public function setEncryptKey(string $key): static
     {
         $this->{$this->encryptKeyPropertyName()} = $key;
 
@@ -92,7 +92,7 @@ trait Encryption
     protected function getEncryptKey(): string
     {
         if (property_exists($this, 'encryptKey') && !empty($this->encryptKey)) {
-            return is_string($this->encryptKey) ? $this->encryptKey : (string) $this->encryptKey;
+            return is_string($this->encryptKey) ? $this->encryptKey : (string)$this->encryptKey;
         }
 
         return $this->defaultEncryptKey();
@@ -175,13 +175,13 @@ trait Encryption
      * 通过修改器 设置数据对象值
      * 重写 Attribute::setAttr，在设置属性时自动加密
      *
-     * @param string $name  属性名
-     * @param mixed  $value 属性值
-     * @param array  $data  数据
+     * @param string $name 属性名
+     * @param mixed $value 属性值
+     * @param array $data 数据
      *
      * @return void
      */
-    public function setAttr(string $name, $value, array $data = []): void
+    public function setAttr(string $name, mixed $value, array $data = []): void
     {
         if ($this->isEncryptedField($name) && null !== $value && !$this->isEncryptedValue($value)) {
             $realName       = $this->getRealFieldName($name);
@@ -189,7 +189,6 @@ trait Encryption
             $value          = $this->encryptValue($value);
             unset($decryptedCache[$realName]);
         }
-
         parent::setAttr($name, $value, $data);
     }
 
@@ -197,13 +196,13 @@ trait Encryption
      * 获取经过获取器处理后的数据对象的值
      * 重写 Attribute::getValue，在获取属性时自动解密
      *
-     * @param string      $name     字段名称
-     * @param mixed       $value    字段值
+     * @param string $name 字段名称
+     * @param mixed $value 字段值
      * @param bool|string $relation 是否为关联属性或者关联名
      *
      * @return mixed
      */
-    protected function getValue(string $name, $value, bool | string $relation = false)
+    protected function getValue(string $name, $value, bool|string $relation = false): mixed
     {
         if ($this->isEncryptedField($name) && !$relation) {
             $realName       = $this->getRealFieldName($name);
@@ -225,11 +224,11 @@ trait Encryption
      * 重写以支持 data() 方法设置时的兼容处理
      *
      * @param array $data 数据
-     * @param bool  $set  是否需要进行数据处理
+     * @param bool $set 是否需要进行数据处理
      *
      * @return $this
      */
-    public function appendData(array $data, bool $set = false)
+    public function appendData(array $data, bool $set = false): static
     {
         if (!$set) {
             $encryptedFields = $this->getEncryptedFields();
@@ -238,7 +237,7 @@ trait Encryption
             foreach ($encryptedFields as $field) {
                 $realField = $this->getRealFieldName($field);
                 if (isset($data[$realField])) {
-                    if (null !== $data[$realField] && !$this->isEncryptedValue($data[$realField])) {
+                    if (!$this->isEncryptedValue($data[$realField])) {
                         $data[$realField] = $this->encryptValue($data[$realField]);
                         unset($decryptedCache[$realField]);
                     }
@@ -313,9 +312,9 @@ trait Encryption
      * @param mixed $value
      * @return bool
      */
-    protected function isEncryptedValue($value): bool
+    protected function isEncryptedValue(mixed $value): bool
     {
-        if (!is_string($value) || $value instanceof Raw) {
+        if (!is_string($value)) {
             return false;
         }
 
@@ -330,12 +329,10 @@ trait Encryption
      * @param mixed $value
      * @return string
      */
-    protected function encryptValue($value): string
+    protected function encryptValue(mixed $value): string
     {
         if (is_array($value) || is_object($value)) {
             $value = json_encode($value, JSON_UNESCAPED_UNICODE);
-        } else {
-            $value = (string) $value;
         }
 
         $method    = $this->getEncryptMethod();
@@ -352,10 +349,10 @@ trait Encryption
     /**
      * 解密单个值
      *
-     * @param string $value
+     * @param mixed $value
      * @return mixed
      */
-    protected function decryptValue(string $value): mixed
+    protected function decryptValue(mixed $value): mixed
     {
         $marker = $this->getEncryptMarker();
         $raw    = substr($value, strlen($marker));
