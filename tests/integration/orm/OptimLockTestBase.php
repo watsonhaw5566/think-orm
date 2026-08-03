@@ -11,7 +11,7 @@ use think\db\exception\OptimLockException;
 
 abstract class OptimLockTestBase extends IntegrationTestCaseBase
 {
-    protected function setUp(): void
+    public function setUp(): void
     {
         parent::setUp();
         $this->db->execute('TRUNCATE TABLE orm_test_optim_lock;');
