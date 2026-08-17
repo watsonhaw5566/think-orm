@@ -53,5 +53,5 @@ jobs:
       - name: Run PHPStan
         run: composer analyze
 
-      - name: Run unit tests
+      - name: Run test suite
         run: composer test:unit
