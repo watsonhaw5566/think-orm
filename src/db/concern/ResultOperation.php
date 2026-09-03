@@ -20,7 +20,6 @@ use think\db\exception\DbException;
 use think\db\exception\ModelNotFoundException;
 use think\db\Query;
 use think\helper\Str;
-use think\Model;
 
 /**
  * 查询数据处理.
