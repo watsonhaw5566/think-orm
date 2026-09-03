@@ -82,6 +82,7 @@ use Generator;
  * @method mixed min(string|Raw $field, bool $force = true)            MIN查询
  * @method mixed max(string|Raw $field, bool $force = true)            MAX查询
  * @method float avg(string|Raw $field)                                AVG查询
+ * @method bool exists()                                               判断记录是否存在
  *
  * 模型专用：
  * @method $this with(array|string $relation, ...$args)               关联预载入
