@@ -21,12 +21,15 @@ use think\Model;
 /**
  * 模型关联基础类.
  *
+ * @template TParent of Model
+ * @template TRelated of Model
+ *
  * @mixin Query
  *
  * 动态方法调用说明（通过 __call 魔术方法转发至 Query）:
  * ---------------------------------------------------------------------
  * 按字段获取单条记录：
- * @method mixed getBy(mixed ...$args)          getBy<FieldName>(mixed $value)      根据字段值查找单条记录
+ * @method TRelated|null getBy(mixed ...$args)          getBy<FieldName>(mixed $value)      根据字段值查找单条记录
  *
  * 按字段获取某列值：
  * @method mixed getFieldBy(mixed ...$args)     getFieldBy<FieldName>(mixed $value, string $field)  根据字段值获取另一列值
@@ -47,7 +50,7 @@ use think\Model;
  * @method $this selfRelation(bool $self = true)                 是否自关联查询
  *
  * 关联结果获取：
- * @method mixed getRelation(array $subRelation = [], ?\Closure $closure = null)  获取关联数据
+ * @method TRelated|\think\model\Collection|null getRelation(array $subRelation = [], ?\Closure $closure = null)  获取关联数据
  * ---------------------------------------------------------------------
  */
 abstract class Relation
@@ -55,21 +58,21 @@ abstract class Relation
     /**
      * 父模型对象
      *
-     * @var Model
+     * @var TParent
      */
     protected $parent;
 
     /**
      * 当前关联的模型类名.
      *
-     * @var string
+     * @var class-string<TRelated>
      */
     protected $model;
 
     /**
      * 关联模型查询对象
      *
-     * @var Query
+     * @var Query<TRelated>
      */
     protected $query;
 

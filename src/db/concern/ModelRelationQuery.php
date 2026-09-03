@@ -23,20 +23,22 @@ use DateTimeInterface;
 
 /**
  * 模型及关联查询.
+ *
+ * @template TModel of Model
  */
 trait ModelRelationQuery
 {
     /**
      * 当前模型对象
      *
-     * @var Model
+     * @var TModel|null
      */
     protected $model;
 
     /**
      * 指定模型.
      *
-     * @param Model $model 模型对象实例
+     * @param TModel $model 模型对象实例
      *
      * @return $this
      */
@@ -50,7 +52,7 @@ trait ModelRelationQuery
     /**
      * 获取当前的模型对象
      *
-     * @return Model|null
+     * @return TModel|null
      */
     public function getModel()
     {

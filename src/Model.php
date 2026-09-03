@@ -24,6 +24,7 @@ use Exception;
 /**
  * Class Model.
  *
+ * @template TModel of Model
  * @mixin db\Query
  *
  * 模型事件定义（静态方法）：
@@ -42,8 +43,8 @@ use Exception;
  * 动态方法调用说明（通过 __call / __callStatic 魔术方法转发至 Query）:
  * ---------------------------------------------------------------------
  * 按字段获取单条记录：
- * @method static mixed getBy(mixed ...$args)          getBy<FieldName>(mixed $value)      静态根据字段值查找单条记录，如 UserModel::getById(1)
- * @method        mixed getBy(mixed ...$args)          getBy<FieldName>(mixed $value)      实例根据字段值查找单条记录
+ * @method static static|null getBy(mixed ...$args)          getBy<FieldName>(mixed $value)      静态根据字段值查找单条记录，如 UserModel::getById(1)
+ * @method        static|null getBy(mixed ...$args)          getBy<FieldName>(mixed $value)      实例根据字段值查找单条记录
  *
  * 按字段获取某列值：
  * @method static mixed getFieldBy(mixed ...$args)     getFieldBy<FieldName>(mixed $value, string $field)  静态根据字段值获取另一列值
@@ -62,15 +63,18 @@ use Exception;
  * @method        db\Query scope(mixed ...$args)          <scopeName>(mixed ...$args)   调用命名范围
  *
  * 常用静态查询（转发至 Query）：
- * @method static Model|null find(mixed $data = null, ?\Closure $closure = null)      静态查找单条记录，如 UserModel::find(1)
- * @method static \think\model\Collection select(array $data = [])   静态查询数据集，如 UserModel::select([1,2,3])
- * @method static int count(string $field = '*')                      统计数量
- * @method static float sum(string|\think\db\Raw $field)              求和
- * @method static mixed min(string|\think\db\Raw $field, bool $force = true)  最小值
- * @method static mixed max(string|\think\db\Raw $field, bool $force = true)  最大值
- * @method static float avg(string|\think\db\Raw $field)              平均值
- * @method static db\Query with(array|string $relation, ...$args)         静态关联预载入
- * @method static db\Query order(mixed $field, string $order = '')        静态排序
+ * @method static static|null find(mixed $data = null, ?\Closure $closure = null)      静态查找单条记录，如 UserModel::find(1)
+ * @method static static|null findOrFail(mixed $data = null)                             静态查找单条记录，不存在则抛出异常
+ * @method static static|null findOrEmpty(mixed $data = null)                            静态查找单条记录，不存在则返回空模型
+ * @method static \think\model\Collection<int, static> select(array $data = [])         静态查询数据集，如 UserModel::select([1,2,3])
+ * @method static \think\model\Collection<int, static> selectOrFail(array $data = [])   静态查询数据集，不存在则抛出异常
+ * @method static int count(string $field = '*')                                          统计数量
+ * @method static float sum(string|\think\db\Raw $field)                                求和
+ * @method static mixed min(string|\think\db\Raw $field, bool $force = true)            最小值
+ * @method static mixed max(string|\think\db\Raw $field, bool $force = true)            最大值
+ * @method static float avg(string|\think\db\Raw $field)                                平均值
+ * @method static db\Query with(array|string $relation, ...$args)                        静态关联预载入
+ * @method static db\Query order(mixed $field, string $order = '')                        静态排序
  * @method static \think\Paginator paginate(int|array|null $listRows = null, int|bool $simple = false) 静态分页
  *
  * 实例常用操作：
@@ -357,7 +361,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      * @param mixed $where   更新条件
      * @param array $options 参数
      *
-     * @return Model
+     * @return static
      */
     public function newInstance(array $data = [], $where = null, array $options = []): Model
     {
@@ -999,7 +1003,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      *
      * @return static
      */
-    public static function create(array | object $data, array $allowField = [], bool $replace = false, string $suffix = ''): Model
+    public static function create(array | object $data, array $allowField = [], bool $replace = false, string $suffix = '')
     {
         $model = new static();
 
@@ -1026,7 +1030,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      *
      * @return static
      */
-    public static function update(array | object $data, $where = [], array $allowField = [], string $suffix = '')
+    public static function update(array | object $data, $where = [], array $allowField = [], string $suffix = ''): Model
     {
         $model = new static();
 
@@ -1168,7 +1172,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      *
      * @param array $scope 不启用的全局查询范围
      *
-     * @return Query
+     * @return Query&static
      */
     public static function withoutGlobalScope(?array $scope = null): Query
     {
@@ -1182,7 +1186,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      *
      * @param string $suffix 切换的表后缀
      *
-     * @return Model
+     * @return static
      */
     public static function suffix(string $suffix)
     {
@@ -1197,7 +1201,7 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
      *
      * @param string $connection 数据库连接标识
      *
-     * @return Model
+     * @return static
      */
     public static function connect(string $connection)
     {
@@ -1209,7 +1213,8 @@ abstract class Model implements JsonSerializable, ArrayAccess, Arrayable, Jsonab
 
     /**
      * 创建一个查询对象
-     * @return Query
+     *
+     * @return Query&static
      */
     public static function query(): Query
     {

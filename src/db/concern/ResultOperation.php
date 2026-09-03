@@ -20,7 +20,6 @@ use think\db\exception\DbException;
 use think\db\exception\ModelNotFoundException;
 use think\db\Query;
 use think\helper\Str;
-use think\Model;
 
 /**
  * 查询数据处理.
@@ -170,7 +169,7 @@ trait ResultOperation
      * @throws ModelNotFoundException
      * @throws DataNotFoundException
      *
-     * @return array|Model|null|static
+     * @return array|TModel|null
      */
     protected function resultToEmpty(?Closure $closure = null)
     {
@@ -188,7 +187,7 @@ trait ResultOperation
      *
      * @param mixed $data 数据
      *
-     * @return array|Model|static|mixed
+     * @return array|TModel|null
      */
     public function findOrEmpty($data = null)
     {
@@ -242,7 +241,7 @@ trait ResultOperation
      * @throws ModelNotFoundException
      * @throws DataNotFoundException
      *
-     * @return array|Collection|static[]
+     * @return \think\model\Collection<int, TModel>|Collection
      */
     public function selectOrFail($data = [])
     {
@@ -257,7 +256,7 @@ trait ResultOperation
      * @throws ModelNotFoundException
      * @throws DataNotFoundException
      *
-     * @return array|Model|static|mixed
+     * @return TModel|array
      */
     public function findOrFail($data = null)
     {

@@ -28,10 +28,12 @@ use DateTimeInterface;
 /**
  * 数据查询基础类.
  *
+ * @template TModel of \think\Model
+ *
  * 动态方法调用说明（通过 __call 魔术方法实现）:
  * ---------------------------------------------------------------------
  * 按字段获取单条记录：
- * @method mixed getBy(mixed ...$args)          getBy<FieldName>(mixed $value)      根据字段值查找单条记录，如 getById(1)、getByName('admin')
+ * @method TModel|null getBy(mixed ...$args)          getBy<FieldName>(mixed $value)      根据字段值查找单条记录，如 getById(1)、getByName('admin')
  *
  * 按字段获取某列值：
  * @method mixed getFieldBy(mixed ...$args)     getFieldBy<FieldName>(mixed $value, string $field)  根据字段值获取另一列值，如 getFieldByName('admin', 'id')
@@ -1449,7 +1451,7 @@ abstract class BaseQuery
      *
      * @param array $data 主键数据
      *
-     * @return \think\model\Collection|\think\Collection
+     * @return \think\model\Collection<int, TModel>|\think\Collection
      */
     public function select(array $data = []): Collection
     {
@@ -1486,7 +1488,7 @@ abstract class BaseQuery
      * @throws ModelNotFoundException
      * @throws DataNotFoundException
      *
-     * @return static|\think\Model|array|null
+     * @return TModel|array|null
      */
     public function find($data = null, ?Closure $closure = null)
     {

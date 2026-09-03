@@ -59,8 +59,11 @@ use Generator;
  * @method $this page(int $page, int $listRows = null)                 指定分页
  *
  * 结果获取：
- * @method array|Model|null find(mixed $data = null, ?Closure $closure = null)       查询单条记录
- * @method Collection select(array $data = [])                         查询数据集
+ * @method TModel|array|null find(mixed $data = null, ?Closure $closure = null)       查询单条记录
+ * @method TModel|null findOrFail(mixed $data = null)                                 查询单条记录，不存在则抛出异常
+ * @method TModel|null findOrEmpty(mixed $data = null)                                查询单条记录，不存在则返回空模型
+ * @method \think\model\Collection<int, TModel>|Collection select(array $data = [])  查询数据集
+ * @method \think\model\Collection<int, TModel>|Collection selectOrFail(array $data = []) 查询数据集，不存在则抛出异常
  * @method mixed value(string $field, mixed $default = null, bool $useModelAttr = false) 获取某个字段值
  * @method array column(string|array $field, string $key = '', bool $useModelAttr = false) 获取某一列值
  * @method Paginator paginate(int|array|null $listRows = null, int|bool $simple = false) 分页查询
