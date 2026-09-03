@@ -128,4 +128,16 @@ trait AggregateQuery
     {
         return $this->aggregate('AVG', $field, true);
     }
+
+    /**
+     * 判断记录是否存在.
+     *
+     * @return bool
+     */
+    public function exists(): bool
+    {
+        $result = $this->limit(1)->value('1');
+
+        return !empty($result);
+    }
 }

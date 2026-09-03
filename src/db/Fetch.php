@@ -521,6 +521,16 @@ class Fetch
         return $this->aggregate('AVG', $field);
     }
 
+    /**
+     * 判断记录是否存在.
+     *
+     * @return string
+     */
+    public function exists(): string
+    {
+        return $this->query->limit(1)->value('1');
+    }
+
     public function __call($method, $args)
     {
         if (strtolower(substr($method, 0, 5)) == 'getby') {
