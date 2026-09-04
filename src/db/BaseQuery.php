@@ -1453,7 +1453,7 @@ abstract class BaseQuery
      *
      * @return \think\model\Collection<int, TModel>|\think\Collection
      */
-    public function select(array $data = []): Collection
+    public function select(array $data = []): Collection|\think\model\Collection
     {
         if (!empty($data)) {
             // 主键条件分析

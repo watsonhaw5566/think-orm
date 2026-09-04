@@ -243,7 +243,7 @@ trait ResultOperation
      *
      * @return \think\model\Collection<int, TModel>|Collection
      */
-    public function selectOrFail($data = [])
+    public function selectOrFail($data = []): Collection|\think\model\Collection
     {
         return $this->failException(true)->select($data);
     }
