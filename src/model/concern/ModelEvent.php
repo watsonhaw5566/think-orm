@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace think\model\concern;
 
 use ReflectionClass;
+use ReflectionMethod;
 use think\db\exception\ModelEventException;
 use think\helper\Str;
 
@@ -70,6 +71,116 @@ trait ModelEvent
     }
 
     /**
+     * after_read 事件，子类可重写.
+     *
+     * @param Model $model 模型实例
+     * @return void
+     */
+    public static function onAfterRead($model)
+    {
+    }
+
+    /**
+     * before_insert 事件，子类可重写. 返回 false 可阻止写入.
+     *
+     * @param Model $model 模型实例
+     * @return mixed
+     */
+    public static function onBeforeInsert($model)
+    {
+    }
+
+    /**
+     * after_insert 事件，子类可重写.
+     *
+     * @param Model $model 模型实例
+     * @return void
+     */
+    public static function onAfterInsert($model)
+    {
+    }
+
+    /**
+     * before_update 事件，子类可重写. 返回 false 可阻止更新.
+     *
+     * @param Model $model 模型实例
+     * @return mixed
+     */
+    public static function onBeforeUpdate($model)
+    {
+    }
+
+    /**
+     * after_update 事件，子类可重写.
+     *
+     * @param Model $model 模型实例
+     * @return void
+     */
+    public static function onAfterUpdate($model)
+    {
+    }
+
+    /**
+     * before_write 事件，子类可重写. 返回 false 可阻止写入.
+     *
+     * @param Model $model 模型实例
+     * @return mixed
+     */
+    public static function onBeforeWrite($model)
+    {
+    }
+
+    /**
+     * after_write 事件，子类可重写.
+     *
+     * @param Model $model 模型实例
+     * @return void
+     */
+    public static function onAfterWrite($model)
+    {
+    }
+
+    /**
+     * before_delete 事件，子类可重写. 返回 false 可阻止删除.
+     *
+     * @param Model $model 模型实例
+     * @return mixed
+     */
+    public static function onBeforeDelete($model)
+    {
+    }
+
+    /**
+     * after_delete 事件，子类可重写.
+     *
+     * @param Model $model 模型实例
+     * @return void
+     */
+    public static function onAfterDelete($model)
+    {
+    }
+
+    /**
+     * before_restore 事件，子类可重写.
+     *
+     * @param Model $model 模型实例
+     * @return void
+     */
+    public static function onBeforeRestore($model)
+    {
+    }
+
+    /**
+     * after_restore 事件，子类可重写.
+     *
+     * @param Model $model 模型实例
+     * @return void
+     */
+    public static function onAfterRestore($model)
+    {
+    }
+
+    /**
      * 触发事件.
      *
      * @param string $event 事件名
@@ -92,7 +203,7 @@ trait ModelEvent
                 $observer = static::class;
             }
 
-            if (method_exists($observer, $call)) {
+            if (method_exists($observer, $call) && !$this->isTraitDefaultMethod($observer, $call)) {
                 $result = $this->invoke([$observer, $call], [$this]);
             } elseif (is_object(self::$event) && method_exists(self::$event, 'trigger')) {
                 $result = self::$event->trigger(static::class . '.' . $event, $this);
@@ -105,5 +216,24 @@ trait ModelEvent
         } catch (ModelEventException $e) {
             return false;
         }
+    }
+
+    /**
+     * 判断给定方法是否为 trait 提供的默认空实现（子类未重写）.
+     *
+     * 通过比较方法定义文件与 trait 文件路径来判断子类是否真正重写了事件方法，
+     * 以确保全局 Event 系统在子类未重写时仍可正常触发.
+     *
+     * @param object|string $class  类名或实例
+     * @param string        $method 方法名
+     *
+     * @return bool
+     */
+    private function isTraitDefaultMethod(object|string $class, string $method): bool
+    {
+        $reflection = new ReflectionMethod($class, $method);
+        $traitFile  = (new ReflectionClass(__TRAIT__))->getFileName();
+
+        return $reflection->getFileName() === $traitFile;
     }
 }

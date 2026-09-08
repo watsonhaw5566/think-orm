@@ -26,6 +26,55 @@ composer require watsonhaw/think-orm
 
 详细参考 [ThinkORM开发指南](https://doc.thinkphp.cn/@think-orm)
 
+## 模型事件
+
+模型事件允许在数据写入、更新、删除的前后自动执行自定义逻辑。框架在 `ModelEvent` trait 中提供了以下事件方法，子类可直接重写：
+
+| 方法 | 触发时机 | 返回值说明 |
+|------|---------|-----------|
+| `onAfterRead` | 读取数据后 | - |
+| `onBeforeInsert` | 插入前 | 返回 `false` 可阻止写入 |
+| `onAfterInsert` | 插入后 | - |
+| `onBeforeUpdate` | 更新前 | 返回 `false` 可阻止更新 |
+| `onAfterUpdate` | 更新后 | - |
+| `onBeforeWrite` | 写入前（insert/update 通用） | 返回 `false` 可阻止写入 |
+| `onAfterWrite` | 写入后（insert/update 通用） | - |
+| `onBeforeDelete` | 删除前 | 返回 `false` 可阻止删除 |
+| `onAfterDelete` | 删除后 | - |
+| `onBeforeRestore` | 恢复前 | - |
+| `onAfterRestore` | 恢复后 | - |
+
+### Before 与 After 的区别
+
+**Before 事件**：在数据库操作**之前**触发，此时修改模型数据会随本次操作一起写入，**无需调用 `save()`**。
+
+**After 事件**：在数据库操作**之后**触发，此时修改模型数据不会自动持久化，如需保存需显式调用 `save()`。
+
+```php
+class Order extends Model
+{
+    // Before：直接赋值，随本次 insert 一起写入
+    public static function onBeforeInsert($model)
+    {
+        $model->order_no = date('YmdHis') . mt_rand(1000, 9999);
+        $model->status   = 0;
+    }
+
+    // After：如需持久化需显式 save()
+    public static function onAfterInsert($model)
+    {
+        $model->extra = 'some value';
+        $model->save(); // 触发 UPDATE
+    }
+}
+```
+
+### 注意事项
+
+1. **不要在 Before 事件中调用 `save()`**：会导致无限递归（`save()` → `Before*` → `save()`）。
+2. **避免在 `onAfterWrite` 中调用 `save()`**：`onAfterWrite` 在 insert/update 后都会触发，调用 `save()` 会再次触发 `onAfterWrite`，造成递归。
+3. **只有通过模型方法（`save()`、`create()`、`update()`、`destroy()` 等）写入才会触发事件**，直接使用 `Db` 查询构造器写入不会触发模型事件。
+
 ## 乐观锁使用指南
 
 乐观锁用于处理并发场景下的数据更新冲突问题。其原理是通过在数据表中增加一个版本号字段，
