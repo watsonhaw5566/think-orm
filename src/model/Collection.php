@@ -46,16 +46,6 @@ class Collection extends BaseCollection
     }
 
     /**
-     * 统计数据集中的模型数量.
-     *
-     * @return int
-     */
-    public function count(): int
-    {
-        return parent::count();
-    }
-
-    /**
      * 删除数据集的数据.
      *
      * @return bool
