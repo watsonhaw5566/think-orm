@@ -40,6 +40,18 @@ use think\Model;
  * 动态WHERE条件（OR）：
  * @method $this whereOr(mixed ...$args)        whereOr<FieldName>(mixed $op, mixed $condition = null) 动态OR字段条件
  *
+ * 时间范围查询（转发至 Query，对应 TimeFieldQuery trait）：
+ * @method $this whereTime(string $field, string $op, mixed $range = null, string $logic = 'AND')              查询日期或时间，$op 支持 today/yesterday/week/month/year 等
+ * @method $this whereTimeInterval(string $field, string $start, string $interval = 'day', int $step = 1, string $logic = 'AND') 按时间间隔查询
+ * @method $this whereDay(string $field, string $day = 'today', int $step = 1, string $logic = 'AND')         查询某一天，$day 支持 today/yesterday 或日期字符串
+ * @method $this whereWeek(string $field, string $week = 'this week', int $step = 1, string $logic = 'AND')   查询某一周
+ * @method $this whereMonth(string $field, string $month = 'this month', int $step = 1, string $logic = 'AND') 查询某一月
+ * @method $this whereYear(string $field, string $year = 'this year', int $step = 1, string $logic = 'AND')    查询某一年
+ * @method $this whereBetweenTime(string $field, string|int $startTime, string|int $endTime, string $logic = 'AND')     查询指定时间范围内
+ * @method $this whereNotBetweenTime(string $field, string|int $startTime, string|int $endTime)               查询指定时间范围外
+ * @method $this whereBetweenTimeField(string $startField, string $endField)                                 当前时间在两个时间字段之间
+ * @method $this whereNotBetweenTimeField(string $startField, string $endField)                              当前时间不在两个时间字段之间
+ *
  * 关联常用链式调用：
  * @method $this bind(mixed $fields = [])                        绑定关联属性到父模型
  * @method $this withAttr(array $withAttr)                       动态获取器

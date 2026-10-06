@@ -62,6 +62,18 @@ use Exception;
  * @method static db\Query scope(mixed ...$args)          <scopeName>(mixed ...$args)   调用命名范围，如 UserModel::hot()、UserModel::recent()
  * @method        db\Query scope(mixed ...$args)          <scopeName>(mixed ...$args)   调用命名范围
  *
+ * 时间范围查询（静态转发至 Query，对应 TimeFieldQuery trait）：
+ * @method static db\Query whereTime(string $field, string $op, mixed $range = null, string $logic = 'AND')              查询日期或时间，$op 支持 today/yesterday/week/last week/month/year 等
+ * @method static db\Query whereTimeInterval(string $field, string $start, string $interval = 'day', int $step = 1, string $logic = 'AND') 按时间间隔查询，$interval 支持 day/week/month/year/hour 等
+ * @method static db\Query whereDay(string $field, string $day = 'today', int $step = 1, string $logic = 'AND')         查询某一天，$day 支持 today/yesterday 或日期字符串
+ * @method static db\Query whereWeek(string $field, string $week = 'this week', int $step = 1, string $logic = 'AND')   查询某一周
+ * @method static db\Query whereMonth(string $field, string $month = 'this month', int $step = 1, string $logic = 'AND') 查询某一月
+ * @method static db\Query whereYear(string $field, string $year = 'this year', int $step = 1, string $logic = 'AND')    查询某一年
+ * @method static db\Query whereBetweenTime(string $field, string|int $startTime, string|int $endTime, string $logic = 'AND')     查询指定时间范围内
+ * @method static db\Query whereNotBetweenTime(string $field, string|int $startTime, string|int $endTime)               查询指定时间范围外
+ * @method static db\Query whereBetweenTimeField(string $startField, string $endField)                                 当前时间在两个时间字段之间
+ * @method static db\Query whereNotBetweenTimeField(string $startField, string $endField)                              当前时间不在两个时间字段之间
+ *
  * 常用静态查询（转发至 Query）：
  * @method static static|null find(mixed $data = null, ?\Closure $closure = null)      静态查找单条记录，如 UserModel::find(1)
  * @method static static|null findOrFail(mixed $data = null)                             静态查找单条记录，不存在则抛出异常
